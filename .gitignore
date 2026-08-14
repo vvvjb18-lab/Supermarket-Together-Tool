@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -52,3 +53,10 @@ prompt
 server.log
 # Skills directory
 /skills/
+
+# database (machine-specific SQLite)
+/db/*.db
+/db/*.db-journal
+
+# agent context (internal work logs)
+/agent-ctx/
