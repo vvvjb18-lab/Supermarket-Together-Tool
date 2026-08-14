@@ -1,6 +1,7 @@
 'use client'
 
-import { Suspense, lazy } from 'react'
+import { Suspense, lazy, useEffect, useRef } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Sidebar } from './sidebar'
 import { TopBar } from './topbar'
 import { useUIStore } from '@/lib/store'
@@ -28,6 +29,42 @@ const Achievements = lazy(() => import('@/components/lab/achievements').then((m)
 const RawData = lazy(() => import('@/components/lab/raw-data').then((m) => ({ default: m.RawData })))
 const Atlas = lazy(() => import('@/components/lab/atlas').then((m) => ({ default: m.Atlas })))
 
+// Map view ID to its component (keeps the switch compact)
+const VIEW_COMPONENTS: Record<string, React.LazyExoticComponent<() => any>> = {
+  dashboard: Dashboard,
+  upload: Upload,
+  room: Room,
+  layout: Layout,
+  restock: Restock,
+  pricing: Pricing,
+  skills: Skills,
+  employees: Employees,
+  manufacturing: Manufacturing,
+  seasons: Seasons,
+  wiki: Wiki,
+  profit: Profit,
+  salt: Salt,
+  simulator: Simulator,
+  containers: Containers,
+  exploits: Exploits,
+  achievements: Achievements,
+  rawdata: RawData,
+  atlas: Atlas,
+}
+
+// Page transition animation variants
+const pageVariants = {
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -4 },
+}
+
+const pageTransition = {
+  type: 'tween' as const,
+  ease: 'easeOut' as const,
+  duration: 0.15,
+}
+
 function PageFallback() {
   return (
     <div className="space-y-4 p-4">
@@ -44,34 +81,42 @@ function PageFallback() {
 
 export function AppShell() {
   const view = useUIStore((s) => s.view)
+  const mainRef = useRef<HTMLElement>(null)
+  const prevView = useRef(view)
+
+  // Scroll to top on view change
+  useEffect(() => {
+    if (view !== prevView.current) {
+      mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+      prevView.current = view
+    }
+  }, [view])
+
+  const PageComponent = VIEW_COMPONENTS[view]
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground">
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar />
-        <main className="flex-1 overflow-y-auto">
+        <main ref={mainRef} className="flex-1 overflow-y-auto">
           <PageErrorBoundary viewName={view}>
             <Suspense fallback={<PageFallback />}>
-              {view === 'dashboard' && <Dashboard />}
-              {view === 'upload' && <Upload />}
-              {view === 'room' && <Room />}
-              {view === 'layout' && <Layout />}
-              {view === 'restock' && <Restock />}
-              {view === 'pricing' && <Pricing />}
-              {view === 'skills' && <Skills />}
-              {view === 'employees' && <Employees />}
-              {view === 'manufacturing' && <Manufacturing />}
-              {view === 'seasons' && <Seasons />}
-              {view === 'wiki' && <Wiki />}
-              {view === 'profit' && <Profit />}
-              {view === 'salt' && <Salt />}
-              {view === 'simulator' && <Simulator />}
-              {view === 'containers' && <Containers />}
-              {view === 'exploits' && <Exploits />}
-              {view === 'achievements' && <Achievements />}
-              {view === 'rawdata' && <RawData />}
-              {view === 'atlas' && <Atlas />}
+              <AnimatePresence mode="wait" initial={false}>
+                {PageComponent && (
+                  <motion.div
+                    key={view}
+                    variants={pageVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    transition={pageTransition}
+                    className="min-h-full"
+                  >
+                    <PageComponent />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </Suspense>
           </PageErrorBoundary>
         </main>
