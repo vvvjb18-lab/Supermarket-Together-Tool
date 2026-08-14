@@ -25,7 +25,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Upload, AlertTriangle, TrendingUp, TrendingDown, PackageX, Lightbulb, ArrowRight } from 'lucide-react'
+import { Upload, AlertTriangle, TrendingUp, TrendingDown, PackageX, Lightbulb, ArrowRight, Store, Coins, Calendar, Heart, Banknote, Layers, Users, Boxes, Palette } from 'lucide-react'
 import type { Product } from '@/lib/types'
 
 export function Dashboard() {
@@ -225,6 +225,9 @@ export function Dashboard() {
         />
       </div>
 
+      {/* Save Overview (real save data) */}
+      {hasData && <SaveOverviewCard snapshot={snapshot!} />}
+
       {/* Next best actions */}
       <Card>
         <CardHeader className="pb-2">
@@ -422,6 +425,204 @@ function NecessityCoverageMini({ snapshot }: { snapshot: any }) {
               <div className="mt-1">
                 <MiniBar value={c.coverage * 100} max={100} color={c.coverage > 0.7 ? 'bg-emerald-500' : c.coverage > 0.3 ? 'bg-amber-500' : 'bg-rose-500'} />
               </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function SaveOverviewCard({ snapshot }: { snapshot: NonNullable<ReturnType<typeof useSaveStore.getState>['snapshot']> }) {
+  const s = snapshot
+  const brandColor = s.supermarketColor
+    ? `rgb(${Math.round(s.supermarketColor.r * 255)},${Math.round(s.supermarketColor.g * 255)},${Math.round(s.supermarketColor.b * 255)})`
+    : undefined
+
+  const tiles: { icon: React.ReactNode; label: string; value: string; hint?: string; accent?: string }[] = []
+
+  // Identity
+  if (s.storeName) {
+    tiles.push({
+      icon: <Store className="h-3.5 w-3.5" />,
+      label: '店面名稱',
+      value: s.storeName,
+      hint: s.supermarketName ? `品牌: ${s.supermarketName}` : undefined,
+    })
+  }
+  if (s.supermarketName && brandColor) {
+    tiles.push({
+      icon: <Palette className="h-3.5 w-3.5" />,
+      label: '品牌',
+      value: s.supermarketName,
+      hint: `RGB(${s.supermarketColor!.r.toFixed(0)},${s.supermarketColor!.g.toFixed(0)},${s.supermarketColor!.b.toFixed(0)})`,
+    })
+  }
+
+  // Progression
+  if (s.difficulty != null) {
+    tiles.push({
+      icon: <Heart className="h-3.5 w-3.5" />,
+      label: '難度',
+      value: `${s.difficulty} / 5`,
+    })
+  }
+  if (s.franchiseExperience != null) {
+    tiles.push({
+      icon: <Coins className="h-3.5 w-3.5" />,
+      label: 'Franchise XP',
+      value: s.franchiseExperience.toLocaleString(),
+      hint: s.lastAwardedLevel != null ? `Last Level: ${s.lastAwardedLevel}` : undefined,
+    })
+  }
+  if (s.lastAwardedLevel != null) {
+    tiles.push({
+      icon: <Layers className="h-3.5 w-3.5" />,
+      label: '已達等級',
+      value: `${s.lastAwardedLevel}`,
+      hint: `Day ${s.day}`,
+    })
+  }
+
+  // Finance
+  if (s.loanAmount != null && s.loanAmount > 0) {
+    tiles.push({
+      icon: <Banknote className="h-3.5 w-3.5" />,
+      label: '貸款',
+      value: fmtMoney(s.loanAmount),
+      hint: s.loanPaymentPerDay ? `每日還款 ${fmtMoney(s.loanPaymentPerDay)}` : undefined,
+      accent: 'amber',
+    })
+  }
+
+  // Expansion
+  if (s.spaceBought != null) {
+    tiles.push({
+      icon: <Boxes className="h-3.5 w-3.5" />,
+      label: '店面擴建',
+      value: `${s.spaceBought}`,
+    })
+  }
+  if (s.storageBought != null) {
+    tiles.push({
+      icon: <Boxes className="h-3.5 w-3.5" />,
+      label: '倉庫擴建',
+      value: `${s.storageBought}`,
+    })
+  }
+
+  // Employees
+  if (s.employees.length > 0) {
+    const totalSalary = s.employees.reduce((a, b) => a + b.salary, 0)
+    tiles.push({
+      icon: <Users className="h-3.5 w-3.5" />,
+      label: '雇用員工',
+      value: `${s.employees.length}`,
+      hint: `日薪合計 ${fmtMoney(totalSalary)}`,
+    })
+  }
+
+  // Invoices
+  if (s.invoices && s.invoices.length > 0) {
+    tiles.push({
+      icon: <Calendar className="h-3.5 w-3.5" />,
+      label: '待處理發票',
+      value: `${s.invoices.length}`,
+      accent: 'amber',
+    })
+  }
+
+  // Store layout
+  if (s.storeLayout.length > 0) {
+    const totalUnits = s.storeLayout.reduce(
+      (a, p) => a + p.inventory.reduce((b, i) => b + i.count, 0),
+      0,
+    )
+    tiles.push({
+      icon: <Boxes className="h-3.5 w-3.5" />,
+      label: '店面道具',
+      value: `${s.storeLayout.length}`,
+      hint: `${totalUnits.toLocaleString()} 件庫存`,
+    })
+  }
+
+  // Deco props
+  if (s.decoPropsCount != null && s.decoPropsCount > 0) {
+    tiles.push({
+      icon: <Palette className="h-3.5 w-3.5" />,
+      label: '裝飾道具',
+      value: `${s.decoPropsCount}`,
+    })
+  }
+
+  // Unlocks
+  tiles.push({
+    icon: <Layers className="h-3.5 w-3.5" />,
+    label: '已解鎖 Tier',
+    value: `${s.unlockedProductTiers.length} / 55`,
+    hint: `${s.unlockedProducts.length} / 339 商品`,
+  })
+
+  // Recipes
+  if (s.manufacUnlockedRecipes) {
+    const unlocked = s.manufacUnlockedRecipes.filter(Boolean).length
+    tiles.push({
+      icon: <Boxes className="h-3.5 w-3.5" />,
+      label: '製造配方',
+      value: `${unlocked} / ${s.manufacUnlockedRecipes.length}`,
+      accent: unlocked === 0 ? 'amber' : undefined,
+    })
+  }
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center justify-between text-base">
+          <span className="flex items-center gap-2">
+            <Store className="h-4 w-4 text-emerald-500" />
+            存檔概覽
+          </span>
+          <div className="flex items-center gap-2">
+            {brandColor && (
+              <span
+                className="inline-block h-4 w-4 rounded border"
+                style={{ backgroundColor: brandColor }}
+                title={`Brand color: ${brandColor}`}
+              />
+            )}
+            <ConfidenceBadge
+              confidence="confirmed"
+              formula="ES3 fields → SaveSnapshot"
+              sources={['es3-parser.ts', 'Funds/Day/FP/FX/Loan/StoreName/etc.']}
+              note={`來源: ${s.source}`}
+            />
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
+          {tiles.map((t, i) => (
+            <div
+              key={i}
+              className="rounded-md border bg-card p-2"
+              style={
+                t.accent === 'amber'
+                  ? { borderColor: 'rgb(245 158 11 / 0.4)', backgroundColor: 'rgb(245 158 11 / 0.03)' }
+                  : undefined
+              }
+            >
+              <div className="flex items-center gap-1 text-[10px] font-medium uppercase text-muted-foreground">
+                {t.icon}
+                {t.label}
+              </div>
+              <div className="mt-0.5 truncate font-mono text-sm font-bold" title={t.value}>
+                {t.value}
+              </div>
+              {t.hint && (
+                <div className="mt-0.5 truncate text-[10px] text-muted-foreground" title={t.hint}>
+                  {t.hint}
+                </div>
+              )}
             </div>
           ))}
         </div>

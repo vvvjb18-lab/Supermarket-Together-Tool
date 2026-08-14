@@ -51,6 +51,7 @@ import {
   ChevronDown,
   ShoppingCart,
   Users,
+  Receipt,
 } from 'lucide-react'
 
 const STRATEGIES: { id: RestockStrategy; label: string; desc: string }[] = [
@@ -189,6 +190,26 @@ export function Restock() {
     setResult(r)
     toast.success(`已計算 ${r.value.length} 項採購建議（${strategy}）`)
   }
+
+  // Parse outstanding invoices from ES3 CurrentInvoicesArray
+  const invoices = useMemo(() => {
+    if (!snapshot?.invoices?.length) return []
+    return snapshot.invoices.map((raw, i) => {
+      const parts = raw.split('|')
+      const toNum = (s: string | undefined) => Number((s ?? '0').replace(',', '.'))
+      return {
+        idx: i,
+        invoiceId: parts[0] ?? String(i),
+        amount: toNum(parts[1]),
+        day: toNum(parts[2]),
+        dueDay: toNum(parts[3]),
+        flags: parts[4] ?? '',
+        raw,
+      }
+    }).filter((inv) => inv.amount > 0)
+  }, [snapshot])
+
+  const totalInvoiceAmount = invoices.reduce((a, b) => a + b.amount, 0)
 
   const recs = result?.value ?? []
   const totalCost = recs.reduce((s, r) => s + r.costEstimate, 0)

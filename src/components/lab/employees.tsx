@@ -13,10 +13,9 @@ import {
 } from 'recharts'
 import { encyclopedia as ENC } from '@/lib/data-loader'
 import { computeEmployeeSpeed, computeXpToNextLevel } from '@/lib/engine'
-import { useRoomStore } from '@/lib/store'
+import { useRoomStore, useSaveStore } from '@/lib/store'
 import {
   ConfidenceBadge,
-  SectionHeader,
   StatCard,
   fmt,
 } from '@/components/shared/primitives'
@@ -47,6 +46,8 @@ import {
   ListChecks,
   Users,
   Cog,
+  UserCheck,
+  DollarSign,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -92,9 +93,37 @@ const STATIC_CHECKLIST = [
 export function Employees() {
   const [level, setLevel] = useState(2)
   const [factor, setFactor] = useState(0)
+  const snapshot = useSaveStore((s) => s.snapshot)
 
   const speedRes = useMemo(() => computeEmployeeSpeed(level, factor), [level, factor])
   const xpRes = useMemo(() => computeXpToNextLevel(level), [level])
+
+  // Real hired employees from save (ES3 parsed)
+  const hiredEmployees = useMemo(() => {
+    if (!snapshot?.employees?.length) return []
+    return snapshot.employees.map((emp, i) => {
+      const skillKeys = EMP_SKILLS.map((s) => s.key)
+      const skillEntries = Object.entries(emp.skills).map(([k, v], idx) => ({
+        key: k,
+        label: EMP_SKILLS[idx]?.zhHant ?? k,
+        value: v.level,
+        idx,
+      }))
+      const topSkill = skillEntries.reduce((a, b) => (b.value > a.value ? b : a), skillEntries[0])
+      const avgSkill = skillEntries.reduce((a, b) => a + b.value, 0) / skillEntries.length
+      const taskId = emp.task
+      const task = ENC.employeeTasks.find((t) => t.id === taskId)
+      // Speed proxy: use average skill as level proxy (capped at 5)
+      const levelProxy = Math.min(5, Math.round(avgSkill / 2))
+      const speedProxy = computeEmployeeSpeed(levelProxy, 0).value
+      return { emp, idx: i, skillEntries, topSkill, avgSkill, task, levelProxy, speedProxy }
+    })
+  }, [snapshot])
+
+  const totalSalary = useMemo(
+    () => hiredEmployees.reduce((a, b) => a + b.emp.salary, 0),
+    [hiredEmployees],
+  )
 
   // Chart data: speed vs level (0-5) for factor=0, 0.5, 1.0
   const speedChart = useMemo(() => {
@@ -208,6 +237,164 @@ export function Employees() {
           accent="neutral"
         />
       </div>
+
+      {/* Hired Employees Roster (from real save) */}
+      {hiredEmployees.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center justify-between text-base">
+              <span className="flex items-center gap-2">
+                <UserCheck className="h-4 w-4 text-emerald-500" />
+                已雇用員工花名冊
+                <Badge variant="secondary" className="text-[10px]">{hiredEmployees.length} 人</Badge>
+              </span>
+              <ConfidenceBadge
+                confidence="confirmed"
+                formula="HiredEmployeesData pipe-string → {name, task, salary, skills[7]}"
+                sources={['ES3: HiredEmployeesData', 'employeeConfig.skillOrder']}
+                note="技能值語義為 reverse-engineered proxy（0-10 量級，非遊戲內 level 0-5）"
+              />
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {/* Summary row */}
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded-md border bg-card p-2">
+                <div className="flex items-center gap-1 text-[10px] font-medium uppercase text-muted-foreground">
+                  <Users className="h-3 w-3" /> 雇用數
+                </div>
+                <div className="mt-0.5 font-mono text-sm font-bold">{hiredEmployees.length}</div>
+              </div>
+              <div className="rounded-md border bg-card p-2">
+                <div className="flex items-center gap-1 text-[10px] font-medium uppercase text-muted-foreground">
+                  <DollarSign className="h-3 w-3" /> 每日薪資總額
+                </div>
+                <div className="mt-0.5 font-mono text-sm font-bold text-amber-600 dark:text-amber-400">
+                  ${totalSalary.toLocaleString()}
+                </div>
+              </div>
+              <div className="rounded-md border bg-card p-2">
+                <div className="flex items-center gap-1 text-[10px] font-medium uppercase text-muted-foreground">
+                  <Gauge className="h-3 w-3" /> 平均速度 proxy
+                </div>
+                <div className="mt-0.5 font-mono text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                  {fmt(hiredEmployees.reduce((a, b) => a + b.speedProxy, 0) / hiredEmployees.length, 3)} u/s
+                </div>
+              </div>
+              <div className="rounded-md border bg-card p-2">
+                <div className="flex items-center gap-1 text-[10px] font-medium uppercase text-muted-foreground">
+                  <Crown className="h-3 w-3" /> 最強技能
+                </div>
+                <div className="mt-0.5 text-sm font-bold">
+                  {hiredEmployees[0]?.topSkill?.label ?? '—'}
+                </div>
+              </div>
+            </div>
+
+            {/* Employee cards */}
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
+              {hiredEmployees.map(({ emp, idx, skillEntries, topSkill, avgSkill, task, levelProxy, speedProxy }) => (
+                <div
+                  key={emp.id}
+                  className="rounded-lg border bg-card p-3 space-y-2"
+                  style={{ borderLeftColor: task?.color ?? '#6b7280', borderLeftWidth: 3 }}
+                >
+                  {/* Header */}
+                  <div className="flex items-start justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                          {idx}
+                        </span>
+                        <span className="truncate text-sm font-bold">{emp.name}</span>
+                      </div>
+                      <div className="mt-0.5 flex flex-wrap items-center gap-1 pl-8 text-[10px] text-muted-foreground">
+                        <code className="rounded bg-muted px-1">{emp.id.split(':').slice(0, 2).join(':')}</code>
+                        <span>·</span>
+                        <span
+                          className="rounded px-1 py-0.5 font-medium"
+                          style={{
+                            backgroundColor: `${task?.color ?? '#6b7280'}20`,
+                            color: task?.color === '#ffffff' ? undefined : task?.color,
+                          }}
+                        >
+                          {task?.name?.zhHant ?? `task ${emp.task}`}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-mono text-xs font-bold text-amber-600 dark:text-amber-400">
+                        ${emp.salary.toLocaleString()}
+                      </div>
+                      <div className="text-[9px] text-muted-foreground">/day</div>
+                    </div>
+                  </div>
+
+                  {/* Skill bars */}
+                  <div className="space-y-1">
+                    {skillEntries.map((s) => {
+                      const maxVal = 10
+                      const pct = (s.value / maxVal) * 100
+                      const isTop = s.key === topSkill.key
+                      return (
+                        <div key={s.key} className="flex items-center gap-2">
+                          <span className="w-16 shrink-0 text-[10px] text-muted-foreground">{s.label}</span>
+                          <div className="relative h-3 flex-1 overflow-hidden rounded bg-muted">
+                            <div
+                              className={cn(
+                                'h-full rounded transition-all',
+                                isTop ? 'bg-emerald-500' : pct > 50 ? 'bg-sky-400' : 'bg-zinc-400',
+                              )}
+                              style={{ width: `${Math.max(2, pct)}%` }}
+                            />
+                          </div>
+                          <span className={cn(
+                            'w-5 shrink-0 text-right font-mono text-[10px] tabular-nums',
+                            isTop && 'font-bold text-emerald-600 dark:text-emerald-400',
+                          )}>
+                            {s.value}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  {/* Footer stats */}
+                  <div className="grid grid-cols-3 gap-1 border-t pt-2 text-center">
+                    <div>
+                      <div className="text-[9px] uppercase text-muted-foreground">平均</div>
+                      <div className="font-mono text-xs font-bold">{fmt(avgSkill, 1)}</div>
+                    </div>
+                    <div>
+                      <div className="text-[9px] uppercase text-muted-foreground">速度 proxy</div>
+                      <div className="font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                        {fmt(speedProxy, 2)}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[9px] uppercase text-muted-foreground">建議角色</div>
+                      <div className="text-xs font-bold text-fuchsia-600 dark:text-fuchsia-400">
+                        {topSkill.label}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Note */}
+            <div className="flex items-start gap-2 rounded-md border border-sky-500/30 bg-sky-500/5 p-2 text-[11px] text-sky-800 dark:text-sky-200">
+              <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
+              <div>
+                技能值來自 ES3 <code className="rounded bg-muted px-0.5">HiredEmployeesData</code> pipe-string
+                第 2-8 欄（7 個值，對應 <code className="rounded bg-muted px-0.5">employeeConfig.skillOrder</code>）。
+                量級為 0-10，確切語義（XP/1000 或 skill points）未經遊戲原始碼確認 — 標記為 proxy。
+                速度 proxy 使用 <code className="rounded bg-muted px-0.5">levelProxy = min(5, round(avg/2))</code> 代入速度公式。
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Speed calculator */}
       <Card>
