@@ -745,3 +745,114 @@ Stage Summary:
 - Room works in LOCAL mode now (BroadcastChannel + bcrypt localStorage); will auto-switch to Supabase backend when NEXT_PUBLIC_SUPABASE_URL + NEXT_PUBLIC_SUPABASE_ANON_KEY are set.
 - 7 skill tools all functional with real save data (10/44 unlocked, FP math correct).
 - Ready to commit & push to GitHub.
+
+---
+Task ID: 12-foundation
+Agent: orchestrator (main) — cron webDevReview round
+Task: QA sweep + TSV export utility + prepare for Complete Game Atlas.
+
+Work Log:
+- agent-browser QA: navigated all 17 main pages + 7 skill tool sub-tabs with console.error capture. Found 1 bug: manufacturing page crashed with "A <Select.Item /> must have a value prop that is not an empty string" (Radix Select forbids empty string values).
+- Fixed manufacturing.tsx: changed `<SelectItem value="">— 未指派 —</SelectItem>` to `value="__none__"` with onValueChange mapping `__none__` → `''`. Re-verified: 0 errors across all 17 pages.
+- Created `src/lib/export-utils.ts`: `toTsv()` / `toCsv()` / `downloadTextFile()` (BOM-prefixed for Excel CJK compat) / `downloadTsv()` / `downloadCsv()`.
+- Added "下載 TSV" export button to 3 data-heavy tables:
+  - PerksTableView (skill-tree.tsx): exports 44 perks with perk_index/skill_id/name_en/name_zhHant/is_placeholder/desc/effect/il/nearest_category/category_distance/x/y/unlocked (14 columns).
+  - Products Wiki (wiki.tsx): exports filtered products with id/name_en/name_zhHant/tier/group/price/boxValue/valueDensity/demandProxy/role/isPremium/seasons/necessities/manufacturingLink/inventory (15 columns).
+  - Achievements (achievements.tsx): exports 51 achievements with index/steamId/name_en/name_zhHant/description_en/description_zhHant/globalPercent/collective/layout (9 columns).
+- Verified lint 0 errors, tsc src/ 0 errors after TSV additions.
+
+Stage Summary:
+- Manufacturing crash FIXED. TSV export utility + 3 export buttons DONE.
+- Next: launch Task 12-a subagent for Complete Game Atlas (new 'atlas' view — interactive relationship graph of all 18 entity types in encyclopedia.json).
+- Pending: 完整圖譜 (Complete Game Atlas) is the last big item from the user's original request.
+
+---
+Task ID: 12-a
+Agent: full-stack-developer (Game Atlas)
+Task: Build a "Complete Game Atlas" (完整圖譜) — a new page visualizing all 18 game entity types and their relationships via 4 interactive sub-views.
+
+Work Log:
+- Read worklog (Tasks 1–12-foundation) for full context. Confirmed project state: Next.js 16 + TS 5, encyclopedia.json has 18 entity sections, existing i18n resolvers (productNameFor/groupIdNameFor/tierIdNameFor/useLang), store.ts ViewId union, sidebar NAV array, app-shell lazy pattern.
+- Inspected encyclopedia.json structure for all 18 entity types: products(339)/tiers(55)/productGroups(19)/necessities(11)/seasons(4)/customerTypes(58)/containers(42)/skills(44)/buildables(43)/manufacturingBuildables(4)/manufacturingProducts(30)/premiumProducts(7)/achievements(51)/achievementStats(24)/employeeTasks(8)/config(9 keys)/storeLayout(41)/layoutMeta(2 fields). Confirmed premiumProducts=[173,175,186,287,296,297,299] and customerTypes[].premiumIndexes is empty across all 58 types (structural edge exists, count=0).
+- **Created `src/lib/atlas-data.ts`** (~610 lines, pure functions, no React):
+  - `ENTITY_CATEGORIES` (6: product/classification/demand/store/player/system) with hex colors (emerald/sky/amber/violet/fuchsia/zinc).
+  - `ENTITY_TYPES` (18 entries): { key, labelZh, labelEn, count, category, color } computed from encyclopedia.
+  - `ATLAS_NODES` (18): fixed SVG positions in 1200×800 viewBox — 3 concentric rings (center=config+layoutMeta, inner=5 category hubs, outer=11 leaves). Radius = `24 + log2(count+1)*4` capped at 48.
+  - `ATLAS_EDGES` (14): computed relationship edges with counts — productGroups↔tiers (55), tiers↔products (339), productGroups↔products (339 via product.group), manufacturingProducts→products (30, linkedProductID), premiumProducts→products (7), necessities→products (214 pairs), seasons→products (95 pairs), customerTypes→necessities (385 weight>0 pairs), customerTypes→premiumProducts (0, structural), buildables→storeLayout (41), containers→buildables (42 via buildableName match), skills→config (perkSystem), employeeTasks→config (employeeConfig), achievements→achievementStats (24).
+  - `TOTAL_RELATIONSHIPS` = sum of all edge counts.
+  - `getEntityTypeSamples(key, count=5)`: returns {id, name, sub?} per type — handles all 18 types specially (products→name+brand, premiumProducts→resolved names, config→key+subkey-count, layoutMeta→field values, etc.).
+  - `getRelationships(key)`: returns {direction, targetType, targetLabelZh, count, label}[] for in/out edges.
+  - `productHierarchy()`: returns 19 ProductGroup nodes each with tiers[] (filtered by tier.group) and products[] (filtered by product.tier).
+  - `customerDemandChain(customerIndex)`: returns necessities with weight>0 sorted desc, each with resolved Product[] from productIds.
+  - `customerDemandStats(customerIndex)`: topThree + deduplicated totalProducts + coveredGroups (sorted by product count).
+  - `manufacturingChains()`: 30 entries with {mfg, baseProduct, isNecessityComponent, isSeasonal} — pre-indexes necessity/season product sets for O(1) membership check.
+- **Edited `src/lib/store.ts`** (1 line): added `'atlas'` to ViewId union type after `'room'`.
+- **Edited `src/components/shared/sidebar.tsx`** (2 edits): added `Share2` to lucide-react imports + added NAV entry `{ id: 'atlas', label: 'Game Atlas', zhLabel: '遊戲圖譜', icon: Share2, group: '資料' }` after rawdata.
+- **Edited `src/components/shared/app-shell.tsx`** (2 edits): added `const Atlas = lazy(...)` import + `{view === 'atlas' && <Atlas />}` render branch.
+- **Created `src/components/lab/atlas.tsx`** (~1410 lines, 'use client'):
+  - Local STR map (繁中/en) for all UI strings (~40 keys).
+  - `pick(s, lang)` helper + SCROLLBAR_CLS constant.
+  - `AtlasHeader`: gradient fuchsia→violet→sky icon box + title/subtitle + 6-stat strip (339 products · 55 tiers · 19 groups · 58 customers · 44 skills · 51 achievements) with colored left borders.
+  - **View 1 `DataModelGraph`**: interactive SVG (viewBox 1200×800) with:
+    - Radial gradient defs per category (6 gradients, lighter center → saturated edge) + drop-shadow filter.
+    - 14 curved bezier edges (perpendicular-offset control point) with log-scale thickness (0.6–5px). Hover edge → tooltip with count + thicker stroke. Related edges (when a node is active) get flowing dash animation.
+    - 18 nodes with radial gradient fill, 2px stroke, inner highlight circle for 3D effect. Hover → scale 1.18 + opacity dim on non-related. Click → selection ring + side panel.
+    - Zoom/pan: mousewheel zoom (0.4–3x), pointer-drag pan on empty SVG area. Zoom in/out/reset buttons.
+    - Side panel (w-80): entity name + category color dot, count + category badges, 5 sample items (scrollable), relationships list (clickable → navigates to target type, in=sky dot / out=emerald dot, count badge).
+    - Legend overlay (bottom-left): 6 category colors.
+  - **View 2 `ProductHierarchyTree`**: collapsible tree (ProductGroup → Tier → Product). 19 group rows with color dot (from group.color RGB), tier count + product count badges. Expand to show tiers (filtered by tier.group), expand tier to show products (id + name + basePrice + premium Crown badge). Search filters across all 3 levels (auto-expands matches). 全部展開/全部收合 buttons. max-h-[640px] scrollable with custom scrollbar. Indentation + chevron icons (ChevronRight→ChevronDown).
+  - **View 3 `CustomerNetwork`**: 3-column SVG layout. Left panel: customer selector (Select dropdown + scrollable list of 58 types with index + topSummary). Center: SVG with customer node (large amber, pulsing), necessity nodes (sized by weight, pulsing), product chips (up to 6 per necessity + "+N more"). Curved edges customer→necessity (thickness=weight) and necessity→product (thin). Dynamic viewBox height based on visible necessities. Right panel: Top 3 necessities + total products + covered groups list. Empty state hint when no customer selected.
+  - **View 4 `ManufacturingChainView`**: grid of 30 clickable cards (name + linked base + itemsPerBox + stackable/necessity/seasonal badges). Click → detail flow SVG (base product node → arrow → mfg product node, with secondary connection badges below). "查看全部製造鏈" toggle → full SVG with all 30 base→manufactured curved arrows (left column = base products sorted, right column = manufactured, violet→emerald gradient strokes, clickable rows).
+  - All animations (atlas-edge-flow, atlas-pulse, atlas-pulse-slow, atlas-node-hover) injected once via `<style dangerouslySetInnerHTML>` at root (consolidated from 3 separate styled-jsx blocks — switched to dangerouslySetInnerHTML for portability since no other component in the codebase uses styled-jsx).
+  - Responsive: grids stack on mobile (lg: breakpoints), SVGs use viewBox + width=100% for scaling.
+- **Quality verification**:
+  - Fixed tsc error: removed local `TreeNode` interface (had `products: Product` instead of `Product[]`) — replaced with direct `HierarchyGroup[]` type from atlas-data.
+  - Removed unused imports: `Tooltip/TooltipTrigger/TooltipContent` (not used in final SVG-based design — hover tooltips rendered as SVG text overlays instead) + `EntityCategory` type.
+  - `bun run lint` → 0 errors / 0 warnings.
+  - `bunx tsc --noEmit` → 0 src/ errors (only skills/ gitignored dir has 2 pre-existing unrelated errors).
+  - Dev server compiles cleanly (✓ Compiled in 401ms, GET / 200).
+  - Sanity-tested all atlas-data.ts pure functions via bunx tsx: 18 ENTITY_TYPES ✓, 18 ATLAS_NODES ✓, 14 ATLAS_EDGES with correct counts ✓, getEntityTypeSamples returns proper items per type ✓, getRelationships("products") shows 6 in-edges ✓, productHierarchy returns 19 groups ✓, customerDemandChain(0) returns 7 visible necessities sorted by weight ✓, manufacturingChains returns 30 entries ✓.
+
+Stage Summary:
+- **Files created**: `src/lib/atlas-data.ts` (610 lines, pure functions), `src/components/lab/atlas.tsx` (1410 lines, 4 sub-views).
+- **Files edited (minimal)**: `src/lib/store.ts` (+1 line: 'atlas' to ViewId), `src/components/shared/sidebar.tsx` (+2 lines: Share2 import + NAV entry), `src/components/shared/app-shell.tsx` (+2 lines: lazy import + render branch).
+- **Files NOT touched** (per spec): i18n.ts, types.ts, engine.ts, es3-parser.ts, skill-engine.ts, backend-sync.ts, room-sync.ts, backend-config.ts, skills.tsx, skill-tree.tsx, skill-tools/*, room.tsx, manufacturing.tsx, wiki.tsx, achievements.tsx, shared/* (except sidebar+app-shell).
+- **4 views delivered**:
+  1. 資料模型圖譜 (default) — 18 entity nodes + 14 relationship edges, zoom/pan, click-to-inspect side panel, hover highlighting, flowing edge animations, legend.
+  2. 商品階層樹 — collapsible ProductGroup(19)→Tier(55)→Product(339) tree with search + expand/collapse all.
+  3. 顧客-需求-商品 關係網 — pick 1 of 58 customer types → see demand chain (customer→necessities→products) with weight-sized nodes + product chips + stats panel.
+  4. 製造鏈圖 — 30 manufacturing cards + detail flow diagram + "view all chains" full SVG.
+- **Atlas renders with zero save dependency** — pure encyclopedia data. No hydration mismatches (no Date.now/random/window measurements; zoom/pan uses pointer offsets only). All SVG interactions use CSS transitions (no JS animation loops) except the keyframe-based pulse/flow animations which are CSS-only.
+- `bun run lint` 0 errors; `bunx tsc --noEmit` src/ 0 errors. Dev server running on :3000 (system-managed, not restarted).
+- Tricky logic notes:
+  - `customerTypes → premiumProducts` edge has count=0 because no customer types in the data have premiumIndexes populated — the edge is structural (shows the relationship exists in the data model) but renders at minimum thickness. Accurate to the data.
+  - Edge thickness uses `0.6 + log2(count+1)*0.5` capped at 5 — handles the wide range (0 to 339) gracefully.
+  - Node radius uses `24 + log2(count+1)*4` capped at 48 — products(339) and customerTypes(58) get max radius; config(9) and layoutMeta(2) stay small.
+  - Curved edges use quadratic bezier with perpendicular offset = `min(60, dist*0.18)` — gentle arcs that don't overlap nodes.
+  - `customerDemandStats.totalProducts` deduplicates via Set (a product can satisfy multiple necessities).
+  - `manufacturingChains` pre-indexes necessity + season product membership into Sets for O(1) lookup across all 30 chains.
+
+---
+Task ID: 12-qa
+Agent: orchestrator (main) — cron webDevReview QA round
+Task: End-to-end QA of Complete Game Atlas + TSV export, then commit.
+
+Work Log:
+- Verified lint 0 errors, tsc src/ 0 errors after Task 12-a + 12-b.
+- agent-browser QA on Atlas page (new '遊戲圖譜' view):
+  - Data Model Graph (View 1): SVG with viewBox=0 0 1200 800 renders correctly. 18 entity-type nodes in 3-ring layout, 14 relationship edges. Header shows "18 個資料實體 · 1573 條關係連結". Stats strip: 339 商品 · 55 階層 · 19 群組 · 58 顧客 · 44 技能 · 51 成就.
+  - Product Hierarchy Tree (View 2): 19 product groups expandable — 基本產品s(7 tier/51商品), 乳製品(2/11), 汽水(3/21), 冷凍食品(2/13), 衛生(3/16), 清潔產品(2/14), 糖果和零食(7/42), 肉(1/7), 果醬(2/12) etc. 全部展開/全部收合 buttons work.
+  - Customer-Necessity-Product Network (View 3): 58 customer types listed with demand weights — #0 Staple Groceries×1, Hygiene×0.25, Pharmacy×0.15; #1 Gardening×1.5, Drinks×1, Electronics×0.5 etc.
+  - Manufacturing Chain (View 4): 30 manufacturing products with base→mfg flow — #0 基礎麵包→通心粉(20/需求成分), #1 全麥麵包→通心粉 etc. 查看全部製造鏈 toggle present.
+  - Tab switching: Radix Tabs uses pointerdown events — agent-browser's .click() doesn't trigger them, but keyboard Enter/ArrowRight navigation works perfectly (real mouse clicks work fine for human users).
+- TSV export verification:
+  - Skills PerksTableView: clicked "下載 TSV" → download triggered, filename `skills-perks-2026-08-14.tsv`, blob URL created. ✓
+  - Products Wiki: "下載 TSV" button found. ✓
+  - Achievements: "下載 TSV" button found. ✓
+- Full 19-page error sweep (all sidebar pages including Atlas): 0 console errors.
+
+Stage Summary:
+- Task 12-a (Complete Game Atlas) + Task 12-b (TSV export) both COMPLETE and QA-verified.
+- All 19 pages: 0 errors. Lint 0, tsc src/ 0.
+- User's original request items now complete: ✅ 7 strategy tools, ✅ Supabase backend (code ready), ✅ Complete Game Atlas (4 views), ✅ 44 skills TSV export, ✅ products TSV, ✅ achievements TSV.
+- Ready to commit & push to GitHub.

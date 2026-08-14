@@ -24,6 +24,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Store,
+  Share2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUIStore, type ViewId } from '@/lib/store'
@@ -58,6 +59,7 @@ export const NAV: NavItem[] = [
   { id: 'exploits', label: 'Exploits', zhLabel: '數據怪 / 邪修', icon: Bug, group: '資料' },
   { id: 'achievements', label: 'Achievements', zhLabel: '成就', icon: Trophy, group: '資料' },
   { id: 'rawdata', label: 'Raw Data', zhLabel: '原始資料', icon: Database, group: '資料' },
+  { id: 'atlas', label: 'Game Atlas', zhLabel: '遊戲圖譜', icon: Share2, group: '資料' },
 ]
 
 const GROUPS = ['營運', '規劃', '資料']

@@ -35,8 +35,10 @@ import {
   Lock,
   Unlock,
   Search,
+  Download,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { downloadTsv } from '@/lib/export-utils'
 
 // ============================================================
 // SkillTreeView — interactive SVG graph of the in-game skill tree
@@ -533,6 +535,36 @@ export function PerksTableView() {
                 <Unlock className="mr-1 h-2.5 w-2.5" />{unlockedSet.size} 已解鎖
               </Badge>
             )}
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 gap-1 text-xs"
+              onClick={() => {
+                const tsvRows = rows.map((n) => {
+                  const enc = encSkillByPerk.get(n.index)
+                  const cat = skillGraph.perk_to_category[n.id]
+                  return {
+                    perk_index: n.index,
+                    skill_id: n.skill_id || '',
+                    name_en: n.name_en || '',
+                    name_zhHant: n.name_zhHant || '',
+                    is_placeholder: n.is_placeholder ? 'true' : 'false',
+                    desc_en: (n.desc_en || enc?.effect || '').replace(/\n/g, ' '),
+                    effect: enc?.effect || '',
+                    il: enc?.il || '',
+                    nearest_category: cat?.category_name ?? '',
+                    category_distance: cat?.distance ?? '',
+                    x: n.x,
+                    y: n.y,
+                    unlocked: unlockedSet.has(n.index) ? 'true' : 'false',
+                  }
+                })
+                downloadTsv(tsvRows, `skills-perks-${new Date().toISOString().slice(0, 10)}.tsv`)
+              }}
+            >
+              <Download className="h-3 w-3" />
+              下載 TSV
+            </Button>
             <ConfidenceBadge
               confidence="confirmed"
               formula="perks.tsv + skill-graph.json"

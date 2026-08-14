@@ -55,6 +55,7 @@ type ViewId =
   | 'exploits'
   | 'rawdata'
   | 'room'
+  | 'atlas'
 
 export type Lang = 'zhHant' | 'en' | 'both'
 

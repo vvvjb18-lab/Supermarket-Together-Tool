@@ -41,8 +41,10 @@ import {
   Award,
   Sparkles,
   RotateCcw,
+  Download,
 } from 'lucide-react'
 import type { Achievement } from '@/lib/types'
+import { downloadTsv } from '@/lib/export-utils'
 
 // ============================================================
 // Achievements
@@ -340,11 +342,35 @@ export function Achievements() {
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center justify-between text-base">
             <span>所有成就（{filtered.length}）</span>
-            <ConfidenceBadge
-              confidence="confirmed"
-              formula="encyclopedia.achievements"
-              note="Steam 面向玩家的成就名稱 + 描述 + 全球解鎖百分比（51 項）"
-            />
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 gap-1 text-xs"
+                onClick={() => {
+                  const tsvRows = filtered.map((a, i) => ({
+                    index: i + 1,
+                    steamId: a.steamId,
+                    name_en: a.name,
+                    name_zhHant: a.zhHant || a.name,
+                    description_en: a.description || '',
+                    description_zhHant: a.zhHantDesc || a.description || '',
+                    globalPercent: a.globalPercent,
+                    collective: a.collective ? 'true' : 'false',
+                    layout: a.layout || '',
+                  }))
+                  downloadTsv(tsvRows, `achievements-${new Date().toISOString().slice(0, 10)}.tsv`)
+                }}
+              >
+                <Download className="h-3 w-3" />
+                下載 TSV
+              </Button>
+              <ConfidenceBadge
+                confidence="confirmed"
+                formula="encyclopedia.achievements"
+                note="Steam 面向玩家的成就名稱 + 描述 + 全球解鎖百分比（51 項）"
+              />
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent>

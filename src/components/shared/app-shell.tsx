@@ -26,6 +26,7 @@ const Containers = lazy(() => import('@/components/lab/containers').then((m) => 
 const Exploits = lazy(() => import('@/components/lab/exploits').then((m) => ({ default: m.Exploits })))
 const Achievements = lazy(() => import('@/components/lab/achievements').then((m) => ({ default: m.Achievements })))
 const RawData = lazy(() => import('@/components/lab/raw-data').then((m) => ({ default: m.RawData })))
+const Atlas = lazy(() => import('@/components/lab/atlas').then((m) => ({ default: m.Atlas })))
 
 function PageFallback() {
   return (
@@ -70,6 +71,7 @@ export function AppShell() {
               {view === 'exploits' && <Exploits />}
               {view === 'achievements' && <Achievements />}
               {view === 'rawdata' && <RawData />}
+              {view === 'atlas' && <Atlas />}
             </Suspense>
           </PageErrorBoundary>
         </main>

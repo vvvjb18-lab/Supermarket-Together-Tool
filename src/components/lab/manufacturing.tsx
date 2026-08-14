@@ -370,14 +370,14 @@ export function Manufacturing() {
                   </div>
                 </div>
                 <Select
-                  value={manufacturingTask.playerId ?? ''}
-                  onValueChange={(v) => assignTask(manufacturingTask.id, v)}
+                  value={manufacturingTask.playerId ?? '__none__'}
+                  onValueChange={(v) => assignTask(manufacturingTask.id, v === '__none__' ? '' : v)}
                 >
                   <SelectTrigger className="h-8 w-[200px] text-xs">
                     <SelectValue placeholder="指派房間成員…" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="" className="text-xs">— 未指派 —</SelectItem>
+                    <SelectItem value="__none__" className="text-xs">— 未指派 —</SelectItem>
                     {members.map((m) => (
                       <SelectItem key={m.id} value={m.id} className="text-xs">
                         <span className="flex items-center gap-1">

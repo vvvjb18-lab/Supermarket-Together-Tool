@@ -64,8 +64,10 @@ import {
   Sparkles,
   Search,
   X,
+  Download,
 } from 'lucide-react'
 import type { Product, Confidence } from '@/lib/types'
+import { downloadTsv } from '@/lib/export-utils'
 
 // ---------- ProductRole ----------
 type ProductRole =
@@ -390,6 +392,34 @@ export function Wiki() {
             </span>
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-[10px]">顯示 {filtered.length} / {rows.length}</Badge>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 gap-1 text-xs"
+                onClick={() => {
+                  const tsvRows = filtered.map((r) => ({
+                    id: r.p.id,
+                    name_en: r.p.name.en,
+                    name_zhHant: r.p.name.zhHant,
+                    tier: r.p.tier,
+                    group: r.p.group,
+                    price: r.p.basePricePerUnit,
+                    boxValue: r.boxValue.toFixed(2),
+                    valueDensity: r.valueDensity.toFixed(2),
+                    demandProxy: r.demandProxy.toFixed(2),
+                    role: r.role,
+                    isPremium: r.isPremium ? 'true' : 'false',
+                    seasons: r.seasons.join(','),
+                    necessities: r.necessities.join(','),
+                    manufacturingLink: r.manufacturingLink ?? '',
+                    inventory: r.inventory,
+                  }))
+                  downloadTsv(tsvRows, `products-${new Date().toISOString().slice(0, 10)}.tsv`)
+                }}
+              >
+                <Download className="h-3 w-3" />
+                下載 TSV
+              </Button>
               {anyFilterActive && (
                 <Button size="sm" variant="ghost" onClick={resetFilters} className="h-7 px-2 text-xs">
                   <X className="mr-1 h-3 w-3" /> 清除
