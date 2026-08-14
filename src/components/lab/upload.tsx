@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useSaveStore, useUIStore } from '@/lib/store'
 import { demoSave, encyclopedia as ENC } from '@/lib/data-loader'
 import { parseSaveFile, type ES3ParseResult } from '@/lib/es3-parser'
@@ -121,6 +121,11 @@ export function Upload() {
   const [dragOver, setDragOver] = useState(false)
   const [parsing, setParsing] = useState(false)
   const [loadingSample, setLoadingSample] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const triggerFilePicker = useCallback(() => {
+    fileInputRef.current?.click()
+  }, [])
 
   const runParse = useCallback(
     (text: string, fileName: string) => {
@@ -235,29 +240,28 @@ export function Upload() {
             </div>
           </div>
           <div className="flex flex-wrap justify-center gap-2">
-            <label>
-              <input
-                type="file"
-                accept=".es3,.json,.txt"
-                className="hidden"
-                onChange={(e) => {
-                  const f = e.target.files?.[0]
-                  if (f) handleFile(f)
-                  e.target.value = ''
-                }}
-              />
-              <Button disabled={parsing} className="cursor-pointer">
-                {parsing ? (
-                  <>
-                    <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> 解析中…
-                  </>
-                ) : (
-                  <>
-                    <UploadIcon className="mr-1.5 h-4 w-4" /> 選擇檔案
-                  </>
-                )}
-              </Button>
-            </label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".es3,.json,.txt"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0]
+                if (f) handleFile(f)
+                e.target.value = ''
+              }}
+            />
+            <Button disabled={parsing} onClick={triggerFilePicker} className="cursor-pointer">
+              {parsing ? (
+                <>
+                  <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> 解析中…
+                </>
+              ) : (
+                <>
+                  <UploadIcon className="mr-1.5 h-4 w-4" /> 選擇檔案
+                </>
+              )}
+            </Button>
             <Button variant="outline" onClick={handleLoadSample} disabled={loadingSample || parsing}>
               {loadingSample ? (
                 <>

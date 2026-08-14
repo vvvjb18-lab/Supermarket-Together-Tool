@@ -205,3 +205,33 @@ Stage Summary:
   5. `/pricing` 顯示 339 products 與真實玩家定價（$3.26 等）。
 - API `/api/sample-save` 200 OK in 652ms，無 console error、無 hydration mismatch。
 - 18 個新欄位已可被後續頁面使用（員工薪資、貸款、裝飾道具數、製造配方解鎖狀態等）— 為下一階段功能擴展鋪路。
+
+---
+Task ID: 7
+Agent: orchestrator (main) — cron reviewer round 1
+Task: QA pass + 修復「選擇檔案」按鈕無反應 + 新增 Dashboard 存檔概覽 + Employees 花名冊
+
+Work Log:
+- 讀取 worklog.md 了解 Task 0-6 進度；確認 dev server 在 :3000 運行、room-service 在 :3003 運行（用 setsid 啟動避免被 reaped）。
+- agent-browser QA：逐頁訪問 17 個頁面，確認 0 console errors、0 runtime errors、所有頁面有實際內容。
+- 發現問題：Employees 頁面未顯示從真實存檔解析出的 3 名員工（big sb / small sb / medium sb）；Dashboard 缺少存檔概覽卡片。
+- 新增功能 A — Dashboard「存檔概覽」卡片（`src/components/lab/dashboard.tsx`）：
+  - `SaveOverviewCard` 元件，13 個動態 tile：店面名稱、品牌（含色票）、難度、Franchise XP、已達等級、貸款、店面擴建、倉庫擴建、雇用員工（含日薪合計）、待處理發票、店面道具（含庫存件數）、裝飾道具、已解鎖 Tier、製造配方。
+  - 品牌色票用 inline style 顯示 RGB 色塊；amber accent 標記貸款/發票/未解鎖配方。
+  - ConfidenceBadge 'confirmed'，formula='ES3 fields → SaveSnapshot'。
+- 新增功能 B — Employees「已雇用員工花名冊」卡片（`src/components/lab/employees.tsx`）：
+  - 從 `snapshot.employees` 讀取真實員工資料（ES3 HiredEmployeesData pipe-string 解析結果）。
+  - 4 個 summary tile：雇用數、每日薪資總額、平均速度 proxy、最強技能。
+  - 每位員工一張卡片：序號、姓名、ES3 id、任務 badge（帶色）、日薪、7 條技能 bar（最強技能 emerald 高亮）、平均/速度 proxy/建議角色 footer。
+  - 速度 proxy = `computeEmployeeSpeed(min(5, round(avg/2)), 0)`；技能值 0-10 量級標記為 proxy（未經遊戲原始碼確認語義）。
+  - sky 色注意框說明技能值語義。
+- **修復 Bug**：「選擇檔案」按鈕點擊無反應 — 根因是 `<label>` 包裹 `<Button>`（shadcn 渲染為 `<button>`），button 的 click 事件會吞掉 label 的開檔案對話框行為。
+  - 修復：改用 `useRef<HTMLInputElement>` + `triggerFilePicker = () => fileInputRef.current?.click()`，input 獨立放在 DOM 中（不再包在 label 內），Button 的 `onClick={triggerFilePicker}`。
+  - 驗證：agent-browser spy 確認 `input.click()` 被呼叫（spyCalled: true）；agent-browser `upload 'input[type=file]'` 上傳真實 _latest.json → toast「解析完成」、TopBar 顯示 Day 28 · $5,981.51、偵測欄位 33。
+
+Stage Summary:
+- 修改檔案：`src/components/lab/dashboard.tsx`（+SaveOverviewCard ~200 行）、`src/components/lab/employees.tsx`（+Hired Employees Roster ~160 行）、`src/components/lab/upload.tsx`（修復 file input click handler）。
+- `bun run lint` 0 errors；agent-browser 17 頁 QA 全綠。
+- 真實存檔資料現在貫穿 Dashboard（存檔概覽）+ Employees（花名冊）+ Upload（檔案選擇）+ Layout + Pricing 等頁面。
+- room-service 已用 setsid 啟動（port 3003 listening），BroadcastChannel fallback 仍可用。
+- 已截圖：`download/upload-after-fix.png`、`download/dashboard-save-overview.png`、`download/employees-roster.png`。
