@@ -4,6 +4,7 @@
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import type { Confidence } from '@/lib/types'
+import { useLang, t } from '@/lib/i18n'
 import {
   Tooltip,
   TooltipContent,
@@ -11,14 +12,14 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 
-const CONF_LABEL: Record<Confidence, string> = {
-  confirmed: 'Confirmed',
-  proxy: 'Proxy',
-  unverified: 'Unverified',
-  exploit: 'Exploit Candidate',
-  demo: 'Demo',
-  'needs-save': 'Needs Save',
-  'needs-runtime': 'Needs Runtime Validation',
+const CONF_KEY: Record<Confidence, string> = {
+  confirmed: 'conf.confirmed',
+  proxy: 'conf.proxy',
+  unverified: 'conf.unverified',
+  exploit: 'conf.exploit',
+  demo: 'conf.demo',
+  'needs-save': 'conf.needs-save',
+  'needs-runtime': 'conf.needs-runtime',
 }
 
 const CONF_STYLE: Record<Confidence, string> = {
@@ -44,6 +45,7 @@ export function ConfidenceBadge({
   note?: string
   className?: string
 }) {
+  const lang = useLang()
   const hasDetail = formula || (sources && sources.length > 0) || note
   const badge = (
     <Badge
@@ -51,7 +53,7 @@ export function ConfidenceBadge({
       className={cn('text-[10px] font-semibold uppercase tracking-wide gap-1', CONF_STYLE[confidence], className)}
     >
       <span className="inline-block h-1.5 w-1.5 rounded-full bg-current opacity-70" />
-      {CONF_LABEL[confidence]}
+      {t(CONF_KEY[confidence], lang)}
     </Badge>
   )
   if (!hasDetail) return badge

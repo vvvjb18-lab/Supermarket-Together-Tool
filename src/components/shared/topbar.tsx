@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command'
 import { NAV } from './sidebar'
+import { LanguageSwitcher } from './language-switcher'
 import { Database, Github, Moon, Sun, Wifi, WifiOff } from 'lucide-react'
 import { useTheme } from 'next-themes'
 
@@ -101,6 +102,7 @@ export function TopBar() {
           >
             {mounted ? (theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />) : <Moon className="h-4 w-4" />}
           </Button>
+          <LanguageSwitcher />
           <a
             href="https://github.com"
             target="_blank"

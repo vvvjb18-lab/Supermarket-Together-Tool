@@ -56,6 +56,8 @@ type ViewId =
   | 'rawdata'
   | 'room'
 
+export type Lang = 'zhHant' | 'en' | 'both'
+
 interface UIStore {
   view: ViewId
   setView: (v: ViewId) => void
@@ -65,6 +67,9 @@ interface UIStore {
   toggleSidebar: () => void
   selectedProductId: number | null
   setSelectedProduct: (id: number | null) => void
+  /** Display language for game data names. Default zhHant (matches in-game Chinese UI). */
+  lang: Lang
+  setLang: (l: Lang) => void
 }
 
 export const useUIStore = create<UIStore>()(
@@ -78,6 +83,8 @@ export const useUIStore = create<UIStore>()(
       toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
       selectedProductId: null,
       setSelectedProduct: (selectedProductId) => set({ selectedProductId }),
+      lang: 'zhHant',
+      setLang: (lang) => set({ lang }),
     }),
     { name: 'stl-ui', storage: createJSONStorage(() => localStorage) },
   ),

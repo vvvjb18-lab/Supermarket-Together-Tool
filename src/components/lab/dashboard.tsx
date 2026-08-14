@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import { useSaveStore, useUIStore } from '@/lib/store'
 import { encyclopedia as ENC } from '@/lib/data-loader'
+import { useLang, productNameFor } from '@/lib/i18n'
 import {
   computeDashboardScores,
   computeDemandProxy,
@@ -26,9 +27,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Upload, AlertTriangle, TrendingUp, TrendingDown, PackageX, Lightbulb, ArrowRight, Store, Coins, Calendar, Heart, Banknote, Layers, Users, Boxes, Palette } from 'lucide-react'
-import type { Product } from '@/lib/types'
 
 export function Dashboard() {
+  const lang = useLang()
   const snapshot = useSaveStore((s) => s.snapshot)
   const setView = useUIStore((s) => s.setView)
   const setSelectedProduct = useUIStore((s) => s.setSelectedProduct)
@@ -44,12 +45,12 @@ export function Dashboard() {
         const demand = computeDemandProxy(p.id, ENC.necessities, ENC.customerTypes).value
         const current = (inv[p.id] as number) ?? 0
         const urgency = demand * (current < 10 ? 5 : 1) + (current === 0 && demand > 0.001 ? 2 : 0)
-        return { p, demand, current, urgency }
+        return { p, demand, current, urgency, label: productNameFor(p.id, lang) }
       })
       .filter((x) => x.urgency > 0)
       .sort((a, b) => b.urgency - a.urgency)
       .slice(0, 10)
-  }, [snapshot])
+  }, [snapshot, lang])
 
   // top 10 wasted shelf slots (low demand, high inventory)
   const wastedSlots = useMemo(() => {
@@ -61,6 +62,7 @@ export function Dashboard() {
           p,
           demand: computeDemandProxy(p.id, ENC.necessities, ENC.customerTypes).value,
           units: 0,
+          label: productNameFor(p.id, lang),
         }))
         .filter((x) => x.demand < 0.0002)
         .sort((a, b) => a.demand - b.demand)
@@ -70,12 +72,12 @@ export function Dashboard() {
       .map((p) => {
         const demand = computeDemandProxy(p.id, ENC.necessities, ENC.customerTypes).value
         const units = (inv[p.id] as number) ?? 0
-        return { p, demand, units }
+        return { p, demand, units, label: productNameFor(p.id, lang) }
       })
       .filter((x) => x.units > 0 && x.demand < 0.001)
       .sort((a, b) => b.units - a.units)
       .slice(0, 10)
-  }, [snapshot])
+  }, [snapshot, lang])
 
   // top 10 high-value unlocked opportunities
   const opportunities = useMemo(() => {
@@ -88,11 +90,11 @@ export function Dashboard() {
         const density = computeValueDensity(p).value
         const demand = computeDemandProxy(p.id, ENC.necessities, ENC.customerTypes).value
         const score = box * 0.4 + density * 0.0001 + demand * box * 0.6
-        return { p, box, density, demand, score }
+        return { p, box, density, demand, score, label: productNameFor(p.id, lang) }
       })
       .sort((a, b) => b.score - a.score)
       .slice(0, 10)
-  }, [snapshot])
+  }, [snapshot, lang])
 
   // top 10 likely missed sales (high demand, not stocked)
   const missedSales = useMemo(() => {
@@ -108,11 +110,12 @@ export function Dashboard() {
         p,
         demand: computeDemandProxy(p.id, ENC.necessities, ENC.customerTypes).value,
         box: computeBoxValue(p).value,
+        label: productNameFor(p.id, lang),
       }))
       .filter((x) => x.demand > 0.002)
       .sort((a, b) => b.demand * b.box - a.demand * a.box)
       .slice(0, 10)
-  }, [snapshot])
+  }, [snapshot, lang])
 
   // next best actions
   const nextActions = useMemo(() => {
@@ -268,7 +271,7 @@ export function Dashboard() {
             <DataRow
               key={r.p.id}
               index={i + 1}
-              title={r.p.name.en}
+              title={r.label}
               subtitle={`#${r.p.id} · ${r.p.brand} · demand ${fmt(r.demand, 5)}`}
               right={
                 <div className="flex flex-col items-end gap-0.5">
@@ -294,7 +297,7 @@ export function Dashboard() {
             <DataRow
               key={r.p.id}
               index={i + 1}
-              title={r.p.name.en}
+              title={r.label}
               subtitle={`#${r.p.id} · demand ${fmt(r.demand, 5)} · units ${r.units}`}
               right={<Badge variant="outline" className="text-[10px] text-rose-600">low demand</Badge>}
               onClick={() => {
@@ -315,7 +318,7 @@ export function Dashboard() {
             <DataRow
               key={r.p.id}
               index={i + 1}
-              title={r.p.name.en}
+              title={r.label}
               subtitle={`#${r.p.id} · box ${fmtMoney(r.box)} · density ${fmt(r.density, 1)} $/u³`}
               right={
                 <div className="flex flex-col items-end">
@@ -341,7 +344,7 @@ export function Dashboard() {
             <DataRow
               key={r.p.id}
               index={i + 1}
-              title={r.p.name.en}
+              title={r.label}
               subtitle={`#${r.p.id} · demand ${fmt(r.demand, 5)} · box ${fmtMoney(r.box)}`}
               right={<span className="font-mono text-xs">loss proxy {fmtMoney(r.demand * r.box * 10)}</span>}
               onClick={() => {

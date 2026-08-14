@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRoomStore, useSaveStore, useUIStore } from '@/lib/store'
 import { useRoomSync } from '@/lib/room-sync'
 import { encyclopedia as ENC } from '@/lib/data-loader'
+import { useLang, skillNameFor } from '@/lib/i18n'
 import { ConfidenceBadge, StatCard, DataRow, SectionHeader, fmt, fmtMoney } from '@/components/shared/primitives'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -141,6 +142,7 @@ export function Room() {
 }
 
 function RoomWorkspace({ sync }: { sync: ReturnType<typeof useRoomSync> }) {
+  const lang = useLang()
   const room = useRoomStore((s) => s.room)!
   const selfId = useRoomStore((s) => s.selfId)
   const toggleChecklist = useRoomStore((s) => s.toggleChecklist)
@@ -434,7 +436,7 @@ function RoomWorkspace({ sync }: { sync: ReturnType<typeof useRoomSync> }) {
                   return (
                     <div key={s.id} className="flex items-center gap-2 rounded-md border px-2 py-1.5">
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-xs font-medium">{s.name.zhHant || s.name.en || s.id}</div>
+                        <div className="truncate text-xs font-medium">{skillNameFor(s, lang) || s.id}</div>
                         <div className="truncate text-[10px] text-muted-foreground">{s.effect || '(no effect)'}</div>
                       </div>
                       <div className="flex -space-x-1">

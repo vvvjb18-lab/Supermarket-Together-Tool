@@ -10,8 +10,9 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { encyclopedia as ENC, productById, productZhName } from '@/lib/data-loader'
-import { useRoomStore } from '@/lib/store'
+import { encyclopedia as ENC, productById } from '@/lib/data-loader'
+import { useRoomStore, type Lang } from '@/lib/store'
+import { useLang, manufacturingIdNameFor, productNameFor } from '@/lib/i18n'
 import {
   ConfidenceBadge,
   SectionHeader,
@@ -55,6 +56,7 @@ interface QueueItem {
 }
 
 export function Manufacturing() {
+  const lang = useLang()
   const [queue, setQueue] = useState<QueueItem[]>([
     { productId: 10, quantity: 5 }, // Muffin
     { productId: 29, quantity: 3 }, // Smoothies
@@ -69,9 +71,11 @@ export function Manufacturing() {
       const vol = m.size.x * m.size.y * m.size.z
       const density = vol > 0 ? m.itemsPerBox / vol : 0
       const linkedProduct = productById.get(m.linkedProductID)
-      return { m, vol, density, linkedProduct }
+      const label = manufacturingIdNameFor(m.id, lang)
+      const linkedLabel = productNameFor(m.linkedProductID, lang)
+      return { m, vol, density, linkedProduct, label, linkedLabel }
     })
-  }, [products])
+  }, [products, lang])
 
   const densityRanking = useMemo(
     () => [...enriched].sort((a, b) => b.density - a.density),
@@ -217,7 +221,7 @@ export function Manufacturing() {
                 <SelectContent>
                   {products.map((m) => (
                     <SelectItem key={m.id} value={String(m.id)} className="text-xs">
-                      #{m.id} {m.name.zhHant || m.name.en} · {m.itemsPerBox}/box
+                      #{m.id} {manufacturingIdNameFor(m.id, lang)} · {m.itemsPerBox}/box
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -265,7 +269,7 @@ export function Manufacturing() {
                       <tr key={q.productId} className="border-b last:border-0">
                         <td className="py-2 pr-3">
                           <div className="font-medium">
-                            {q.m.name.zhHant || q.m.name.en}
+                            {manufacturingIdNameFor(q.m.id, lang)}
                           </div>
                           <code className="text-[10px] text-muted-foreground">#{q.m.id} · {q.m.name.en}</code>
                         </td>
@@ -414,7 +418,7 @@ export function Manufacturing() {
           <CardContent>
             <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
               {densityRanking.slice(0, 12).map((row, i) => (
-                <DensityRow key={row.m.id} rank={i + 1} row={row} max={densityRanking[0]?.density ?? 1} />
+                <DensityRow key={row.m.id} rank={i + 1} row={row} max={densityRanking[0]?.density ?? 1} lang={lang} />
               ))}
             </div>
             <p className="mt-2 text-[11px] text-muted-foreground">
@@ -446,7 +450,7 @@ export function Manufacturing() {
                   <XAxis type="number" tick={{ fontSize: 10 }} />
                   <YAxis
                     type="category"
-                    dataKey={(d: typeof densityRanking[number]) => d.m.name.zhHant || d.m.name.en}
+                    dataKey="label"
                     width={120}
                     tick={{ fontSize: 10 }}
                   />
@@ -457,7 +461,7 @@ export function Manufacturing() {
                       const r = payload[0].payload as (typeof densityRanking)[number]
                       return (
                         <div className="rounded-md border bg-background p-2 text-xs shadow-md">
-                          <div className="font-semibold">{r.m.name.zhHant || r.m.name.en}</div>
+                          <div className="font-semibold">{manufacturingIdNameFor(r.m.id, lang)}</div>
                           <div className="text-muted-foreground">#{r.m.id} · {r.m.name.en}</div>
                           <div className="mt-1 font-mono">
                             density: <span className="font-bold">{fmt(r.density, 2)}</span> items/u³
@@ -487,14 +491,14 @@ export function Manufacturing() {
         <Card>
           <CardContent className="pt-2">
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {enriched.map(({ m, linkedProduct }) => (
+              {enriched.map(({ m, linkedProduct, linkedLabel }) => (
                 <div
                   key={m.id}
                   className="flex items-center justify-between gap-2 rounded-md border bg-card px-3 py-2 text-sm"
                 >
                   <div className="min-w-0">
                     <div className="truncate font-medium">
-                      {m.name.zhHant || m.name.en}
+                      {manufacturingIdNameFor(m.id, lang)}
                     </div>
                     <code className="text-[10px] text-muted-foreground">#{m.id}</code>
                   </div>
@@ -509,7 +513,7 @@ export function Manufacturing() {
                         </TooltipTrigger>
                         <TooltipContent side="top" className="max-w-xs">
                           <div className="text-xs">
-                            <div className="font-semibold">{linkedProduct.name.zhHant || linkedProduct.name.en}</div>
+                            <div className="font-semibold">{linkedLabel}</div>
                             <div className="text-muted-foreground">{linkedProduct.name.en}</div>
                             <div className="mt-1 font-mono text-[10px]">
                               basePrice: ${linkedProduct.basePricePerUnit}
@@ -551,18 +555,18 @@ export function Manufacturing() {
                   </tr>
                 </thead>
                 <tbody>
-                  {enriched.map(({ m, vol, density, linkedProduct }) => (
+                  {enriched.map(({ m, vol, density, linkedProduct, linkedLabel }) => (
                     <tr key={m.id} className="border-b last:border-0 hover:bg-accent/40">
                       <td className="py-2 pr-3 font-mono text-xs">{m.id}</td>
                       <td className="py-2 pr-3">
-                        <div className="font-medium">{m.name.zhHant || m.name.en}</div>
+                        <div className="font-medium">{manufacturingIdNameFor(m.id, lang)}</div>
                         <div className="text-[10px] text-muted-foreground">{m.name.en}</div>
                       </td>
                       <td className="py-2 pr-3">
                         <span className="font-mono text-xs">{m.linkedProductID}</span>
                         {linkedProduct && (
                           <span className="ml-1 text-[10px] text-muted-foreground">
-                            ({productZhName(m.linkedProductID)})
+                            ({linkedLabel})
                           </span>
                         )}
                       </td>
@@ -604,10 +608,12 @@ function DensityRow({
   rank,
   row,
   max,
+  lang,
 }: {
   rank: number
-  row: { m: ManufacturingProduct; vol: number; density: number; linkedProduct: ReturnType<typeof productById.get> }
+  row: { m: ManufacturingProduct; vol: number; density: number; linkedProduct: ReturnType<typeof productById.get>; label: string; linkedLabel: string }
   max: number
+  lang: Lang
 }) {
   const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : null
   return (
@@ -620,7 +626,7 @@ function DensityRow({
       <span className="w-8 text-center text-sm font-bold">{medal ?? rank}</span>
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-medium">
-          {row.m.name.zhHant || row.m.name.en}
+          {manufacturingIdNameFor(row.m.id, lang)}
         </div>
         <div className="text-[10px] text-muted-foreground">
           #{row.m.id} · {row.m.itemsPerBox}/box · {fmt(row.vol, 3)}u³

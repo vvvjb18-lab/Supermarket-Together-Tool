@@ -4,6 +4,7 @@ import { useState, useCallback, useRef } from 'react'
 import { useSaveStore, useUIStore } from '@/lib/store'
 import { demoSave, encyclopedia as ENC } from '@/lib/data-loader'
 import { parseSaveFile, type ES3ParseResult } from '@/lib/es3-parser'
+import { useLang, employeeTaskIdNameFor, buildableIdNameFor } from '@/lib/i18n'
 import { ConfidenceBadge, StatCard, SectionHeader, fmt, fmtMoney } from '@/components/shared/primitives'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -111,6 +112,7 @@ const FIELD_DOCS: { field: string; desc: string; status: 'ready' | 'adapter' | '
 ]
 
 export function Upload() {
+  const lang = useLang()
   const setSnapshot = useSaveStore((s) => s.setSnapshot)
   const loadDemo = useSaveStore((s) => s.loadDemo)
   const clear = useSaveStore((s) => s.clear)
@@ -439,7 +441,7 @@ export function Upload() {
                         <tr key={e.id} className="border-t">
                           <td className="px-2 py-1 font-mono">{i}</td>
                           <td className="px-2 py-1 font-medium">{e.name}</td>
-                          <td className="px-2 py-1 font-mono">{e.task}</td>
+                          <td className="px-2 py-1 font-mono">{e.task} · {employeeTaskIdNameFor(e.task, lang)}</td>
                           <td className="px-2 py-1 text-right font-mono">{fmtMoney(e.salary)}</td>
                           <td className="px-2 py-1 font-mono text-muted-foreground">
                             {Object.values(e.skills).map((sk) => sk.level).join('/')}
@@ -475,7 +477,7 @@ export function Upload() {
                       {s.storeLayout.slice(0, 30).map((p) => (
                         <tr key={p.index} className="border-t">
                           <td className="px-2 py-1 font-mono">{p.index}</td>
-                          <td className="px-2 py-1 font-mono">{p.buildableId}</td>
+                          <td className="px-2 py-1 font-mono">{p.buildableId} · {buildableIdNameFor(p.buildableId, lang)}</td>
                           <td className="px-2 py-1 text-right font-mono">{p.posX.toFixed(3)}</td>
                           <td className="px-2 py-1 text-right font-mono">{p.posZ.toFixed(3)}</td>
                           <td className="px-2 py-1 text-right font-mono">{p.angle}°</td>

@@ -15,7 +15,6 @@ import {
 import {
   ConfidenceBadge,
   StatCard,
-  SectionHeader,
   fmt,
   fmtMoney,
 } from '@/components/shared/primitives'
@@ -52,8 +51,16 @@ import {
   AlertTriangle,
   Rocket,
   Hourglass,
+  BarChart3,
 } from 'lucide-react'
 import type { Product } from '@/lib/types'
+import {
+  useLang,
+  productNameFor,
+  productNameOnly,
+  groupIdNameFor,
+} from '@/lib/i18n'
+import type { Lang } from '@/lib/store'
 
 // ---------- Per-product precompute ----------
 interface Row {
@@ -68,7 +75,6 @@ interface Row {
   isPremium: boolean
   isSeasonal: boolean
   groupColor: string
-  groupName: string
 }
 
 const NOTABLE_IDS = [296, 299, 287, 4]
@@ -95,6 +101,7 @@ function percentile(sorted: number[], p: number): number {
 export function Profit() {
   const setSelectedProduct = useUIStore((s) => s.setSelectedProduct)
   const setView = useUIStore((s) => s.setView)
+  const lang = useLang()
 
   // Precompute all rows
   const rows: Row[] = useMemo(() => {
@@ -112,7 +119,6 @@ export function Profit() {
         isPremium: ENC.premiumProducts.includes(p.id),
         isSeasonal: ENC.seasons.some((s) => s.productIds.includes(p.id)),
         groupColor: groupColorHex(p.group),
-        groupName: p.groupName.zhHant,
       }
     })
   }, [])
@@ -158,17 +164,16 @@ export function Profit() {
     const topGroups = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8).map((e) => e[0])
 
     const series = topGroups.map((gid) => {
-      const g = ENC.productGroups[gid]
       return {
         gid,
-        name: g?.name.zhHant ?? `#${gid}`,
+        name: groupIdNameFor(gid, lang),
         color: groupColorHex(gid),
         data: rows
           .filter((r) => r.p.group === gid)
           .map((r) => ({
             id: r.p.id,
-            name: r.p.name.en,
-            zhName: r.p.name.zhHant,
+            name: productNameFor(r.p.id, lang),
+            zhName: productNameOnly(r.p.id, lang),
             demandProxy: r.demandProxy,
             valueDensity: r.valueDensity === 0 ? 0.0001 : r.valueDensity,
             boxValue: r.boxValue,
@@ -181,14 +186,14 @@ export function Profit() {
     if (otherGids.size > 0) {
       series.push({
         gid: -1,
-        name: '其他',
+        name: lang === 'en' ? 'Other' : '其他',
         color: '#9ca3af',
         data: rows
           .filter((r) => r.p.group != null && otherGids.has(r.p.group))
           .map((r) => ({
             id: r.p.id,
-            name: r.p.name.en,
-            zhName: r.p.name.zhHant,
+            name: productNameFor(r.p.id, lang),
+            zhName: productNameOnly(r.p.id, lang),
             demandProxy: r.demandProxy,
             valueDensity: r.valueDensity === 0 ? 0.0001 : r.valueDensity,
             boxValue: r.boxValue,
@@ -197,7 +202,7 @@ export function Profit() {
       })
     }
     return series
-  }, [rows])
+  }, [rows, lang])
 
   const notableLabels = useMemo(
     () =>
@@ -205,13 +210,13 @@ export function Profit() {
         .filter((r) => NOTABLE_IDS.includes(r.p.id))
         .map((r) => ({
           id: r.p.id,
-          name: r.p.name.en,
+          name: productNameFor(r.p.id, lang),
           demandProxy: r.demandProxy,
           valueDensity: r.valueDensity,
           boxValue: r.boxValue,
           isPremium: r.isPremium,
         })),
-    [rows],
+    [rows, lang],
   )
 
   // Summary stat row
@@ -269,106 +274,176 @@ export function Profit() {
         <StatCard label="平均 boxValue" value={fmtMoney(summary.avgBox)} confidence="confirmed" formula="avg(boxValue)" accent="good" />
       </div>
 
-      {/* Scatter plot */}
+      {/* View toggle: Leaderboard bars (default) vs Scatter (advanced) */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center justify-between text-base">
             <span className="flex items-center gap-2">
-              <Activity className="h-4 w-4" /> Demand × Density 散佈圖
+              <BarChart3 className="h-4 w-4" /> 商品價值總覽
             </span>
             <ConfidenceBadge
               confidence="proxy"
-              formula="X=demandProxy, Y=valueDensity (log scale), 氣泡大小=boxValue, 顏色=group"
-              note="log scale 因 USB 1TB valueDensity (~$74,737) 遠高於其他品項"
+              formula="排行榜：依各指標排序 Top 10 商品；散佈圖：X=demandProxy、Y=valueDensity (log)、氣泡大小=boxValue"
+              note="所有指標皆為靜態導出，未驗證顧客生成機制"
             />
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[460px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <ScatterChart margin={{ top: 20, right: 30, bottom: 40, left: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                <XAxis
-                  type="number"
-                  dataKey="demandProxy"
-                  name="demandProxy"
-                  tick={{ fontSize: 10 }}
-                  tickFormatter={(v) => fmt(v, 4)}
-                  label={{ value: 'demandProxy (proxy)', position: 'insideBottom', offset: -10, style: { fontSize: 11 } }}
+          <Tabs defaultValue="leaderboard" className="w-full">
+            <TabsList className="flex h-auto w-full flex-wrap gap-1 sm:w-fit">
+              <TabsTrigger value="leaderboard" className="text-xs">
+                <BarChart3 className="mr-1 h-3.5 w-3.5" /> 排行榜
+              </TabsTrigger>
+              <TabsTrigger value="scatter" className="text-xs">
+                <Activity className="mr-1 h-3.5 w-3.5" /> 散佈圖（進階）
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="leaderboard" className="pt-3">
+              <p className="mb-3 text-xs text-muted-foreground">
+                依四個指標排序 Top 10 商品，橫條長度代表數值大小、顏色代表商品群組。點擊商品可前往百科查看詳情。
+              </p>
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <MetricBarCard
+                  title="單箱價值 Top 10"
+                  icon={<Boxes className="h-3.5 w-3.5 text-emerald-500" />}
+                  formula="boxValue = basePricePerUnit × maxItemsPerBox"
+                  confidence="confirmed"
+                  rows={rows}
+                  getValue={(r) => r.boxValue}
+                  fmtValue={(v) => fmtMoney(v)}
+                  onClick={goToProduct}
+                  lang={lang}
                 />
-                <YAxis
-                  type="number"
-                  dataKey="valueDensity"
-                  name="valueDensity"
-                  scale="log"
-                  domain={['auto', 'auto']}
-                  tick={{ fontSize: 10 }}
-                  tickFormatter={(v) => (v >= 1000 ? fmt(v, 0) : fmt(v, 1))}
-                  label={{ value: 'valueDensity ($/u³, log)', angle: -90, position: 'insideLeft', offset: 20, style: { fontSize: 11 } }}
+                <MetricBarCard
+                  title="價值密度 Top 10"
+                  icon={<Layers className="h-3.5 w-3.5 text-teal-500" />}
+                  formula="valueDensity = basePricePerUnit / colliderVolume"
+                  confidence="confirmed"
+                  rows={rows}
+                  getValue={(r) => r.valueDensity}
+                  fmtValue={(v) => `${fmt(v, 1)} $/u³`}
+                  onClick={goToProduct}
+                  lang={lang}
                 />
-                <ZAxis type="number" dataKey="boxValue" range={[20, 360]} name="boxValue" />
-                <Tooltip
-                  cursor={{ strokeDasharray: '3 3' }}
-                  content={({ active, payload }) => {
-                    if (!active || !payload || payload.length === 0) return null
-                    const d = payload[0].payload as { id: number; name: string; zhName: string; demandProxy: number; valueDensity: number; boxValue: number }
-                    return (
-                      <div className="rounded-md border bg-popover p-2 text-xs shadow-md">
-                        <div className="font-medium">#{d.id} {d.name} <span className="text-muted-foreground">({d.zhName})</span></div>
-                        <div className="mt-1 font-mono text-[10px]">demandProxy: {fmt(d.demandProxy, 5)}</div>
-                        <div className="font-mono text-[10px]">valueDensity: {fmt(d.valueDensity, 2)} $/u³</div>
-                        <div className="font-mono text-[10px]">boxValue: {fmtMoney(d.boxValue)}</div>
-                      </div>
-                    )
-                  }}
+                <MetricBarCard
+                  title="需求 Top 10"
+                  icon={<Activity className="h-3.5 w-3.5 text-amber-500" />}
+                  formula="Σcust Σnec (custWeight × necChance × tokenHits/rawPoolSize) / ΣcustWeight"
+                  confidence="proxy"
+                  rows={rows}
+                  getValue={(r) => r.demandProxy}
+                  fmtValue={(v) => fmt(v, 5)}
+                  onClick={goToProduct}
+                  lang={lang}
                 />
-                {scatterData.map((s) => (
-                  <Scatter key={s.gid} name={s.name} data={s.data} fill={s.color} fillOpacity={0.7}>
-                    {s.data.map((d) => (
-                      <Cell
-                        key={d.id}
-                        fill={d.notable ? '#dc2626' : s.color}
-                        stroke={d.notable ? '#000' : 'none'}
-                        strokeWidth={d.notable ? 1 : 0}
-                      />
-                    ))}
-                    <LabelList
-                      dataKey="name"
-                      position="top"
-                      formatter={(v: string) => {
-                        // Only show labels for notable products
-                        const match = scatterData.flatMap((ss) => ss.data).find((d) => d.name === v && d.notable)
-                        return match ? v : ''
-                      }}
-                      style={{ fontSize: 9, fill: '#dc2626', fontWeight: 600 }}
+                <MetricBarCard
+                  title="加權價值 Top 10"
+                  icon={<TrendingUp className="h-3.5 w-3.5 text-emerald-500" />}
+                  formula="weightedBoxProxy = demandProxy × boxValue"
+                  confidence="proxy"
+                  rows={rows}
+                  getValue={(r) => r.weightedBox}
+                  fmtValue={(v) => fmt(v, 2)}
+                  onClick={goToProduct}
+                  lang={lang}
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="scatter" className="pt-3">
+              <div className="mb-3 rounded-md border border-amber-500/30 bg-amber-500/5 p-2 text-xs text-muted-foreground">
+                <span className="font-medium text-amber-700 dark:text-amber-300">進階檢視：</span>
+                {' '}
+                每個點是一個商品，X=需求推算、Y=價值密度（對數）、泡泡大小=單箱價值。紅色標記為 Notable 商品（USB 1TB、Salt 等）。
+              </div>
+              <div className="h-[460px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ScatterChart margin={{ top: 20, right: 30, bottom: 40, left: 10 }}>
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                    <XAxis
+                      type="number"
+                      dataKey="demandProxy"
+                      name="demandProxy"
+                      tick={{ fontSize: 10 }}
+                      tickFormatter={(v) => fmt(v, 4)}
+                      label={{ value: 'demandProxy (proxy)', position: 'insideBottom', offset: -10, style: { fontSize: 11 } }}
                     />
-                  </Scatter>
+                    <YAxis
+                      type="number"
+                      dataKey="valueDensity"
+                      name="valueDensity"
+                      scale="log"
+                      domain={['auto', 'auto']}
+                      tick={{ fontSize: 10 }}
+                      tickFormatter={(v) => (v >= 1000 ? fmt(v, 0) : fmt(v, 1))}
+                      label={{ value: 'valueDensity ($/u³, log)', angle: -90, position: 'insideLeft', offset: 20, style: { fontSize: 11 } }}
+                    />
+                    <ZAxis type="number" dataKey="boxValue" range={[20, 360]} name="boxValue" />
+                    <Tooltip
+                      cursor={{ strokeDasharray: '3 3' }}
+                      content={({ active, payload }) => {
+                        if (!active || !payload || payload.length === 0) return null
+                        const d = payload[0].payload as { id: number; name: string; zhName: string; demandProxy: number; valueDensity: number; boxValue: number }
+                        return (
+                          <div className="rounded-md border bg-popover p-2 text-xs shadow-md">
+                            <div className="font-medium">#{d.id} {d.name}</div>
+                            <div className="mt-1 font-mono text-[10px]">demandProxy: {fmt(d.demandProxy, 5)}</div>
+                            <div className="font-mono text-[10px]">valueDensity: {fmt(d.valueDensity, 2)} $/u³</div>
+                            <div className="font-mono text-[10px]">boxValue: {fmtMoney(d.boxValue)}</div>
+                          </div>
+                        )
+                      }}
+                    />
+                    {scatterData.map((s) => (
+                      <Scatter key={s.gid} name={s.name} data={s.data} fill={s.color} fillOpacity={0.7}>
+                        {s.data.map((d) => (
+                          <Cell
+                            key={d.id}
+                            fill={d.notable ? '#dc2626' : s.color}
+                            stroke={d.notable ? '#000' : 'none'}
+                            strokeWidth={d.notable ? 1 : 0}
+                          />
+                        ))}
+                        <LabelList
+                          dataKey="name"
+                          position="top"
+                          formatter={(v: string) => {
+                            // Only show labels for notable products
+                            const match = scatterData.flatMap((ss) => ss.data).find((d) => d.name === v && d.notable)
+                            return match ? v : ''
+                          }}
+                          style={{ fontSize: 9, fill: '#dc2626', fontWeight: 600 }}
+                        />
+                      </Scatter>
+                    ))}
+                  </ScatterChart>
+                </ResponsiveContainer>
+              </div>
+              {/* Notable products list */}
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {notableLabels.map((n) => (
+                  <button
+                    key={n.id}
+                    onClick={() => goToProduct(n.id)}
+                    className="rounded-md border bg-card p-2 text-left text-xs transition-colors hover:bg-accent"
+                  >
+                    <div className="flex items-center gap-1">
+                      <span className="font-semibold">#{n.id} {n.name}</span>
+                      {n.isPremium && <Crown className="h-3 w-3 text-fuchsia-500" />}
+                    </div>
+                    <div className="mt-0.5 font-mono text-[10px] text-muted-foreground">
+                      dem {fmt(n.demandProxy, 5)} · dens {fmt(n.valueDensity, 1)} · box {fmtMoney(n.boxValue)}
+                    </div>
+                  </button>
                 ))}
-              </ScatterChart>
-            </ResponsiveContainer>
-          </div>
-          {/* Notable products list */}
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {notableLabels.map((n) => (
-              <button
-                key={n.id}
-                onClick={() => goToProduct(n.id)}
-                className="rounded-md border bg-card p-2 text-left text-xs transition-colors hover:bg-accent"
-              >
-                <div className="flex items-center gap-1">
-                  <span className="font-semibold">#{n.id} {n.name}</span>
-                  {n.isPremium && <Crown className="h-3 w-3 text-fuchsia-500" />}
-                </div>
-                <div className="mt-0.5 font-mono text-[10px] text-muted-foreground">
-                  dem {fmt(n.demandProxy, 5)} · dens {fmt(n.valueDensity, 1)} · box {fmtMoney(n.boxValue)}
-                </div>
-              </button>
-            ))}
-          </div>
+              </div>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 
-      {/* Leaderboards */}
+      {/* Detailed leaderboards (9 tabs) */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-base">
@@ -505,6 +580,77 @@ export function Profit() {
   )
 }
 
+// ============================================================
+// MetricBarCard — simple horizontal bar chart for top-10 products
+// ============================================================
+function MetricBarCard({
+  title,
+  icon,
+  formula,
+  confidence,
+  rows,
+  getValue,
+  fmtValue,
+  onClick,
+  lang,
+}: {
+  title: string
+  icon: React.ReactNode
+  formula: string
+  confidence: 'confirmed' | 'proxy'
+  rows: Row[]
+  getValue: (r: Row) => number
+  fmtValue: (v: number) => string
+  onClick: (id: number) => void
+  lang: Lang
+}) {
+  const top10 = useMemo(
+    () => [...rows].sort((a, b) => getValue(b) - getValue(a)).slice(0, 10),
+    [rows, getValue],
+  )
+  const max = top10.length > 0 ? getValue(top10[0]) : 1
+  return (
+    <div className="rounded-md border bg-card">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b px-3 py-2">
+        <span className="flex items-center gap-1.5 text-sm font-semibold">{icon} {title}</span>
+        <ConfidenceBadge confidence={confidence} formula={formula} />
+      </div>
+      <div className="space-y-1 p-2">
+        {top10.map((r, i) => {
+          const v = getValue(r)
+          const pct = max > 0 ? Math.max(2, (v / max) * 100) : 0
+          const name = productNameFor(r.p.id, lang)
+          return (
+            <button
+              key={r.p.id}
+              onClick={() => onClick(r.p.id)}
+              className="group flex w-full items-center gap-2 rounded px-1.5 py-1 text-left text-xs transition-colors hover:bg-accent"
+              title={`${name} · ${fmtValue(v)}`}
+            >
+              <span className="w-4 shrink-0 text-right font-mono text-[10px] text-muted-foreground">{i + 1}</span>
+              <span className="w-28 shrink-0 truncate font-medium" title={name}>
+                {name}
+                {r.isPremium && <Crown className="ml-0.5 inline h-2.5 w-2.5 text-fuchsia-500" />}
+                {r.isSeasonal && <Sparkles className="ml-0.5 inline h-2.5 w-2.5 text-sky-500" />}
+              </span>
+              <div className="relative h-4 flex-1 overflow-hidden rounded-sm bg-muted">
+                <div
+                  className="h-full rounded-sm transition-all"
+                  style={{ width: `${pct}%`, background: r.groupColor }}
+                />
+              </div>
+              <span className="w-20 shrink-0 text-right font-mono text-[10px] tabular-nums">{fmtValue(v)}</span>
+            </button>
+          )
+        })}
+        {top10.length === 0 && (
+          <div className="py-4 text-center text-xs text-muted-foreground">無資料</div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function LeaderboardTable({
   title,
   icon,
@@ -524,6 +670,7 @@ function LeaderboardTable({
   metricFmt: (r: Row) => string
   onClick: (id: number) => void
 }) {
+  const lang = useLang()
   return (
     <div className="space-y-2 pt-2">
       <div className="flex flex-wrap items-center gap-2">
@@ -554,17 +701,17 @@ function LeaderboardTable({
                 <TableCell>
                   <div className="flex flex-col">
                     <span className="font-medium leading-tight">
-                      #{r.p.id} {r.p.name.en}
+                      #{r.p.id} {productNameFor(r.p.id, lang)}
                       {r.isPremium && <Crown className="ml-1 inline h-3 w-3 text-fuchsia-500" />}
                       {r.isSeasonal && <Sparkles className="ml-0.5 inline h-3 w-3 text-sky-500" />}
                     </span>
-                    <span className="text-[10px] text-muted-foreground">{r.p.name.zhHant} · Tier {r.p.tier}</span>
+                    <span className="text-[10px] text-muted-foreground">{productNameOnly(r.p.id, lang)} · Tier {r.p.tier}</span>
                   </div>
                 </TableCell>
                 <TableCell className="text-xs">
                   <span className="inline-flex items-center gap-1">
                     <span className="inline-block h-2 w-2 rounded-full" style={{ background: r.groupColor }} />
-                    {r.groupName}
+                    {groupIdNameFor(r.p.group ?? 0, lang)}
                   </span>
                 </TableCell>
                 <TableCell className="text-right font-mono text-xs">{metricFmt(r)}</TableCell>

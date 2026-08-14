@@ -5,6 +5,7 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { useRoomStore } from '@/lib/store'
 import { encyclopedia as ENC } from '@/lib/data-loader'
+import { useLang, achievementNameFor } from '@/lib/i18n'
 import {
   ConfidenceBadge,
   SectionHeader,
@@ -109,6 +110,7 @@ const GUIDES: { steamId: string; zhName: string; tips: string[] }[] = [
 ]
 
 export function Achievements() {
+  const lang = useLang()
   const room = useRoomStore((s) => s.room)
   const updateRoom = useRoomStore((s) => s.updateRoom)
   const toggleChecklist = useRoomStore((s) => s.toggleChecklist)
@@ -140,7 +142,7 @@ export function Achievements() {
         updateRoom({
           checklist: [
             ...room.checklist,
-            { id: a.steamId, label: a.name, done: true },
+            { id: a.steamId, label: achievementNameFor(a, lang), done: true },
           ],
         })
       }
@@ -158,13 +160,14 @@ export function Achievements() {
       ? achievements.filter(
           (a) =>
             a.name.toLowerCase().includes(q) ||
+            achievementNameFor(a, 'zhHant').toLowerCase().includes(q) ||
             a.steamId.toLowerCase().includes(q),
         )
       : [...achievements]
     list.sort((a, b) => {
       if (sortKey === 'name') {
-        const av = a.name.toLowerCase()
-        const bv = b.name.toLowerCase()
+        const av = achievementNameFor(a, lang).toLowerCase()
+        const bv = achievementNameFor(b, lang).toLowerCase()
         return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av)
       }
       return sortDir === 'asc'
@@ -172,7 +175,7 @@ export function Achievements() {
         : b.globalPercent - a.globalPercent
     })
     return list
-  }, [achievements, query, sortKey, sortDir])
+  }, [achievements, query, sortKey, sortDir, lang])
 
   const rarest = useMemo(
     () => [...achievements].sort((a, b) => a.globalPercent - b.globalPercent).slice(0, 10),
@@ -247,6 +250,7 @@ export function Achievements() {
           isDone={isDone}
           onToggle={toggleDone}
           accent="rose"
+          lang={lang}
         />
         <TopCard
           title="最易取得成就 Top 10"
@@ -256,6 +260,7 @@ export function Achievements() {
           isDone={isDone}
           onToggle={toggleDone}
           accent="emerald"
+          lang={lang}
         />
       </div>
 
@@ -341,7 +346,7 @@ export function Achievements() {
                       <TableCell className="text-right font-mono text-xs text-muted-foreground">{i + 1}</TableCell>
                       <TableCell>
                         <span className={done ? 'line-through text-muted-foreground' : 'font-medium'}>
-                          {a.name}
+                          {achievementNameFor(a, lang)}
                         </span>
                       </TableCell>
                       <TableCell className="text-right font-mono text-xs text-muted-foreground">{a.steamId}</TableCell>
@@ -379,7 +384,7 @@ export function Achievements() {
                   <div className="min-w-0">
                     <div className="truncate font-semibold">{g.zhName}</div>
                     <div className="truncate text-xs text-muted-foreground">
-                      {a?.name} · {a?.steamId}
+                      {a ? achievementNameFor(a, lang) : g.zhName} · {a?.steamId}
                     </div>
                   </div>
                   {a && r && (
@@ -467,6 +472,7 @@ function TopCard({
   isDone,
   onToggle,
   accent,
+  lang,
 }: {
   title: string
   icon: React.ReactNode
@@ -475,6 +481,7 @@ function TopCard({
   isDone: (a: Achievement) => boolean
   onToggle: (a: Achievement) => void
   accent: 'rose' | 'emerald'
+  lang: ReturnType<typeof useLang>
 }) {
   const accentClass = accent === 'rose' ? 'border-rose-500/30' : 'border-emerald-500/30'
   return (
@@ -503,7 +510,7 @@ function TopCard({
               />
               <div className="min-w-0 flex-1">
                 <div className={`truncate font-medium ${done ? 'line-through text-muted-foreground' : ''}`}>
-                  {a.name}
+                  {achievementNameFor(a, lang)}
                 </div>
                 <div className="truncate text-[10px] text-muted-foreground">{a.steamId}</div>
               </div>

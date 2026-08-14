@@ -17,7 +17,8 @@ import {
   type SkillROI,
   type SkillStrategy,
 } from '@/lib/engine'
-import { useRoomStore } from '@/lib/store'
+import { useRoomStore, type Lang } from '@/lib/store'
+import { useLang, skillNameFor, skillDescFor } from '@/lib/i18n'
 import {
   ConfidenceBadge,
   SectionHeader,
@@ -72,6 +73,7 @@ const TAG_COLORS: Record<string, string> = {
 }
 
 export function Skills() {
+  const lang = useLang()
   const [strategy, setStrategy] = useState<Strategy>('employee-automation')
   const result = useMemo(() => computeSkillRecommendations(strategy), [strategy])
   const rois = result.value
@@ -93,7 +95,10 @@ export function Skills() {
     return best
   }, [room])
 
-  const top15 = rois.slice(0, 15)
+  const top15 = useMemo(
+    () => rois.slice(0, 15).map((r) => ({ ...r, label: skillNameFor(r.skill, lang) })),
+    [rois, lang],
+  )
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -189,9 +194,7 @@ export function Skills() {
               {(() => {
                 const skill = ENC.skills.find((s) => s.id === consensus?.skillId)
                 return skill ? (
-                  <span>
-                    {skill.name.zhHant} <span className="text-muted-foreground">({skill.name.en})</span>
-                  </span>
+                  <span>{skillNameFor(skill, lang)}</span>
                 ) : (
                   <code className="font-mono text-xs">{consensus.skillId}</code>
                 )
@@ -224,7 +227,7 @@ export function Skills() {
                   <XAxis type="number" tick={{ fontSize: 10 }} />
                   <YAxis
                     type="category"
-                    dataKey={(d: SkillROI) => d.skill.name.zhHant || d.skill.name.en}
+                    dataKey="label"
                     width={120}
                     tick={{ fontSize: 10 }}
                   />
@@ -232,11 +235,11 @@ export function Skills() {
                     cursor={{ fill: 'rgba(0,0,0,0.04)' }}
                     content={({ active, payload }) => {
                       if (!active || !payload || !payload.length) return null
-                      const r = payload[0].payload as SkillROI
+                      const r = payload[0].payload as SkillROI & { label: string }
                       return (
                         <div className="rounded-md border bg-background p-2 text-xs shadow-md">
                           <div className="font-semibold">
-                            {r.skill.name.zhHant || r.skill.name.en}
+                            {skillNameFor(r.skill, lang)}
                           </div>
                           <div className="text-muted-foreground">{r.skill.name.en}</div>
                           <div className="mt-1">
@@ -316,6 +319,7 @@ export function Skills() {
                     : voteSkill(r.skill.id, selfId)
                 }
                 roomActive={!!room}
+                lang={lang}
               />
             )
           })}
@@ -335,6 +339,7 @@ function SkillCard({
   voters,
   onVote,
   roomActive,
+  lang,
 }: {
   roi: SkillROI
   rank: number
@@ -345,6 +350,7 @@ function SkillCard({
   voters: string[]
   onVote: () => void
   roomActive: boolean
+  lang: Lang
 }) {
   const s = roi.skill
   const eff = s.effect || '(無 effect 欄位 — 可能為保留槽)'
@@ -370,7 +376,7 @@ function SkillCard({
           </span>
           <div className="min-w-0">
             <div className="truncate text-sm font-semibold">
-              {s.name.zhHant || s.name.en || s.id}
+              {skillNameFor(s, lang) || s.id}
             </div>
             <div className="truncate text-[11px] text-muted-foreground">
               {s.name.en || s.id} · <code className="font-mono">{s.id}</code>
@@ -386,7 +392,7 @@ function SkillCard({
 
       {/* description */}
       <div className="text-xs text-muted-foreground line-clamp-2">
-        {s.description.zhHant || s.description.en || '(無描述)'}
+        {skillDescFor(s, lang) || '(無描述)'}
       </div>
 
       {/* effect (monospace, truncated with tooltip) */}

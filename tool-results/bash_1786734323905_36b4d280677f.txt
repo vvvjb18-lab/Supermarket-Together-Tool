@@ -2,10 +2,9 @@
 
 import { useMemo, useState } from 'react'
 import { useSaveStore, useRoomStore } from '@/lib/store'
-import { encyclopedia as ENC } from '@/lib/data-loader'
+import { encyclopedia as ENC, buildableById as _buildableById, productZhName } from '@/lib/data-loader'
 import { computeShelfEfficiency, computeDemandProxy } from '@/lib/engine'
 import type { PropEfficiency } from '@/lib/engine'
-import { useLang, productNameFor, groupIdNameFor, buildableIdNameFor } from '@/lib/i18n'
 import {
   ConfidenceBadge,
   StatCard,
@@ -43,10 +42,11 @@ import {
   Boxes,
   X,
   Layers,
-  AlertCircle,
-  ArrowRight,
 } from 'lucide-react'
-import type { LayoutProp } from '@/lib/types'
+import type { LayoutProp, Buildable } from '@/lib/types'
+
+// Cast the imported map to its proper typed form (see pricing.tsx for rationale).
+const buildableById = _buildableById as unknown as Map<number, Buildable>
 
 // ============================================================
 // Store Layout Analyzer
@@ -90,7 +90,6 @@ const HIGHLIGHT_LABELS: { value: HighlightMode; label: string; color: string }[]
 ]
 
 export function StoreLayout() {
-  const lang = useLang()
   const snapshot = useSaveStore((s) => s.snapshot)
   const room = useRoomStore((s) => s.room)
   const assignShelf = useRoomStore((s) => s.assignShelf)
@@ -112,8 +111,7 @@ export function StoreLayout() {
     return m
   }, [])
 
-  const [highlight, setHighlight] = useState<HighlightMode>('none')
-  // selectedIdx and sortKey are used in the leaderboard + detail card below
+  const ighlight, setHighlight] = useState<HighlightMode>('none')
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null)
   const [sortKey, setSortKey] = useState<SortKey>('efficiency')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
@@ -219,7 +217,7 @@ export function StoreLayout() {
         if (inv.product < 0 || inv.count <= 0) continue
         const p = ENC.products.find((x) => x.id === inv.product)
         if (!p) continue
-        const gname = groupIdNameFor(p.group, lang)
+        const gname = p.groupName.zhHant
         const cur = byGroup.get(gname) ?? { count: 0, value: 0 }
         cur.count += inv.count
         cur.value += inv.count * p.basePricePerUnit
@@ -241,7 +239,7 @@ export function StoreLayout() {
       topProducts,
       topGroups,
     }
-  }, [layout, efficiencies, lang])
+  }, [layout, efficiencies])
 
   // Recommended shelf swaps.
   const swapRecs = useMemo(() => {
@@ -279,43 +277,13 @@ export function StoreLayout() {
         recs.push({
           from: props[0],
           to: props[1],
-          reason: `商品 ${productNameFor(pid, lang)} (#${pid}) 同時出現在貨架 #${props[0]} 與 #${props[1]} — 考慮集中放置`,
+          reason: `商品 ${productZhName(pid)} (#${pid}) 同時出現在貨架 #${props[0]} 與 #${props[1]} — 考慮集中放置`,
         })
         dupCount++
       }
     }
     return recs.slice(0, 8)
-  }, [layout, efficiencies, lang])
-
-  // Top 5 problematic shelves — quick scan card
-  const topProblematic = useMemo(() => {
-    return [...efficiencies]
-      .map((e) => {
-        const issues: string[] = []
-        if (e.negativeAnomalies > 0) issues.push(`負庫存 ×${e.negativeAnomalies}`)
-        if (e.totalUnits === 0) issues.push('完全空貨架')
-        if (e.emptySlots > 0 && e.totalUnits > 0) issues.push(`${e.emptySlots} 空格`)
-        if (e.duplicatedProducts > 0) issues.push(`${e.duplicatedProducts} 重複商品`)
-        if (e.demandCoverage < 0.0001 && e.totalUnits > 0) issues.push('低需求商品')
-        // weight: anomalies matter most, then empties, then duplicates, then low-demand
-        const score =
-          e.negativeAnomalies * 10 +
-          (e.totalUnits === 0 ? 5 : 0) +
-          e.emptySlots +
-          e.duplicatedProducts * 2 +
-          (e.demandCoverage < 0.0001 && e.totalUnits > 0 ? 1 : 0)
-        let recommendation = ''
-        if (e.negativeAnomalies > 0) recommendation = '檢查存檔資料，可能有資料異常'
-        else if (e.totalUnits === 0) recommendation = '從倉庫補上高 demand 商品'
-        else if (e.emptySlots > 0) recommendation = `補滿 ${e.emptySlots} 個空格`
-        else if (e.duplicatedProducts > 0) recommendation = '集中重複商品到單一貨架'
-        else if (e.demandCoverage < 0.0001) recommendation = '替換為高 demand 商品'
-        return { e, issues, recommendation, score }
-      })
-      .filter((x) => x.issues.length > 0)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 5)
-  }, [efficiencies])
+  }, [layout, efficiencies])
 
   const layoutSource = snapshot ? `save (${snapshot.source})` : 'encyclopedia (demo)'
 
@@ -465,15 +433,18 @@ export function StoreLayout() {
               {/* Legend */}
               <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
                 <span className="text-muted-foreground">Buildable 顏色:</span>
-                {[0, 1, 2, 3].map((id) => (
-                  <div key={id} className="flex items-center gap-1.5">
-                    <span
-                      className="inline-block h-3 w-3 rounded-sm"
-                      style={{ backgroundColor: BUILDABLE_PALETTE[id] ?? FALLBACK_COLOR }}
-                    />
-                    <span>{buildableIdNameFor(id, lang)}</span>
-                  </div>
-                ))}
+                {[0, 1, 2, 3].map((id) => {
+                  const b = buildableById.get(id)
+                  return (
+                    <div key={id} className="flex items-center gap-1.5">
+                      <span
+                        className="inline-block h-3 w-3 rounded-sm"
+                        style={{ backgroundColor: BUILDABLE_PALETTE[id] ?? FALLBACK_COLOR }}
+                      />
+                      <span>{b?.name.zhHant ?? `#${id}`}</span>
+                    </div>
+                  )
+                })}
                 <span className="ml-2 text-muted-foreground">數字 = 該貨架總庫存單位</span>
               </div>
             </div>
@@ -485,7 +456,6 @@ export function StoreLayout() {
                   prop={selectedProp}
                   eff={selectedEff}
                   demandCache={demandCache}
-                  lang={lang}
                   onClose={() => setSelectedIdx(null)}
                   room={room}
                   onAssign={(playerId) => assignShelf(String(selectedProp.index), playerId)}
@@ -564,7 +534,7 @@ export function StoreLayout() {
                     <div key={pid} className="flex items-center gap-2 rounded border bg-card px-2 py-1.5 text-xs">
                       <span className="w-5 shrink-0 text-right font-mono text-muted-foreground">{i + 1}</span>
                       <div className="min-w-0 flex-1">
-                        <div className="truncate font-medium">{productNameFor(pid, lang)} <span className="text-muted-foreground">#{pid}</span></div>
+                        <div className="truncate font-medium">{productZhName(pid)} <span className="text-muted-foreground">#{pid}</span></div>
                         <div className="truncate text-[10px] text-muted-foreground">{p?.brand} · demand {fmt(demand, 4)}</div>
                       </div>
                       <div className="w-16 shrink-0">
@@ -633,53 +603,6 @@ export function StoreLayout() {
         </CardContent>
       </Card>
 
-      {/* Top 5 problematic shelves — quick scan */}
-      {topProblematic.length > 0 && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center justify-between text-base">
-              <span className="flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 text-rose-500" />
-                Top {topProblematic.length} 問題貨架（快速掃描）
-              </span>
-              <ConfidenceBadge
-                confidence="proxy"
-                formula="rank by (negativeAnomalies×10) + (empty?5:0) + emptySlots + (duplicated×2) + lowDemand"
-                note="點擊任一列可直接跳到貨架詳情"
-              />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1.5">
-              {topProblematic.map(({ e, issues, recommendation }, i) => {
-                const prop = layout.find((p) => p.index === e.propIndex)
-                const buildableName = prop ? buildableIdNameFor(prop.buildableId, lang) : '—'
-                return (
-                  <div
-                    key={e.propIndex}
-                    onClick={() => setSelectedIdx(e.propIndex)}
-                    className="flex cursor-pointer items-center gap-2 rounded-md border bg-card px-3 py-2 text-xs transition-colors hover:bg-accent"
-                  >
-                    <span className="w-6 shrink-0 text-center font-bold text-rose-600 dark:text-rose-400">#{i + 1}</span>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate font-medium">
-                        貨架 #{e.propIndex} · {buildableName}
-                      </div>
-                      <div className="truncate text-[10px] text-muted-foreground">
-                        <span className="text-rose-700 dark:text-rose-300">{issues.join('、')}</span>
-                        <span className="mx-1">→</span>
-                        <span className="text-emerald-700 dark:text-emerald-300">{recommendation}</span>
-                      </div>
-                    </div>
-                    <ArrowRight className="h-3 w-3 shrink-0 text-muted-foreground" />
-                  </div>
-                )
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Efficiency leaderboard */}
       <Card>
         <CardHeader className="pb-2">
@@ -716,7 +639,7 @@ export function StoreLayout() {
               <TableBody>
                 {sortedEffs.map((e, i) => {
                   const prop = layout.find((p) => p.index === e.propIndex)
-                  const buildableName = prop ? buildableIdNameFor(prop.buildableId, lang) : `#?`
+                  const buildable = prop ? buildableById.get(prop.buildableId) : null
                   const assignment = room?.shelfAssignments[String(e.propIndex)]
                   const assignedMember = assignment ? room?.members.find((m) => m.id === assignment) : null
                   return (
@@ -733,7 +656,7 @@ export function StoreLayout() {
                             className="inline-block h-2.5 w-2.5 shrink-0 rounded-sm"
                             style={{ backgroundColor: BUILDABLE_PALETTE[prop?.buildableId ?? -1] ?? FALLBACK_COLOR }}
                           />
-                          <span className="text-xs">{buildableName}</span>
+                          <span className="text-xs">{buildable?.name.zhHant ?? `#${prop?.buildableId}`}</span>
                         </div>
                       </TableCell>
                       <TableCell className="text-right font-mono">{e.totalUnits}</TableCell>
@@ -866,7 +789,6 @@ function PropDetailCard({
   prop,
   eff,
   demandCache,
-  lang,
   onClose,
   room,
   onAssign,
@@ -874,12 +796,11 @@ function PropDetailCard({
   prop: LayoutProp
   eff: PropEfficiency
   demandCache: Map<number, number>
-  lang: ReturnType<typeof useLang>
   onClose: () => void
   room: ReturnType<typeof useRoomStore.getState>['room']
   onAssign: (playerId: string) => void
 }) {
-  const buildableName = buildableIdNameFor(prop.buildableId, lang)
+  const buildable = buildableById.get(prop.buildableId)
   const inventory = prop.inventory.filter((i) => i.product >= 0)
   const assignment = room?.shelfAssignments[String(prop.index)]
   const assignedMember = assignment ? room?.members.find((m) => m.id === assignment) : null
@@ -897,7 +818,7 @@ function PropDetailCard({
               貨架 #{prop.index}
             </div>
             <div className="mt-0.5 text-xs font-normal text-muted-foreground">
-              {buildableName}
+              {buildable?.name.zhHant ?? `buildable #${prop.buildableId}`}
             </div>
           </CardTitle>
           <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={onClose}>
@@ -963,7 +884,7 @@ function PropDetailCard({
                     className="flex items-center gap-2 rounded border bg-card px-2 py-1 text-xs"
                   >
                     <div className="min-w-0 flex-1">
-                      <div className="truncate font-medium">{productNameFor(inv.product, lang)}</div>
+                      <div className="truncate font-medium">{productZhName(inv.product)}</div>
                       <div className="truncate text-[10px] text-muted-foreground">
                         #{inv.product} · {p?.brand} · demand {fmt(demand, 4)}
                       </div>

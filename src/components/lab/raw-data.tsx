@@ -2,10 +2,19 @@
 
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import { encyclopedia as ENC, demoSave, productById } from '@/lib/data-loader'
+import { encyclopedia as ENC, demoSave } from '@/lib/data-loader'
 import { exportMarkdownReport } from '@/lib/engine'
-import { useSaveStore } from '@/lib/store'
-import type { Product } from '@/lib/types'
+import { useSaveStore, type Lang } from '@/lib/store'
+import {
+  productNameFor,
+  groupIdNameFor,
+  tierIdNameFor,
+  customerTypeLabel,
+  containerIdNameFor,
+  buildableIdNameFor,
+  achievementNameFor,
+  useLang,
+} from '@/lib/i18n'
 import {
   ConfidenceBadge,
 } from '@/components/shared/primitives'
@@ -91,18 +100,93 @@ function escapeTsv(v: string): string {
   return v
 }
 
-function buildTsv(records: Record<string, unknown>[]): string {
+function buildTsv(records: Record<string, unknown>[], localize: (c: string, raw: unknown, i: number) => string | null): string {
   if (records.length === 0) return ''
   const cols = collectColumns(records)
   const lines: string[] = [cols.join('\t')]
-  for (const r of records) {
-    lines.push(cols.map((c) => escapeTsv(toCell(r[c]))).join('\t'))
+  for (let i = 0; i < records.length; i++) {
+    const r = records[i]
+    lines.push(
+      cols
+        .map((c) => {
+          const loc = localize(c, r[c], i)
+          if (loc != null) return escapeTsv(loc)
+          return escapeTsv(toCell(r[c]))
+        })
+        .join('\t'),
+    )
   }
   return lines.join('\n')
 }
 
 function buildJsonFromRecords(records: Record<string, unknown>[]): string {
   return JSON.stringify(records, null, 2)
+}
+
+// Localize a cell value based on the active tab + column name.
+// Falls back to `toCell` for non-name columns.
+function localizeCell(
+  tab: TabId,
+  column: string,
+  raw: unknown,
+  lang: Lang,
+  rowIndex: number,
+): { text: string; isObj?: boolean } | null {
+  if (raw == null) return { text: '' }
+  // LocalizedName fields — { en, zhHant, zhHans }
+  if (typeof raw === 'object' && raw !== null && 'en' in raw && ('zhHant' in raw || 'zhHans' in raw)) {
+    const locName = (raw as { en?: string; zhHant?: string })
+    const en = locName.en ?? ''
+    const zh = locName.zhHant ?? ''
+    let text: string
+    if (lang === 'en') text = en || zh || '—'
+    else if (lang === 'zhHant') text = zh || en || '—'
+    else text = en && zh && en !== zh ? `${zh} / ${en}` : (zh || en || '—')
+    return { text }
+  }
+  // Special columns per-tab.
+  switch (tab) {
+    case 'products':
+      if (column === 'tier' && typeof raw === 'number') {
+        return { text: `${raw} · ${tierIdNameFor(raw, lang)}` }
+      }
+      if (column === 'group' && typeof raw === 'number') {
+        return { text: `${raw} · ${groupIdNameFor(raw, lang)}` }
+      }
+      break
+    case 'customerTypes':
+      if (column === 'topSummary') {
+        const ct = ENC.customerTypes[rowIndex]
+        if (ct) return { text: customerTypeLabel(ct, lang) }
+      }
+      break
+    case 'containers':
+      if (column === 'buildableName' && typeof raw === 'string') {
+        const c = ENC.containers.find((x) => x.buildableName === raw)
+        if (c) return { text: containerIdNameFor(c.containerID, lang) }
+      }
+      break
+    case 'achievements':
+      if (column === 'name' && typeof raw === 'string') {
+        const a = ENC.achievements[rowIndex]
+        if (a) return { text: achievementNameFor(a, lang) }
+      }
+      break
+    case 'manufacturingProducts':
+      if (column === 'linkedProductID' && typeof raw === 'number') {
+        return { text: `${raw} · ${productNameFor(raw, lang)}` }
+      }
+      break
+    case 'storeLayout':
+      if (column === 'buildableId' && typeof raw === 'number') {
+        return { text: `${raw} · ${buildableIdNameFor(raw, lang)}` }
+      }
+      break
+    case 'skills':
+      // name + description are LocalizedName (handled above) but if raw is string fallback
+      break
+  }
+  return null
 }
 
 function encodeShareLink(snapshotJson: string): string {
@@ -117,6 +201,7 @@ function encodeShareLink(snapshotJson: string): string {
 // ============================================================
 
 export function RawData() {
+  const lang = useLang()
   const snapshot = useSaveStore((s) => s.snapshot)
   const [tab, setTab] = useState<TabId>('products')
 
@@ -157,7 +242,14 @@ export function RawData() {
   }
 
   const handleExportTsv = () => {
-    downloadBlob(`${tab}-${Date.now()}.tsv`, buildTsv(records), 'text/tab-separated-values')
+    downloadBlob(
+      `${tab}-${Date.now()}.tsv`,
+      buildTsv(records, (c, raw, i) => {
+        const loc = localizeCell(tab, c, raw, lang, i)
+        return loc ? loc.text : null
+      }),
+      'text/tab-separated-values',
+    )
     toast.success(`已下載 ${tab}.tsv (${records.length} 筆)`)
   }
 
@@ -189,17 +281,15 @@ export function RawData() {
     }
     const byProduct = Object.entries(inv)
       .map(([pid, c]) => {
-        const p = productById.get(Number(pid)) as Product | undefined
         return {
           pid: Number(pid),
           count: c,
-          name: p?.name.en ?? `#${pid}`,
-          zhName: p?.name.zhHant ?? '',
+          label: productNameFor(Number(pid), lang),
         }
       })
       .sort((a, b) => b.count - a.count)
     return { totalProps: ENC.storeLayout.length, totalUnits, totalSlots, byProduct }
-  }, [tab])
+  }, [tab, lang])
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-4 p-4">
@@ -290,9 +380,9 @@ export function RawData() {
               <div className="mt-1 grid grid-cols-2 gap-1 text-[11px] sm:grid-cols-3 lg:grid-cols-4">
                 {layoutSummary.byProduct.slice(0, 20).map((x) => (
                   <div key={x.pid} className="flex items-center justify-between rounded border bg-muted/30 px-2 py-1">
-                    <span className="truncate" title={`${x.name} / ${x.zhName}`}>
+                    <span className="truncate" title={x.label}>
                       <span className="font-mono text-muted-foreground">#{x.pid}</span>{' '}
-                      {x.name}
+                      {x.label}
                     </span>
                     <span className="ml-1 shrink-0 font-mono tabular-nums">{x.count}</span>
                   </div>
@@ -324,6 +414,19 @@ export function RawData() {
                     <td className="p-2 font-mono text-[10px] text-muted-foreground">{i}</td>
                     {columns.map((c) => {
                       const raw = r[c]
+                      const localized = localizeCell(tab, c, raw, lang, i)
+                      if (localized) {
+                        return (
+                          <td
+                            key={c}
+                            className="max-w-[280px] whitespace-nowrap p-2 align-top"
+                          >
+                            <span className="truncate" title={localized.text}>
+                              {localized.text}
+                            </span>
+                          </td>
+                        )
+                      }
                       const isObj = raw != null && typeof raw === 'object'
                       return (
                         <td

@@ -1,0 +1,8334 @@
+{
+ "decoded": {
+  "Difficulty": {
+   "__type": "int",
+   "value": 5
+  },
+  "PlayersAddFunds": {
+   "__type": "int",
+   "value": 5
+  },
+  "Layout": {
+   "__type": "int",
+   "value": 0
+  },
+  "StoreName": {
+   "__type": "string",
+   "value": "兒子進"
+  },
+  "Day": {
+   "__type": "int",
+   "value": 32
+  },
+  "FranchiseExperience": {
+   "__type": "int",
+   "value": 55385
+  },
+  "FranchisePoints": {
+   "__type": "int",
+   "value": 0
+  },
+  "Funds": {
+   "__type": "float",
+   "value": 2505.6
+  },
+  "LastAwardedLevel": {
+   "__type": "int",
+   "value": 33
+  },
+  "SupermarketName": {
+   "__type": "string",
+   "value": "TWITTER"
+  },
+  "SupermarketColor": {
+   "__type": "Color",
+   "value": {
+    "r": 0,
+    "g": 1,
+    "b": 0.958730936,
+    "a": 1
+   }
+  },
+  "hasGeneratedOrganizers": {
+   "__type": "bool",
+   "value": true
+  },
+  "SpaceBought": {
+   "__type": "int",
+   "value": 0
+  },
+  "StorageBought": {
+   "__type": "int",
+   "value": 0
+  },
+  "AddonsBought": {
+   "__type": "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+   "value": {
+    "objs": null,
+    "arrays": null,
+    "obj": null,
+    "array": [
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     }
+    ]
+   }
+  },
+  "ExtraUpgrades": {
+   "__type": "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+   "value": {
+    "objs": null,
+    "arrays": null,
+    "obj": null,
+    "array": [
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     }
+    ]
+   }
+  },
+  "StoreSpaceUpgrades": {
+   "__type": "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+   "value": {
+    "objs": null,
+    "arrays": null,
+    "obj": null,
+    "array": [
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     }
+    ]
+   }
+  },
+  "StorageSpaceUpgrades": {
+   "__type": "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+   "value": {
+    "objs": null,
+    "arrays": null,
+    "obj": null,
+    "array": [
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     }
+    ]
+   }
+  },
+  "ProductPlayerPricing": {
+   "__type": "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+   "value": {
+    "objs": null,
+    "arrays": null,
+    "obj": null,
+    "array": [
+     {
+      "__type": "float",
+      "value": 3.26
+     },
+     {
+      "__type": "float",
+      "value": 2.49999976
+     },
+     {
+      "__type": "float",
+      "value": 6.13003731
+     },
+     {
+      "__type": "float",
+      "value": 4.100002
+     },
+     {
+      "__type": "float",
+      "value": 1.2
+     },
+     {
+      "__type": "float",
+      "value": 3.67
+     },
+     {
+      "__type": "float",
+      "value": 5.180004
+     },
+     {
+      "__type": "float",
+      "value": 2.35
+     },
+     {
+      "__type": "float",
+      "value": 5.150023
+     },
+     {
+      "__type": "float",
+      "value": 20.0000458
+     },
+     {
+      "__type": "float",
+      "value": 6.05000639
+     },
+     {
+      "__type": "float",
+      "value": 4.1900034
+     },
+     {
+      "__type": "float",
+      "value": 3.00999975
+     },
+     {
+      "__type": "float",
+      "value": 4.04999876
+     },
+     {
+      "__type": "float",
+      "value": 5.070009
+     },
+     {
+      "__type": "float",
+      "value": 6.00003052
+     },
+     {
+      "__type": "float",
+      "value": 2.91
+     },
+     {
+      "__type": "float",
+      "value": 10.960001
+     },
+     {
+      "__type": "float",
+      "value": 7.140003
+     },
+     {
+      "__type": "float",
+      "value": 4.30000639
+     },
+     {
+      "__type": "float",
+      "value": 8.150066
+     },
+     {
+      "__type": "float",
+      "value": 6.260025
+     },
+     {
+      "__type": "float",
+      "value": 4.130002
+     },
+     {
+      "__type": "float",
+      "value": 4.230005
+     },
+     {
+      "__type": "float",
+      "value": 4.15000248
+     },
+     {
+      "__type": "float",
+      "value": 3.05
+     },
+     {
+      "__type": "float",
+      "value": 3.19
+     },
+     {
+      "__type": "float",
+      "value": 3.90999985
+     },
+     {
+      "__type": "float",
+      "value": 6.000015
+     },
+     {
+      "__type": "float",
+      "value": 21.0200233
+     },
+     {
+      "__type": "float",
+      "value": 5.04999971
+     },
+     {
+      "__type": "float",
+      "value": 13.170001
+     },
+     {
+      "__type": "float",
+      "value": 6.410006
+     },
+     {
+      "__type": "float",
+      "value": 6.00002241
+     },
+     {
+      "__type": "float",
+      "value": 6.100001
+     },
+     {
+      "__type": "float",
+      "value": 9.000039
+     },
+     {
+      "__type": "float",
+      "value": 6.05004549
+     },
+     {
+      "__type": "float",
+      "value": 10.3001442
+     },
+     {
+      "__type": "float",
+      "value": 2.149999
+     },
+     {
+      "__type": "float",
+      "value": 2.299999
+     },
+     {
+      "__type": "float",
+      "value": 6.00002
+     },
+     {
+      "__type": "float",
+      "value": 9
+     },
+     {
+      "__type": "float",
+      "value": 9.499954
+     },
+     {
+      "__type": "float",
+      "value": 3.98999953
+     },
+     {
+      "__type": "float",
+      "value": 4.990012
+     },
+     {
+      "__type": "float",
+      "value": 5.749995
+     },
+     {
+      "__type": "float",
+      "value": 5.55001926
+     },
+     {
+      "__type": "float",
+      "value": 8.710005
+     },
+     {
+      "__type": "float",
+      "value": 1.90000081
+     },
+     {
+      "__type": "float",
+      "value": 3.65
+     },
+     {
+      "__type": "float",
+      "value": 2.1
+     },
+     {
+      "__type": "float",
+      "value": 2.7
+     },
+     {
+      "__type": "float",
+      "value": 2.9
+     },
+     {
+      "__type": "float",
+      "value": 3.5
+     },
+     {
+      "__type": "float",
+      "value": 3.44999981
+     },
+     {
+      "__type": "float",
+      "value": 4.590001
+     },
+     {
+      "__type": "float",
+      "value": 10.1999588
+     },
+     {
+      "__type": "float",
+      "value": 3.30999947
+     },
+     {
+      "__type": "float",
+      "value": 3.88999987
+     },
+     {
+      "__type": "float",
+      "value": 3.44999957
+     },
+     {
+      "__type": "float",
+      "value": 5.67001438
+     },
+     {
+      "__type": "float",
+      "value": 5.030023
+     },
+     {
+      "__type": "float",
+      "value": 4.5
+     },
+     {
+      "__type": "float",
+      "value": 7.000067
+     },
+     {
+      "__type": "float",
+      "value": 8.150038
+     },
+     {
+      "__type": "float",
+      "value": 4.05
+     },
+     {
+      "__type": "float",
+      "value": 3.99
+     },
+     {
+      "__type": "float",
+      "value": 4.5
+     },
+     {
+      "__type": "float",
+      "value": 2.49
+     },
+     {
+      "__type": "float",
+      "value": 3.19
+     },
+     {
+      "__type": "float",
+      "value": 3.99
+     },
+     {
+      "__type": "float",
+      "value": 3.79
+     },
+     {
+      "__type": "float",
+      "value": 3.67
+     },
+     {
+      "__type": "float",
+      "value": 3.45
+     },
+     {
+      "__type": "float",
+      "value": 3.84999919
+     },
+     {
+      "__type": "float",
+      "value": 10.239996
+     },
+     {
+      "__type": "float",
+      "value": 2.05
+     },
+     {
+      "__type": "float",
+      "value": 5
+     },
+     {
+      "__type": "float",
+      "value": 5.350006
+     },
+     {
+      "__type": "float",
+      "value": 6.000045
+     },
+     {
+      "__type": "float",
+      "value": 4.6
+     },
+     {
+      "__type": "float",
+      "value": 1.69
+     },
+     {
+      "__type": "float",
+      "value": 2.25
+     },
+     {
+      "__type": "float",
+      "value": 2.59
+     },
+     {
+      "__type": "float",
+      "value": 3.99
+     },
+     {
+      "__type": "float",
+      "value": 5.2
+     },
+     {
+      "__type": "float",
+      "value": 2.5
+     },
+     {
+      "__type": "float",
+      "value": 1.25
+     },
+     {
+      "__type": "float",
+      "value": 2.65
+     },
+     {
+      "__type": "float",
+      "value": 3.95
+     },
+     {
+      "__type": "float",
+      "value": 3.3
+     },
+     {
+      "__type": "float",
+      "value": 1.9
+     },
+     {
+      "__type": "float",
+      "value": 3.6
+     },
+     {
+      "__type": "float",
+      "value": 6.7
+     },
+     {
+      "__type": "float",
+      "value": 4.6
+     },
+     {
+      "__type": "float",
+      "value": 1.2
+     },
+     {
+      "__type": "float",
+      "value": 1.9
+     },
+     {
+      "__type": "float",
+      "value": 3.99
+     },
+     {
+      "__type": "float",
+      "value": 4.5
+     },
+     {
+      "__type": "float",
+      "value": 4.1
+     },
+     {
+      "__type": "float",
+      "value": 0.9
+     },
+     {
+      "__type": "float",
+      "value": 7.8
+     },
+     {
+      "__type": "float",
+      "value": 2.5
+     },
+     {
+      "__type": "float",
+      "value": 3.1
+     },
+     {
+      "__type": "float",
+      "value": 6.37000275
+     },
+     {
+      "__type": "float",
+      "value": 6.990012
+     },
+     {
+      "__type": "float",
+      "value": 3.249999
+     },
+     {
+      "__type": "float",
+      "value": 4.45001
+     },
+     {
+      "__type": "float",
+      "value": 1.91
+     },
+     {
+      "__type": "float",
+      "value": 3.64999938
+     },
+     {
+      "__type": "float",
+      "value": 2.9
+     },
+     {
+      "__type": "float",
+      "value": 4.5
+     },
+     {
+      "__type": "float",
+      "value": 10.9
+     },
+     {
+      "__type": "float",
+      "value": 4.8
+     },
+     {
+      "__type": "float",
+      "value": 5.5
+     },
+     {
+      "__type": "float",
+      "value": 2.7
+     },
+     {
+      "__type": "float",
+      "value": 3.9
+     },
+     {
+      "__type": "float",
+      "value": 3.6
+     },
+     {
+      "__type": "float",
+      "value": 1.99
+     },
+     {
+      "__type": "float",
+      "value": 2.99
+     },
+     {
+      "__type": "float",
+      "value": 2.45
+     },
+     {
+      "__type": "float",
+      "value": 2.55
+     },
+     {
+      "__type": "float",
+      "value": 5.99
+     },
+     {
+      "__type": "float",
+      "value": 3.99
+     },
+     {
+      "__type": "float",
+      "value": 18.5
+     },
+     {
+      "__type": "float",
+      "value": 4
+     },
+     {
+      "__type": "float",
+      "value": 3.8
+     },
+     {
+      "__type": "float",
+      "value": 6.100002
+     },
+     {
+      "__type": "float",
+      "value": 9.000003
+     },
+     {
+      "__type": "float",
+      "value": 10.0800257
+     },
+     {
+      "__type": "float",
+      "value": 7.380026
+     },
+     {
+      "__type": "float",
+      "value": 17.520052
+     },
+     {
+      "__type": "float",
+      "value": 6.45000458
+     },
+     {
+      "__type": "float",
+      "value": 4.65001154
+     },
+     {
+      "__type": "float",
+      "value": 5.840003
+     },
+     {
+      "__type": "float",
+      "value": 6.669999
+     },
+     {
+      "__type": "float",
+      "value": 3.66999936
+     },
+     {
+      "__type": "float",
+      "value": 9.000002
+     },
+     {
+      "__type": "float",
+      "value": 19.2000732
+     },
+     {
+      "__type": "float",
+      "value": 14.10003
+     },
+     {
+      "__type": "float",
+      "value": 5.450018
+     },
+     {
+      "__type": "float",
+      "value": 6.56003
+     },
+     {
+      "__type": "float",
+      "value": 7.500019
+     },
+     {
+      "__type": "float",
+      "value": 3.83
+     },
+     {
+      "__type": "float",
+      "value": 3.87999988
+     },
+     {
+      "__type": "float",
+      "value": 4.20000458
+     },
+     {
+      "__type": "float",
+      "value": 19.99
+     },
+     {
+      "__type": "float",
+      "value": 13.99
+     },
+     {
+      "__type": "float",
+      "value": 12.99
+     },
+     {
+      "__type": "float",
+      "value": 4.79
+     },
+     {
+      "__type": "float",
+      "value": 9.99
+     },
+     {
+      "__type": "float",
+      "value": 7.99
+     },
+     {
+      "__type": "float",
+      "value": 7.99
+     },
+     {
+      "__type": "float",
+      "value": 9.99
+     },
+     {
+      "__type": "float",
+      "value": 9.99
+     },
+     {
+      "__type": "float",
+      "value": 7.99
+     },
+     {
+      "__type": "float",
+      "value": 7.99
+     },
+     {
+      "__type": "float",
+      "value": 9.99
+     },
+     {
+      "__type": "float",
+      "value": 9.99
+     },
+     {
+      "__type": "float",
+      "value": 9.99
+     },
+     {
+      "__type": "float",
+      "value": 7.99
+     },
+     {
+      "__type": "float",
+      "value": 9.99
+     },
+     {
+      "__type": "float",
+      "value": 15.23999
+     },
+     {
+      "__type": "float",
+      "value": 18.4100056
+     },
+     {
+      "__type": "float",
+      "value": 24.2
+     },
+     {
+      "__type": "float",
+      "value": 31.1000481
+     },
+     {
+      "__type": "float",
+      "value": 35.9994
+     },
+     {
+      "__type": "float",
+      "value": 28.300045
+     },
+     {
+      "__type": "float",
+      "value": 13.5
+     },
+     {
+      "__type": "float",
+      "value": 19.8
+     },
+     {
+      "__type": "float",
+      "value": 50
+     },
+     {
+      "__type": "float",
+      "value": 44
+     },
+     {
+      "__type": "float",
+      "value": 23.4
+     },
+     {
+      "__type": "float",
+      "value": 25.6
+     },
+     {
+      "__type": "float",
+      "value": 21.5
+     },
+     {
+      "__type": "float",
+      "value": 29.99
+     },
+     {
+      "__type": "float",
+      "value": 2.7
+     },
+     {
+      "__type": "float",
+      "value": 3.5
+     },
+     {
+      "__type": "float",
+      "value": 7.6
+     },
+     {
+      "__type": "float",
+      "value": 5.6
+     },
+     {
+      "__type": "float",
+      "value": 4.2
+     },
+     {
+      "__type": "float",
+      "value": 8
+     },
+     {
+      "__type": "float",
+      "value": 9.5
+     },
+     {
+      "__type": "float",
+      "value": 8.99
+     },
+     {
+      "__type": "float",
+      "value": 11.49
+     },
+     {
+      "__type": "float",
+      "value": 12.99
+     },
+     {
+      "__type": "float",
+      "value": 18.99
+     },
+     {
+      "__type": "float",
+      "value": 13.49
+     },
+     {
+      "__type": "float",
+      "value": 8.99
+     },
+     {
+      "__type": "float",
+      "value": 8.95
+     },
+     {
+      "__type": "float",
+      "value": 13.99
+     },
+     {
+      "__type": "float",
+      "value": 4.05
+     },
+     {
+      "__type": "float",
+      "value": 2.85
+     },
+     {
+      "__type": "float",
+      "value": 2.79
+     },
+     {
+      "__type": "float",
+      "value": 3.19
+     },
+     {
+      "__type": "float",
+      "value": 2.99
+     },
+     {
+      "__type": "float",
+      "value": 2.13
+     },
+     {
+      "__type": "float",
+      "value": 6.79
+     },
+     {
+      "__type": "float",
+      "value": 5.49
+     },
+     {
+      "__type": "float",
+      "value": 4.89
+     },
+     {
+      "__type": "float",
+      "value": 8.9
+     },
+     {
+      "__type": "float",
+      "value": 5.65
+     },
+     {
+      "__type": "float",
+      "value": 6.25
+     },
+     {
+      "__type": "float",
+      "value": 6.99
+     },
+     {
+      "__type": "float",
+      "value": 6.85
+     },
+     {
+      "__type": "float",
+      "value": 2.45
+     },
+     {
+      "__type": "float",
+      "value": 2.89
+     },
+     {
+      "__type": "float",
+      "value": 2.65
+     },
+     {
+      "__type": "float",
+      "value": 1.89
+     },
+     {
+      "__type": "float",
+      "value": 2.99
+     },
+     {
+      "__type": "float",
+      "value": 3.49
+     },
+     {
+      "__type": "float",
+      "value": 3.98
+     },
+     {
+      "__type": "float",
+      "value": 3.5
+     },
+     {
+      "__type": "float",
+      "value": 4.7
+     },
+     {
+      "__type": "float",
+      "value": 3.69
+     },
+     {
+      "__type": "float",
+      "value": 3.69
+     },
+     {
+      "__type": "float",
+      "value": 2.89
+     },
+     {
+      "__type": "float",
+      "value": 4.49
+     },
+     {
+      "__type": "float",
+      "value": 4.45
+     },
+     {
+      "__type": "float",
+      "value": 15.99
+     },
+     {
+      "__type": "float",
+      "value": 14.99
+     },
+     {
+      "__type": "float",
+      "value": 16.99
+     },
+     {
+      "__type": "float",
+      "value": 18.99
+     },
+     {
+      "__type": "float",
+      "value": 23.99
+     },
+     {
+      "__type": "float",
+      "value": 3.99
+     },
+     {
+      "__type": "float",
+      "value": 3.19
+     },
+     {
+      "__type": "float",
+      "value": 3.99
+     },
+     {
+      "__type": "float",
+      "value": 4.260005
+     },
+     {
+      "__type": "float",
+      "value": 3.75
+     },
+     {
+      "__type": "float",
+      "value": 5.50003338
+     },
+     {
+      "__type": "float",
+      "value": 5.480001
+     },
+     {
+      "__type": "float",
+      "value": 4.71001053
+     },
+     {
+      "__type": "float",
+      "value": 3.53
+     },
+     {
+      "__type": "float",
+      "value": 5.64002228
+     },
+     {
+      "__type": "float",
+      "value": 3.349999
+     },
+     {
+      "__type": "float",
+      "value": 3.1
+     },
+     {
+      "__type": "float",
+      "value": 5.000023
+     },
+     {
+      "__type": "float",
+      "value": 5.00002146
+     },
+     {
+      "__type": "float",
+      "value": 5.00002146
+     },
+     {
+      "__type": "float",
+      "value": 4.200004
+     },
+     {
+      "__type": "float",
+      "value": 5.780006
+     },
+     {
+      "__type": "float",
+      "value": 3.95
+     },
+     {
+      "__type": "float",
+      "value": 3.95
+     },
+     {
+      "__type": "float",
+      "value": 3.95
+     },
+     {
+      "__type": "float",
+      "value": 4.95
+     },
+     {
+      "__type": "float",
+      "value": 4.95
+     },
+     {
+      "__type": "float",
+      "value": 4.95
+     },
+     {
+      "__type": "float",
+      "value": 7.45
+     },
+     {
+      "__type": "float",
+      "value": 7.45
+     },
+     {
+      "__type": "float",
+      "value": 9.95
+     },
+     {
+      "__type": "float",
+      "value": 9.95
+     },
+     {
+      "__type": "float",
+      "value": 14.95
+     },
+     {
+      "__type": "float",
+      "value": 3.39999866
+     },
+     {
+      "__type": "float",
+      "value": 4.14998531
+     },
+     {
+      "__type": "float",
+      "value": 3.75
+     },
+     {
+      "__type": "float",
+      "value": 4.5
+     },
+     {
+      "__type": "float",
+      "value": 3.14999866
+     },
+     {
+      "__type": "float",
+      "value": 3.14999914
+     },
+     {
+      "__type": "float",
+      "value": 2.99
+     },
+     {
+      "__type": "float",
+      "value": 2.49
+     },
+     {
+      "__type": "float",
+      "value": 2.49
+     },
+     {
+      "__type": "float",
+      "value": 2.99
+     },
+     {
+      "__type": "float",
+      "value": 2.49
+     },
+     {
+      "__type": "float",
+      "value": 2.99
+     },
+     {
+      "__type": "float",
+      "value": 2.49
+     },
+     {
+      "__type": "float",
+      "value": 2.99
+     },
+     {
+      "__type": "float",
+      "value": 2.49
+     },
+     {
+      "__type": "float",
+      "value": 2.49
+     },
+     {
+      "__type": "float",
+      "value": 1.99
+     },
+     {
+      "__type": "float",
+      "value": 3.49
+     },
+     {
+      "__type": "float",
+      "value": 3.49
+     },
+     {
+      "__type": "float",
+      "value": 3.49
+     },
+     {
+      "__type": "float",
+      "value": 3.49
+     },
+     {
+      "__type": "float",
+      "value": 4.99
+     },
+     {
+      "__type": "float",
+      "value": 5.49
+     },
+     {
+      "__type": "float",
+      "value": 4.99
+     },
+     {
+      "__type": "float",
+      "value": 4.99
+     },
+     {
+      "__type": "float",
+      "value": 9.99
+     },
+     {
+      "__type": "float",
+      "value": 8.99
+     },
+     {
+      "__type": "float",
+      "value": 2.99
+     },
+     {
+      "__type": "float",
+      "value": 6.99
+     },
+     {
+      "__type": "float",
+      "value": 9.24
+     },
+     {
+      "__type": "float",
+      "value": 9.24
+     },
+     {
+      "__type": "float",
+      "value": 11
+     },
+     {
+      "__type": "float",
+      "value": 11
+     },
+     {
+      "__type": "float",
+      "value": 17.91
+     },
+     {
+      "__type": "float",
+      "value": 19.24
+     },
+     {
+      "__type": "float",
+      "value": 49.9
+     },
+     {
+      "__type": "float",
+      "value": 9.99
+     },
+     {
+      "__type": "float",
+      "value": 8.99
+     },
+     {
+      "__type": "float",
+      "value": 12.99
+     },
+     {
+      "__type": "float",
+      "value": 14.99
+     },
+     {
+      "__type": "float",
+      "value": 16.99
+     },
+     {
+      "__type": "float",
+      "value": 13.99
+     },
+     {
+      "__type": "float",
+      "value": 17.99
+     },
+     {
+      "__type": "float",
+      "value": 35.99
+     },
+     {
+      "__type": "float",
+      "value": 73.99
+     },
+     {
+      "__type": "float",
+      "value": 44.99
+     },
+     {
+      "__type": "float",
+      "value": 35.99
+     },
+     {
+      "__type": "float",
+      "value": 99.99
+     },
+     {
+      "__type": "float",
+      "value": 2.75
+     },
+     {
+      "__type": "float",
+      "value": 3.75
+     },
+     {
+      "__type": "float",
+      "value": 4.5
+     },
+     {
+      "__type": "float",
+      "value": 3.25
+     },
+     {
+      "__type": "float",
+      "value": 4
+     },
+     {
+      "__type": "float",
+      "value": 3
+     },
+     {
+      "__type": "float",
+      "value": 1.99
+     },
+     {
+      "__type": "float",
+      "value": 2.99
+     },
+     {
+      "__type": "float",
+      "value": 2.99
+     },
+     {
+      "__type": "float",
+      "value": 3.55
+     },
+     {
+      "__type": "float",
+      "value": 1.99
+     },
+     {
+      "__type": "float",
+      "value": 2.79
+     },
+     {
+      "__type": "float",
+      "value": 2.99
+     },
+     {
+      "__type": "float",
+      "value": 2.49
+     },
+     {
+      "__type": "float",
+      "value": 16.3000011
+     },
+     {
+      "__type": "float",
+      "value": 7.49
+     },
+     {
+      "__type": "float",
+      "value": 6.89
+     },
+     {
+      "__type": "float",
+      "value": 6.50005674
+     },
+     {
+      "__type": "float",
+      "value": 3.49
+     },
+     {
+      "__type": "float",
+      "value": 4.99
+     },
+     {
+      "__type": "float",
+      "value": 5.67001534
+     },
+     {
+      "__type": "float",
+      "value": 9.99
+     },
+     {
+      "__type": "float",
+      "value": 9.99
+     },
+     {
+      "__type": "float",
+      "value": 9.99
+     },
+     {
+      "__type": "float",
+      "value": 9.99
+     },
+     {
+      "__type": "float",
+      "value": 9.99
+     },
+     {
+      "__type": "float",
+      "value": 9.99
+     },
+     {
+      "__type": "float",
+      "value": 9.99
+     },
+     {
+      "__type": "float",
+      "value": 9.99
+     },
+     {
+      "__type": "float",
+      "value": 6.99
+     },
+     {
+      "__type": "float",
+      "value": 6.99
+     },
+     {
+      "__type": "float",
+      "value": 3.49
+     },
+     {
+      "__type": "float",
+      "value": 18.99
+     },
+     {
+      "__type": "float",
+      "value": 9.99
+     },
+     {
+      "__type": "float",
+      "value": 9.99
+     },
+     {
+      "__type": "float",
+      "value": 9.99
+     },
+     {
+      "__type": "float",
+      "value": 9.99
+     },
+     {
+      "__type": "float",
+      "value": 9.99
+     },
+     {
+      "__type": "float",
+      "value": 9.99
+     }
+    ]
+   }
+  },
+  "TierInflation": {
+   "__type": "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+   "value": {
+    "objs": null,
+    "arrays": null,
+    "obj": null,
+    "array": [
+     {
+      "__type": "float",
+      "value": 1.54
+     },
+     {
+      "__type": "float",
+      "value": 1.56
+     },
+     {
+      "__type": "float",
+      "value": 1.59
+     },
+     {
+      "__type": "float",
+      "value": 1.56
+     },
+     {
+      "__type": "float",
+      "value": 1.55
+     },
+     {
+      "__type": "float",
+      "value": 1.49
+     },
+     {
+      "__type": "float",
+      "value": 1.44
+     },
+     {
+      "__type": "float",
+      "value": 1.44
+     },
+     {
+      "__type": "float",
+      "value": 1.46
+     },
+     {
+      "__type": "float",
+      "value": 1.47
+     },
+     {
+      "__type": "float",
+      "value": 1.27
+     },
+     {
+      "__type": "float",
+      "value": 1.34
+     },
+     {
+      "__type": "float",
+      "value": 1.34
+     },
+     {
+      "__type": "float",
+      "value": 1.13
+     },
+     {
+      "__type": "float",
+      "value": 1.18
+     },
+     {
+      "__type": "float",
+      "value": 1.13
+     },
+     {
+      "__type": "float",
+      "value": 1.17
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     },
+     {
+      "__type": "float",
+      "value": 1
+     }
+    ]
+   }
+  },
+  "UnlockedProductTiers": {
+   "__type": "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+   "value": {
+    "objs": null,
+    "arrays": null,
+    "obj": null,
+    "array": [
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": true
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     }
+    ]
+   }
+  },
+  "PaintableValues": {
+   "__type": "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+   "value": {
+    "objs": null,
+    "arrays": null,
+    "obj": null,
+    "array": [
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     }
+    ]
+   }
+  },
+  "DoorStates": {
+   "__type": "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+   "value": {
+    "objs": null,
+    "arrays": null,
+    "obj": null,
+    "array": [
+     {
+      "__type": "int",
+      "value": 2
+     },
+     {
+      "__type": "int",
+      "value": 0
+     },
+     {
+      "__type": "int",
+      "value": 1
+     },
+     {
+      "__type": "int",
+      "value": 1
+     }
+    ]
+   }
+  },
+  "HiredEmployeesData": {
+   "__type": "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+   "value": {
+    "objs": null,
+    "arrays": null,
+    "obj": null,
+    "array": [
+     {
+      "__type": "string",
+      "value": "5|83|6|10|7|8|10|8|10|big sb|0|5780|21050|1070|1086|1000|1000|1000"
+     },
+     {
+      "__type": "string",
+      "value": "1|71|10|7|4|6|5|7|4|small sb|0|67944|1560|1012|1000|1000|1000|1000"
+     },
+     {
+      "__type": "string",
+      "value": "3|52|9|8|1|6|2|7|10|medium sb|0|5000|3216|1000|3780|1000|1000|1000"
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     }
+    ]
+   }
+  },
+  "HiredRerollTimes": {
+   "__type": "int",
+   "value": 0
+  },
+  "HiredHasRerolled": {
+   "__type": "bool",
+   "value": true
+  },
+  "DemolishableValues": {
+   "__type": "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+   "value": {
+    "objs": null,
+    "arrays": null,
+    "obj": null,
+    "array": [
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": "00000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000"
+     }
+    ]
+   }
+  },
+  "CurrentInvoicesArray": {
+   "__type": "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+   "value": {
+    "objs": null,
+    "arrays": null,
+    "obj": null,
+    "array": [
+     {
+      "__type": "string",
+      "value": "0|850|31|32|0_0_0_0_0"
+     },
+     {
+      "__type": "string",
+      "value": "1|34,39345|31|34|0_0_0_0_0"
+     },
+     {
+      "__type": "string",
+      "value": "2|206|31|33|0_0_0_0_0"
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     },
+     {
+      "__type": "string",
+      "value": ""
+     }
+    ]
+   }
+  },
+  "LoanAmount": {
+   "__type": "int",
+   "value": 6800
+  },
+  "LoanPaymentPerDay": {
+   "__type": "int",
+   "value": 850
+  },
+  "ManufacUnlockedRecipes": {
+   "__type": "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+   "value": {
+    "objs": null,
+    "arrays": null,
+    "obj": null,
+    "array": [
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     },
+     {
+      "__type": "bool",
+      "value": false
+     }
+    ]
+   }
+  },
+  "ManufacPlayerRecipes": {
+   "__type": "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+   "value": {
+    "objs": null,
+    "arrays": null,
+    "obj": null,
+    "array": []
+   }
+  },
+  "propdata0": {
+   "__type": "string",
+   "value": "0|1|-1,430456|0|4,553804|89,99998"
+  },
+  "propinfoproduct0": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    14,
+    52,
+    2,
+    15,
+    4,
+    84,
+    40,
+    0
+   ]
+  },
+  "propdata1": {
+   "__type": "string",
+   "value": "0|1|-1,452198|0|5,171756|270"
+  },
+  "propinfoproduct1": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    1,
+    11,
+    20,
+    0,
+    39,
+    35,
+    8,
+    5
+   ]
+  },
+  "propdata2": {
+   "__type": "string",
+   "value": "0|1|-1,466413|0|6,980976|90"
+  },
+  "propinfoproduct2": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    169,
+    15,
+    255,
+    33,
+    145,
+    27,
+    78,
+    30
+   ]
+  },
+  "propdata3": {
+   "__type": "string",
+   "value": "0|1|-1,4746|0|7,583482|270"
+  },
+  "propinfoproduct3": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    4,
+    50,
+    138,
+    18,
+    48,
+    12,
+    21,
+    9
+   ]
+  },
+  "propdata4": {
+   "__type": "string",
+   "value": "0|1|-1,473432|0|9,402566|90"
+  },
+  "propinfoproduct4": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    74,
+    183,
+    165,
+    6,
+    316,
+    48,
+    33,
+    0
+   ]
+  },
+  "propdata5": {
+   "__type": "string",
+   "value": "0|1|-1,499935|0|10,01281|270"
+  },
+  "propinfoproduct5": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    29,
+    17,
+    5,
+    0,
+    77,
+    33,
+    10,
+    69
+   ]
+  },
+  "propdata6": {
+   "__type": "string",
+   "value": "0|2|2,995147|0|11,19236|180"
+  },
+  "propinfoproduct6": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    45,
+    0,
+    43,
+    9,
+    43,
+    0,
+    131,
+    0,
+    133,
+    0
+   ]
+  },
+  "propdata7": {
+   "__type": "string",
+   "value": "0|3|4,096998|0|11,69047|180"
+  },
+  "propinfoproduct7": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    227,
+    0,
+    6,
+    19,
+    228,
+    0,
+    230,
+    0,
+    239,
+    0
+   ]
+  },
+  "propdata8": {
+   "__type": "string",
+   "value": "0|19|6,870909|0|-0,8388495|270"
+  },
+  "propinfoproduct8": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    35,
+    37,
+    36,
+    27,
+    314,
+    25,
+    32,
+    0,
+    36,
+    0,
+    19,
+    7,
+    41,
+    34,
+    37,
+    0
+   ]
+  },
+  "propdata9": {
+   "__type": "string",
+   "value": "0|3|5,3238|0|11,69373|180"
+  },
+  "propinfoproduct9": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    57,
+    0,
+    229,
+    0,
+    60,
+    0,
+    46,
+    0,
+    233,
+    2
+   ]
+  },
+  "propinfoproduct10": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    0,
+    1,
+    21,
+    27,
+    74,
+    33,
+    31,
+    0
+   ]
+  },
+  "decopropdata14": {
+   "__type": "string",
+   "value": "7|1|-0,01385969|4,5|9,515559|3,814697E-06"
+  },
+  "decopropdata15": {
+   "__type": "string",
+   "value": "7|1|-0,00236088|4,5|5,480311|3,814697E-06"
+  },
+  "decopaintabledata28": {
+   "__type": "string",
+   "value": "2|0"
+  },
+  "decopropdata16": {
+   "__type": "string",
+   "value": "7|1|-6,002169|4,5|-0,09389755|3,814697E-06"
+  },
+  "decopropdata17": {
+   "__type": "string",
+   "value": "7|1|-0,05630958|4,5|-0,04657972|1,001791E-05"
+  },
+  "decopropdata18": {
+   "__type": "string",
+   "value": "7|1|5,96191|4,5|-0,001728415|1,001791E-05"
+  },
+  "decopaintabledata5": {
+   "__type": "string",
+   "value": "2|0"
+  },
+  "decopicturedata25": {
+   "__type": "string",
+   "value": "0|1|1|"
+  },
+  "decopaintabledata9": {
+   "__type": "string",
+   "value": "2|0"
+  },
+  "propdata10": {
+   "__type": "string",
+   "value": "0|1|-5,120822|0|10,061|270"
+  },
+  "propdata11": {
+   "__type": "string",
+   "value": "0|1|-5,123463|0|9,457439|90"
+  },
+  "propinfoproduct11": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    2,
+    20,
+    165,
+    7,
+    15,
+    30,
+    165,
+    7
+   ]
+  },
+  "propdata12": {
+   "__type": "string",
+   "value": "0|1|-5,109685|0|7,65447|270"
+  },
+  "propinfoproduct12": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    13,
+    15,
+    16,
+    7,
+    16,
+    0,
+    134,
+    65
+   ]
+  },
+  "propdata13": {
+   "__type": "string",
+   "value": "0|1|-5,112623|0|7,052875|90"
+  },
+  "propinfoproduct13": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    11,
+    15,
+    17,
+    0,
+    162,
+    9,
+    27,
+    28
+   ]
+  },
+  "propdata14": {
+   "__type": "string",
+   "value": "0|1|-5,115074|0|5,194025|270"
+  },
+  "propinfoproduct14": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    144,
+    21,
+    18,
+    9,
+    37,
+    22,
+    23,
+    11
+   ]
+  },
+  "propdata15": {
+   "__type": "string",
+   "value": "0|1|-5,115986|0|4,580928|89,99998"
+  },
+  "propinfoproduct15": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    17,
+    21,
+    257,
+    78,
+    252,
+    38,
+    256,
+    3
+   ]
+  },
+  "propdata16": {
+   "__type": "string",
+   "value": "0|14|0,0696041|0|4,558083|180"
+  },
+  "propinfoproduct16": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    20,
+    25,
+    34,
+    6,
+    3,
+    24,
+    38,
+    36
+   ]
+  },
+  "propdata17": {
+   "__type": "string",
+   "value": "0|14|0,0474894|0|5,160679|1,001791E-05"
+  },
+  "propinfoproduct17": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    0,
+    15,
+    19,
+    12,
+    5,
+    17,
+    24,
+    0
+   ]
+  },
+  "propdata18": {
+   "__type": "string",
+   "value": "0|3|1,894917|0|11,68792|180"
+  },
+  "propinfoproduct18": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    129,
+    0,
+    128,
+    0,
+    130,
+    0,
+    131,
+    0,
+    127,
+    0
+   ]
+  },
+  "propdata19": {
+   "__type": "string",
+   "value": "0|4|6,617855|0|11,58232|180"
+  },
+  "propinfoproduct19": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    64,
+    0,
+    65,
+    0
+   ]
+  },
+  "propdata20": {
+   "__type": "string",
+   "value": "0|1|-8,689192|0|10,50922|3,814697E-06"
+  },
+  "propinfoproduct20": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    26,
+    6,
+    79,
+    0,
+    33,
+    32,
+    22,
+    27
+   ]
+  },
+  "propdata21": {
+   "__type": "string",
+   "value": "0|1|-8,697045|0|8,503302|0"
+  },
+  "propinfoproduct21": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    12,
+    54,
+    30,
+    3,
+    23,
+    27,
+    9,
+    7
+   ]
+  },
+  "propdata22": {
+   "__type": "string",
+   "value": "0|1|-8,68414|0|6,46854|0"
+  },
+  "propinfoproduct22": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    25,
+    24,
+    11,
+    18,
+    18,
+    17,
+    7,
+    13
+   ]
+  },
+  "propdata23": {
+   "__type": "string",
+   "value": "0|14|-8,664839|0|4,957341|90"
+  },
+  "propinfoproduct23": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    24,
+    13,
+    15,
+    40,
+    8,
+    34,
+    317,
+    3
+   ]
+  },
+  "propdata24": {
+   "__type": "string",
+   "value": "0|1|1,917563|0|6,90984|90"
+  },
+  "propinfoproduct24": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    318,
+    57,
+    315,
+    51,
+    40,
+    25,
+    168,
+    12
+   ]
+  },
+  "propdata25": {
+   "__type": "string",
+   "value": "0|1|1,928683|0,00423193|7,52678|270"
+  },
+  "propinfoproduct25": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    31,
+    5,
+    165,
+    7,
+    165,
+    7,
+    165,
+    7
+   ]
+  },
+  "decopropdata19": {
+   "__type": "string",
+   "value": "7|1|6,028525|4,5|9,492283|1,001791E-05"
+  },
+  "decopropdata20": {
+   "__type": "string",
+   "value": "7|1|5,997515|4,5|5,486378|1,001791E-05"
+  },
+  "decopropdata21": {
+   "__type": "string",
+   "value": "7|33|13,00014|4,5|10,35998|3,814697E-06"
+  },
+  "propdata26": {
+   "__type": "string",
+   "value": "0|1|3,939364|0|6,921697|90,00001"
+  },
+  "propinfoproduct26": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    143,
+    24,
+    28,
+    52,
+    42,
+    37,
+    255,
+    3
+   ]
+  },
+  "decopropdata13": {
+   "__type": "string",
+   "value": "7|1|-5,982786|4,5|9,535287|3,814697E-06"
+  },
+  "decopropdata12": {
+   "__type": "string",
+   "value": "7|1|-5,992254|4,5|5,491499|3,814697E-06"
+  },
+  "decopropdata11": {
+   "__type": "string",
+   "value": "7|47|28,51471|0|7,215776|180"
+  },
+  "propdata27": {
+   "__type": "string",
+   "value": "0|1|3,984909|0|7,539964|270"
+  },
+  "propinfoproduct27": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    253,
+    48,
+    319,
+    57,
+    48,
+    30,
+    2,
+    20
+   ]
+  },
+  "propdata28": {
+   "__type": "string",
+   "value": "0|4|7,856279|0|11,58416|180"
+  },
+  "propinfoproduct28": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    66,
+    11,
+    62,
+    0
+   ]
+  },
+  "propdata29": {
+   "__type": "string",
+   "value": "0|1|-9,301669|0|10,49353|180"
+  },
+  "propinfoproduct29": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    -1,
+    0,
+    -1,
+    0,
+    317,
+    48,
+    162,
+    20
+   ]
+  },
+  "propdata30": {
+   "__type": "string",
+   "value": "0|1|-9,302752|0|8,485314|180"
+  },
+  "propinfoproduct30": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    -1,
+    0,
+    -1,
+    0,
+    320,
+    20,
+    166,
+    7
+   ]
+  },
+  "propdata31": {
+   "__type": "string",
+   "value": "0|1|-9,300193|0|6,479374|180"
+  },
+  "propinfoproduct31": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    -1,
+    0,
+    -1,
+    0,
+    30,
+    30,
+    141,
+    33
+   ]
+  },
+  "propdata32": {
+   "__type": "string",
+   "value": "0|14|-9,292627|0|4,965895|270"
+  },
+  "propinfoproduct32": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    -1,
+    0,
+    -1,
+    0,
+    -1,
+    0,
+    164,
+    0
+   ]
+  },
+  "propdata33": {
+   "__type": "string",
+   "value": "0|3|0,6948767|0|11,68396|180"
+  },
+  "propinfoproduct33": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    240,
+    0,
+    235,
+    0,
+    132,
+    4,
+    238,
+    0,
+    237,
+    0
+   ]
+  },
+  "propdata34": {
+   "__type": "string",
+   "value": "0|1|-11,20368|0|10,4758|0"
+  },
+  "propinfoproduct34": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    -1,
+    0,
+    -1,
+    0,
+    -1,
+    0,
+    -1,
+    0
+   ]
+  },
+  "decopropdata10": {
+   "__type": "string",
+   "value": "7|47|28,43803|0|4,693981|0"
+  },
+  "decopropdata9": {
+   "__type": "string",
+   "value": "7|46|28,529|0|5,903549|45"
+  },
+  "decopropdata8": {
+   "__type": "string",
+   "value": "7|45|9,741719|0|3,222206|180"
+  },
+  "decopropdata7": {
+   "__type": "string",
+   "value": "7|43|-9|3,493871|3,61578|89,99998"
+  },
+  "decopropdata6": {
+   "__type": "string",
+   "value": "7|43|8,75|3,557054|11,24795|270"
+  },
+  "decopicturedata33": {
+   "__type": "string",
+   "value": "0|1|1|"
+  },
+  "decopropdata5": {
+   "__type": "string",
+   "value": "7|199|14,53891|0|4,061032|270"
+  },
+  "decopicturedata34": {
+   "__type": "string",
+   "value": "0|1|1|"
+  },
+  "decopropdata4": {
+   "__type": "string",
+   "value": "7|203|10,038|0|2,425|180"
+  },
+  "decopicturedata35": {
+   "__type": "string",
+   "value": "0|1|1|"
+  },
+  "decopicturedata36": {
+   "__type": "string",
+   "value": "0|1|1|"
+  },
+  "decopicturedata37": {
+   "__type": "string",
+   "value": "0|1|1|"
+  },
+  "decopicturedata26": {
+   "__type": "string",
+   "value": "0|1|1|"
+  },
+  "decopicturedata27": {
+   "__type": "string",
+   "value": "0|1|1|"
+  },
+  "decopaintabledata30": {
+   "__type": "string",
+   "value": "2|0"
+  },
+  "decopaintabledata31": {
+   "__type": "string",
+   "value": "2|0"
+  },
+  "decopaintabledata32": {
+   "__type": "string",
+   "value": "2|0"
+  },
+  "decopropdata22": {
+   "__type": "string",
+   "value": "7|33|13,01966|4,5|4,592769|3,814697E-06"
+  },
+  "decopropdata23": {
+   "__type": "string",
+   "value": "7|33|11,0007|4,5|4,586427|3,814697E-06"
+  },
+  "decopropdata24": {
+   "__type": "string",
+   "value": "7|33|10,9891|4,5|10,37628|3,814697E-06"
+  },
+  "decopropdata25": {
+   "__type": "string",
+   "value": "7|191|3,038833|0,008569114|-4,063536|7,629395E-06"
+  },
+  "decopropdata26": {
+   "__type": "string",
+   "value": "7|194|-2,991361|0,008569114|-4,040588|180"
+  },
+  "decopropdata27": {
+   "__type": "string",
+   "value": "7|20|-15,07565|0,008569114|-4,334916|180"
+  },
+  "decopropdata28": {
+   "__type": "string",
+   "value": "7|170|-13,14027|0,008569114|-5,536774|270"
+  },
+  "decopropdata29": {
+   "__type": "string",
+   "value": "7|170|-11,02828|0,008569114|-7,661572|180"
+  },
+  "decopropdata30": {
+   "__type": "string",
+   "value": "7|170|-7,024993|0,008569114|-7,679849|180"
+  },
+  "decopropdata31": {
+   "__type": "string",
+   "value": "7|204|10,64162|0|3,31728|0"
+  },
+  "decopaintabledata29": {
+   "__type": "string",
+   "value": "2|0"
+  },
+  "decopropdata32": {
+   "__type": "string",
+   "value": "7|256|11,35082|0,008569114|-3,979822|0"
+  },
+  "decopaintabledata44": {
+   "__type": "string",
+   "value": "2|0"
+  },
+  "decopropdata33": {
+   "__type": "string",
+   "value": "7|238|3,263158|1,312171|-7,907562|3,814697E-06"
+  },
+  "decopaintabledata45": {
+   "__type": "string",
+   "value": "2|0"
+  },
+  "decopropdata34": {
+   "__type": "string",
+   "value": "7|247|5,994431|4,5|7,527187|0"
+  },
+  "decopaintabledata46": {
+   "__type": "string",
+   "value": "2|0"
+  },
+  "decopropdata35": {
+   "__type": "string",
+   "value": "7|247|0,004466623|4,5|7,497943|0"
+  },
+  "decopaintabledata47": {
+   "__type": "string",
+   "value": "2|0"
+  },
+  "decopropdata36": {
+   "__type": "string",
+   "value": "7|216|7,699838|2,934149|-3,25|180"
+  },
+  "decopaintabledata48": {
+   "__type": "string",
+   "value": "2|0"
+  },
+  "decopropdata37": {
+   "__type": "string",
+   "value": "7|49|36,66704|0|-0,05063057|270"
+  },
+  "decopropdata38": {
+   "__type": "string",
+   "value": "7|246|6,044961|4,138631|-2,75|1,001791E-05"
+  },
+  "decopropdata39": {
+   "__type": "string",
+   "value": "7|246|0,04012084|4,188474|-2,7|1,001791E-05"
+  },
+  "propdata35": {
+   "__type": "string",
+   "value": "0|1|-11,19525|0|8,443604|0"
+  },
+  "propinfoproduct35": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    -1,
+    0,
+    -1,
+    0,
+    -1,
+    0,
+    167,
+    4
+   ]
+  },
+  "propdata36": {
+   "__type": "string",
+   "value": "0|1|-11,19084|0|6,404123|0"
+  },
+  "propinfoproduct36": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    75,
+    4,
+    75,
+    0,
+    75,
+    0,
+    75,
+    0
+   ]
+  },
+  "decopropdata40": {
+   "__type": "string",
+   "value": "7|247|-11,5233|4,5|-0,4870971|0"
+  },
+  "propdata37": {
+   "__type": "string",
+   "value": "0|1|-11,81788|0|6,409763|180"
+  },
+  "propinfoproduct37": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    -1,
+    0,
+    -1,
+    0,
+    -1,
+    0,
+    75,
+    4
+   ]
+  },
+  "propdata38": {
+   "__type": "string",
+   "value": "0|1|-11,81166|0|8,431279|180"
+  },
+  "propinfoproduct38": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    -1,
+    0,
+    -1,
+    0,
+    136,
+    27,
+    135,
+    33
+   ]
+  },
+  "propdata39": {
+   "__type": "string",
+   "value": "0|1|-11,8049|0|10,46169|180"
+  },
+  "propinfoproduct39": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    -1,
+    0,
+    -1,
+    0,
+    140,
+    29,
+    142,
+    31
+   ]
+  },
+  "propdata40": {
+   "__type": "string",
+   "value": "0|1|-11,8198|0|4,402916|180"
+  },
+  "propinfoproduct40": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    -1,
+    0,
+    170,
+    2,
+    170,
+    4,
+    320,
+    50
+   ]
+  },
+  "decopropdata41": {
+   "__type": "string",
+   "value": "7|247|-6,003503|4,5|7,510808|0"
+  },
+  "decopropdata42": {
+   "__type": "string",
+   "value": "7|247|-12,02891|4,5|7,510205|0"
+  },
+  "decopropdata43": {
+   "__type": "string",
+   "value": "7|1|-12,01468|4,5|5,488584|0"
+  },
+  "decopropdata44": {
+   "__type": "string",
+   "value": "7|1|-11,99583|4,5|9,551507|0"
+  },
+  "propdata41": {
+   "__type": "string",
+   "value": "0|1|-11,17582|0|4,376058|3,814697E-06"
+  },
+  "propinfoproduct41": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    171,
+    7,
+    171,
+    1,
+    171,
+    0,
+    171,
+    0
+   ]
+  },
+  "propdata42": {
+   "__type": "string",
+   "value": "0|17|-9,003427|0|2,097688|180"
+  },
+  "propinfoproduct42": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    286,
+    10,
+    286,
+    13,
+    285,
+    30,
+    284,
+    20,
+    284,
+    21
+   ]
+  },
+  "propdata43": {
+   "__type": "string",
+   "value": "0|17|-8,955438|0|-1,995967|3,814697E-06"
+  },
+  "propinfoproduct43": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    283,
+    30,
+    281,
+    20,
+    281,
+    23,
+    282,
+    30,
+    282,
+    16
+   ]
+  },
+  "propdata44": {
+   "__type": "string",
+   "value": "1|5|14,04674|0|11,13524|270"
+  },
+  "propinfoproduct44": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    127,
+    -1,
+    129,
+    -1,
+    130,
+    -1,
+    135,
+    -1,
+    131,
+    -1,
+    133,
+    -1,
+    132,
+    -1,
+    128,
+    -1,
+    130,
+    -1,
+    1,
+    -1
+   ]
+  },
+  "propdata45": {
+   "__type": "string",
+   "value": "1|10|14,04485|0|9,707703|270"
+  },
+  "propinfoproduct45": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+   ]
+  },
+  "decopropdata3": {
+   "__type": "string",
+   "value": "7|202|14,072|0|-2,497|0"
+  },
+  "decopropdata2": {
+   "__type": "string",
+   "value": "7|201|11,76131|0|2,55|180"
+  },
+  "decopropdata1": {
+   "__type": "string",
+   "value": "7|200|16,351|0|3,155|180"
+  },
+  "decopropdata0": {
+   "__type": "string",
+   "value": "7|198|10,96|0|2,55|180"
+  },
+  "propdata46": {
+   "__type": "string",
+   "value": "1|10|14,04627|0|8,247019|270"
+  },
+  "propinfoproduct46": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+   ]
+  },
+  "propdata47": {
+   "__type": "string",
+   "value": "1|10|14,05673|0|6,832743|270"
+  },
+  "propinfoproduct47": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    166,
+    2,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+   ]
+  },
+  "propdata48": {
+   "__type": "string",
+   "value": "1|5|11,97617|0|11,2572|270"
+  },
+  "propinfoproduct48": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    162,
+    -1,
+    15,
+    -1,
+    19,
+    -1,
+    14,
+    -1,
+    3,
+    -1,
+    77,
+    -1,
+    4,
+    -1,
+    143,
+    -1,
+    20,
+    -1,
+    27,
+    -1
+   ]
+  },
+  "propdata49": {
+   "__type": "string",
+   "value": "1|5|11,98696|0|9,801881|270"
+  },
+  "propinfoproduct49": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    74,
+    -1,
+    78,
+    -1,
+    165,
+    -1,
+    74,
+    -1,
+    257,
+    -1,
+    282,
+    -1,
+    25,
+    -1,
+    12,
+    -1,
+    -1,
+    0,
+    -1,
+    0
+   ]
+  },
+  "propdata50": {
+   "__type": "string",
+   "value": "1|5|12,01798|0|8,344|270"
+  },
+  "propinfoproduct50": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    143,
+    -1,
+    42,
+    -1,
+    256,
+    -1,
+    3,
+    5,
+    145,
+    -1,
+    135,
+    -1,
+    36,
+    -1,
+    134,
+    -1,
+    11,
+    -1,
+    134,
+    -1
+   ]
+  },
+  "propdata51": {
+   "__type": "string",
+   "value": "1|5|12,04826|0|6,929419|270"
+  },
+  "propinfoproduct51": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    31,
+    -1,
+    108,
+    40,
+    283,
+    18,
+    38,
+    7,
+    283,
+    -1,
+    283,
+    50,
+    41,
+    -1,
+    75,
+    -1,
+    38,
+    -1,
+    31,
+    -1
+   ]
+  },
+  "propdata52": {
+   "__type": "string",
+   "value": "2|7|-13,2604|0|0,5294299|3,814697E-06"
+  },
+  "propinfoproduct52": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    -1,
+    0
+   ]
+  },
+  "propdata53": {
+   "__type": "string",
+   "value": "3|12|2,926705|0|2,088367|90,00001"
+  },
+  "propinfoproduct53": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    -1,
+    0
+   ]
+  },
+  "propdata54": {
+   "__type": "string",
+   "value": "3|12|-3,057232|0|2,145337|90"
+  },
+  "propinfoproduct54": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    -1,
+    0
+   ]
+  },
+  "propdata55": {
+   "__type": "string",
+   "value": "3|12|4,073385|0|2,808761|90,00001"
+  },
+  "propinfoproduct55": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    -1,
+    0
+   ]
+  },
+  "propdata56": {
+   "__type": "string",
+   "value": "3|12|-4,11529|0|2,677881|90"
+  },
+  "propinfoproduct56": {
+   "__type": "System.Int32[],mscorlib",
+   "value": [
+    -1,
+    0
+   ]
+  }
+ },
+ "kpis": {
+  "Difficulty": 5,
+  "Layout": 0,
+  "StoreName": "兒子進",
+  "Day": 32,
+  "FranchiseExperience": 55385,
+  "FranchisePoints": 0,
+  "Funds": 2505.6,
+  "LastAwardedLevel": 33,
+  "SupermarketName": "TWITTER",
+  "SpaceBought": 0,
+  "StorageBought": 0,
+  "AddonsBought": [
+   false,
+   false,
+   false,
+   false,
+   false,
+   false
+  ],
+  "ExtraUpgrades": [
+   true,
+   false,
+   false,
+   false,
+   false,
+   false,
+   true,
+   true,
+   true,
+   true,
+   true,
+   true,
+   false,
+   false,
+   false,
+   false,
+   false,
+   true,
+   false,
+   false,
+   false,
+   false,
+   true,
+   false,
+   false,
+   false,
+   true,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false
+  ],
+  "StoreSpaceUpgrades": [
+   true,
+   true,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   true,
+   true,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false
+  ],
+  "StorageSpaceUpgrades": [
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false
+  ]
+ },
+ "store_layout": {
+  "totalProps": 57,
+  "props": [
+   {
+    "buildableId": 0,
+    "posX": -1.430456,
+    "posZ": 4.553804,
+    "rotation": 0.0,
+    "angle": 89.99998,
+    "containerInfo": {},
+    "index": 0
+   },
+   {
+    "buildableId": 0,
+    "posX": -1.452198,
+    "posZ": 5.171756,
+    "rotation": 0.0,
+    "angle": 270.0,
+    "containerInfo": {},
+    "index": 1
+   },
+   {
+    "buildableId": 0,
+    "posX": -1.466413,
+    "posZ": 6.980976,
+    "rotation": 0.0,
+    "angle": 90.0,
+    "containerInfo": {},
+    "index": 2
+   },
+   {
+    "buildableId": 0,
+    "posX": -1.4746,
+    "posZ": 7.583482,
+    "rotation": 0.0,
+    "angle": 270.0,
+    "containerInfo": {},
+    "index": 3
+   },
+   {
+    "buildableId": 0,
+    "posX": -1.473432,
+    "posZ": 9.402566,
+    "rotation": 0.0,
+    "angle": 90.0,
+    "containerInfo": {},
+    "index": 4
+   },
+   {
+    "buildableId": 0,
+    "posX": -1.499935,
+    "posZ": 10.01281,
+    "rotation": 0.0,
+    "angle": 270.0,
+    "containerInfo": {},
+    "index": 5
+   },
+   {
+    "buildableId": 0,
+    "posX": 2.995147,
+    "posZ": 11.19236,
+    "rotation": 0.0,
+    "angle": 180.0,
+    "containerInfo": {},
+    "index": 6
+   },
+   {
+    "buildableId": 0,
+    "posX": 4.096998,
+    "posZ": 11.69047,
+    "rotation": 0.0,
+    "angle": 180.0,
+    "containerInfo": {},
+    "index": 7
+   },
+   {
+    "buildableId": 0,
+    "posX": 6.870909,
+    "posZ": -0.8388495,
+    "rotation": 0.0,
+    "angle": 270.0,
+    "containerInfo": {},
+    "index": 8
+   },
+   {
+    "buildableId": 0,
+    "posX": 5.3238,
+    "posZ": 11.69373,
+    "rotation": 0.0,
+    "angle": 180.0,
+    "containerInfo": {},
+    "index": 9
+   },
+   {
+    "buildableId": 0,
+    "posX": -5.120822,
+    "posZ": 10.061,
+    "rotation": 0.0,
+    "angle": 270.0,
+    "containerInfo": {},
+    "index": 10
+   },
+   {
+    "buildableId": 0,
+    "posX": -5.123463,
+    "posZ": 9.457439,
+    "rotation": 0.0,
+    "angle": 90.0,
+    "containerInfo": {},
+    "index": 11
+   },
+   {
+    "buildableId": 0,
+    "posX": -5.109685,
+    "posZ": 7.65447,
+    "rotation": 0.0,
+    "angle": 270.0,
+    "containerInfo": {},
+    "index": 12
+   },
+   {
+    "buildableId": 0,
+    "posX": -5.112623,
+    "posZ": 7.052875,
+    "rotation": 0.0,
+    "angle": 90.0,
+    "containerInfo": {},
+    "index": 13
+   },
+   {
+    "buildableId": 0,
+    "posX": -5.115074,
+    "posZ": 5.194025,
+    "rotation": 0.0,
+    "angle": 270.0,
+    "containerInfo": {},
+    "index": 14
+   },
+   {
+    "buildableId": 0,
+    "posX": -5.115986,
+    "posZ": 4.580928,
+    "rotation": 0.0,
+    "angle": 89.99998,
+    "containerInfo": {},
+    "index": 15
+   },
+   {
+    "buildableId": 0,
+    "posX": 0.0696041,
+    "posZ": 4.558083,
+    "rotation": 0.0,
+    "angle": 180.0,
+    "containerInfo": {},
+    "index": 16
+   },
+   {
+    "buildableId": 0,
+    "posX": 0.0474894,
+    "posZ": 5.160679,
+    "rotation": 0.0,
+    "angle": 1.001791e-05,
+    "containerInfo": {},
+    "index": 17
+   },
+   {
+    "buildableId": 0,
+    "posX": 1.894917,
+    "posZ": 11.68792,
+    "rotation": 0.0,
+    "angle": 180.0,
+    "containerInfo": {},
+    "index": 18
+   },
+   {
+    "buildableId": 0,
+    "posX": 6.617855,
+    "posZ": 11.58232,
+    "rotation": 0.0,
+    "angle": 180.0,
+    "containerInfo": {},
+    "index": 19
+   },
+   {
+    "buildableId": 0,
+    "posX": -8.689192,
+    "posZ": 10.50922,
+    "rotation": 0.0,
+    "angle": 3.814697e-06,
+    "containerInfo": {},
+    "index": 20
+   },
+   {
+    "buildableId": 0,
+    "posX": -8.697045,
+    "posZ": 8.503302,
+    "rotation": 0.0,
+    "angle": 0.0,
+    "containerInfo": {},
+    "index": 21
+   },
+   {
+    "buildableId": 0,
+    "posX": -8.68414,
+    "posZ": 6.46854,
+    "rotation": 0.0,
+    "angle": 0.0,
+    "containerInfo": {},
+    "index": 22
+   },
+   {
+    "buildableId": 0,
+    "posX": -8.664839,
+    "posZ": 4.957341,
+    "rotation": 0.0,
+    "angle": 90.0,
+    "containerInfo": {},
+    "index": 23
+   },
+   {
+    "buildableId": 0,
+    "posX": 1.917563,
+    "posZ": 6.90984,
+    "rotation": 0.0,
+    "angle": 90.0,
+    "containerInfo": {},
+    "index": 24
+   },
+   {
+    "buildableId": 0,
+    "posX": 1.928683,
+    "posZ": 7.52678,
+    "rotation": 0.00423193,
+    "angle": 270.0,
+    "containerInfo": {},
+    "index": 25
+   },
+   {
+    "buildableId": 0,
+    "posX": 3.939364,
+    "posZ": 6.921697,
+    "rotation": 0.0,
+    "angle": 90.00001,
+    "containerInfo": {},
+    "index": 26
+   },
+   {
+    "buildableId": 0,
+    "posX": 3.984909,
+    "posZ": 7.539964,
+    "rotation": 0.0,
+    "angle": 270.0,
+    "containerInfo": {},
+    "index": 27
+   },
+   {
+    "buildableId": 0,
+    "posX": 7.856279,
+    "posZ": 11.58416,
+    "rotation": 0.0,
+    "angle": 180.0,
+    "containerInfo": {},
+    "index": 28
+   },
+   {
+    "buildableId": 0,
+    "posX": -9.301669,
+    "posZ": 10.49353,
+    "rotation": 0.0,
+    "angle": 180.0,
+    "containerInfo": {},
+    "index": 29
+   },
+   {
+    "buildableId": 0,
+    "posX": -9.302752,
+    "posZ": 8.485314,
+    "rotation": 0.0,
+    "angle": 180.0,
+    "containerInfo": {},
+    "index": 30
+   },
+   {
+    "buildableId": 0,
+    "posX": -9.300193,
+    "posZ": 6.479374,
+    "rotation": 0.0,
+    "angle": 180.0,
+    "containerInfo": {},
+    "index": 31
+   },
+   {
+    "buildableId": 0,
+    "posX": -9.292627,
+    "posZ": 4.965895,
+    "rotation": 0.0,
+    "angle": 270.0,
+    "containerInfo": {},
+    "index": 32
+   },
+   {
+    "buildableId": 0,
+    "posX": 0.6948767,
+    "posZ": 11.68396,
+    "rotation": 0.0,
+    "angle": 180.0,
+    "containerInfo": {},
+    "index": 33
+   },
+   {
+    "buildableId": 0,
+    "posX": -11.20368,
+    "posZ": 10.4758,
+    "rotation": 0.0,
+    "angle": 0.0,
+    "containerInfo": {},
+    "index": 34
+   },
+   {
+    "buildableId": 0,
+    "posX": -11.19525,
+    "posZ": 8.443604,
+    "rotation": 0.0,
+    "angle": 0.0,
+    "containerInfo": {},
+    "index": 35
+   },
+   {
+    "buildableId": 0,
+    "posX": -11.19084,
+    "posZ": 6.404123,
+    "rotation": 0.0,
+    "angle": 0.0,
+    "containerInfo": {},
+    "index": 36
+   },
+   {
+    "buildableId": 0,
+    "posX": -11.81788,
+    "posZ": 6.409763,
+    "rotation": 0.0,
+    "angle": 180.0,
+    "containerInfo": {},
+    "index": 37
+   },
+   {
+    "buildableId": 0,
+    "posX": -11.81166,
+    "posZ": 8.431279,
+    "rotation": 0.0,
+    "angle": 180.0,
+    "containerInfo": {},
+    "index": 38
+   },
+   {
+    "buildableId": 0,
+    "posX": -11.8049,
+    "posZ": 10.46169,
+    "rotation": 0.0,
+    "angle": 180.0,
+    "containerInfo": {},
+    "index": 39
+   },
+   {
+    "buildableId": 0,
+    "posX": -11.8198,
+    "posZ": 4.402916,
+    "rotation": 0.0,
+    "angle": 180.0,
+    "containerInfo": {},
+    "index": 40
+   },
+   {
+    "buildableId": 0,
+    "posX": -11.17582,
+    "posZ": 4.376058,
+    "rotation": 0.0,
+    "angle": 3.814697e-06,
+    "containerInfo": {},
+    "index": 41
+   },
+   {
+    "buildableId": 0,
+    "posX": -9.003427,
+    "posZ": 2.097688,
+    "rotation": 0.0,
+    "angle": 180.0,
+    "containerInfo": {},
+    "index": 42
+   },
+   {
+    "buildableId": 0,
+    "posX": -8.955438,
+    "posZ": -1.995967,
+    "rotation": 0.0,
+    "angle": 3.814697e-06,
+    "containerInfo": {},
+    "index": 43
+   },
+   {
+    "buildableId": 1,
+    "posX": 14.04674,
+    "posZ": 11.13524,
+    "rotation": 0.0,
+    "angle": 270.0,
+    "containerInfo": {
+     "containerClass": 0,
+     "containerID": 1,
+     "cost": 250,
+     "shelfLength": 1.82,
+     "shelfWidth": 0.44,
+     "shelfHeight": 0.4,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Product Shelf"
+    },
+    "index": 44
+   },
+   {
+    "buildableId": 1,
+    "posX": 14.04485,
+    "posZ": 9.707703,
+    "rotation": 0.0,
+    "angle": 270.0,
+    "containerInfo": {
+     "containerClass": 0,
+     "containerID": 1,
+     "cost": 250,
+     "shelfLength": 1.82,
+     "shelfWidth": 0.44,
+     "shelfHeight": 0.4,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Product Shelf"
+    },
+    "index": 45
+   },
+   {
+    "buildableId": 1,
+    "posX": 14.04627,
+    "posZ": 8.247019,
+    "rotation": 0.0,
+    "angle": 270.0,
+    "containerInfo": {
+     "containerClass": 0,
+     "containerID": 1,
+     "cost": 250,
+     "shelfLength": 1.82,
+     "shelfWidth": 0.44,
+     "shelfHeight": 0.4,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Product Shelf"
+    },
+    "index": 46
+   },
+   {
+    "buildableId": 1,
+    "posX": 14.05673,
+    "posZ": 6.832743,
+    "rotation": 0.0,
+    "angle": 270.0,
+    "containerInfo": {
+     "containerClass": 0,
+     "containerID": 1,
+     "cost": 250,
+     "shelfLength": 1.82,
+     "shelfWidth": 0.44,
+     "shelfHeight": 0.4,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Product Shelf"
+    },
+    "index": 47
+   },
+   {
+    "buildableId": 1,
+    "posX": 11.97617,
+    "posZ": 11.2572,
+    "rotation": 0.0,
+    "angle": 270.0,
+    "containerInfo": {
+     "containerClass": 0,
+     "containerID": 1,
+     "cost": 250,
+     "shelfLength": 1.82,
+     "shelfWidth": 0.44,
+     "shelfHeight": 0.4,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Product Shelf"
+    },
+    "index": 48
+   },
+   {
+    "buildableId": 1,
+    "posX": 11.98696,
+    "posZ": 9.801881,
+    "rotation": 0.0,
+    "angle": 270.0,
+    "containerInfo": {
+     "containerClass": 0,
+     "containerID": 1,
+     "cost": 250,
+     "shelfLength": 1.82,
+     "shelfWidth": 0.44,
+     "shelfHeight": 0.4,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Product Shelf"
+    },
+    "index": 49
+   },
+   {
+    "buildableId": 1,
+    "posX": 12.01798,
+    "posZ": 8.344,
+    "rotation": 0.0,
+    "angle": 270.0,
+    "containerInfo": {
+     "containerClass": 0,
+     "containerID": 1,
+     "cost": 250,
+     "shelfLength": 1.82,
+     "shelfWidth": 0.44,
+     "shelfHeight": 0.4,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Product Shelf"
+    },
+    "index": 50
+   },
+   {
+    "buildableId": 1,
+    "posX": 12.04826,
+    "posZ": 6.929419,
+    "rotation": 0.0,
+    "angle": 270.0,
+    "containerInfo": {
+     "containerClass": 0,
+     "containerID": 1,
+     "cost": 250,
+     "shelfLength": 1.82,
+     "shelfWidth": 0.44,
+     "shelfHeight": 0.4,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Product Shelf"
+    },
+    "index": 51
+   },
+   {
+    "buildableId": 2,
+    "posX": -13.2604,
+    "posZ": 0.5294299,
+    "rotation": 0.0,
+    "angle": 3.814697e-06,
+    "containerInfo": {
+     "containerClass": 1,
+     "containerID": 2,
+     "cost": 350,
+     "shelfLength": 0.48,
+     "shelfWidth": 0.42,
+     "shelfHeight": 0.32,
+     "buildableTag": "Buildable",
+     "energyCost": 0.4,
+     "energyWorkingHours": 24,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Basic Fridge"
+    },
+    "index": 52
+   },
+   {
+    "buildableId": 3,
+    "posX": 2.926705,
+    "posZ": 2.088367,
+    "rotation": 0.0,
+    "angle": 90.00001,
+    "containerInfo": {
+     "containerClass": 1,
+     "containerID": 3,
+     "cost": 600,
+     "shelfLength": 1.05,
+     "shelfWidth": 0.42,
+     "shelfHeight": 0.32,
+     "buildableTag": "Buildable",
+     "energyCost": 0.8,
+     "energyWorkingHours": 24,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Double Fridge"
+    },
+    "index": 53
+   },
+   {
+    "buildableId": 3,
+    "posX": -3.057232,
+    "posZ": 2.145337,
+    "rotation": 0.0,
+    "angle": 90.0,
+    "containerInfo": {
+     "containerClass": 1,
+     "containerID": 3,
+     "cost": 600,
+     "shelfLength": 1.05,
+     "shelfWidth": 0.42,
+     "shelfHeight": 0.32,
+     "buildableTag": "Buildable",
+     "energyCost": 0.8,
+     "energyWorkingHours": 24,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Double Fridge"
+    },
+    "index": 54
+   },
+   {
+    "buildableId": 3,
+    "posX": 4.073385,
+    "posZ": 2.808761,
+    "rotation": 0.0,
+    "angle": 90.00001,
+    "containerInfo": {
+     "containerClass": 1,
+     "containerID": 3,
+     "cost": 600,
+     "shelfLength": 1.05,
+     "shelfWidth": 0.42,
+     "shelfHeight": 0.32,
+     "buildableTag": "Buildable",
+     "energyCost": 0.8,
+     "energyWorkingHours": 24,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Double Fridge"
+    },
+    "index": 55
+   },
+   {
+    "buildableId": 3,
+    "posX": -4.11529,
+    "posZ": 2.677881,
+    "rotation": 0.0,
+    "angle": 90.0,
+    "containerInfo": {
+     "containerClass": 1,
+     "containerID": 3,
+     "cost": 600,
+     "shelfLength": 1.05,
+     "shelfWidth": 0.42,
+     "shelfHeight": 0.32,
+     "buildableTag": "Buildable",
+     "energyCost": 0.8,
+     "energyWorkingHours": 24,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Double Fridge"
+    },
+    "index": 56
+   }
+  ]
+ },
+ "inventory": {
+  "totalItems": 2906,
+  "propInventory": {
+   "0": [
+    {
+     "productID": 14,
+     "count": 52,
+     "productName": "Barbacue Sauce"
+    },
+    {
+     "productID": 2,
+     "count": 15,
+     "productName": "Honey Cereals"
+    },
+    {
+     "productID": 4,
+     "count": 84,
+     "productName": "Salt"
+    },
+    {
+     "productID": 40,
+     "count": 0,
+     "productName": "Powdered Sugar"
+    }
+   ],
+   "1": [
+    {
+     "productID": 1,
+     "count": 11,
+     "productName": "Water Bottle"
+    },
+    {
+     "productID": 20,
+     "count": 0,
+     "productName": "Black Coffee"
+    },
+    {
+     "productID": 39,
+     "count": 35,
+     "productName": "Spring Water"
+    },
+    {
+     "productID": 8,
+     "count": 5,
+     "productName": "Apple Juice"
+    }
+   ],
+   "2": [
+    {
+     "productID": 169,
+     "count": 15,
+     "productName": "Rose Wine"
+    },
+    {
+     "productID": 255,
+     "count": 33,
+     "productName": "Tomato Soup"
+    },
+    {
+     "productID": 145,
+     "count": 27,
+     "productName": "Valerian"
+    },
+    {
+     "productID": 78,
+     "count": 30,
+     "productName": "Egg Shampoo"
+    }
+   ],
+   "3": [
+    {
+     "productID": 4,
+     "count": 50,
+     "productName": "Salt"
+    },
+    {
+     "productID": 138,
+     "count": 18,
+     "productName": "Cat Food"
+    },
+    {
+     "productID": 48,
+     "count": 12,
+     "productName": "Milk Brick"
+    },
+    {
+     "productID": 21,
+     "count": 9,
+     "productName": "Egg Box"
+    }
+   ],
+   "4": [
+    {
+     "productID": 74,
+     "count": 183,
+     "productName": "Toothpaste"
+    },
+    {
+     "productID": 165,
+     "count": 6,
+     "productName": "Beer Barrel"
+    },
+    {
+     "productID": 316,
+     "count": 48,
+     "productName": "Cake Mix"
+    },
+    {
+     "productID": 33,
+     "count": 0,
+     "productName": "Basmati Rice"
+    }
+   ],
+   "5": [
+    {
+     "productID": 29,
+     "count": 17,
+     "productName": "Sunflower Oil"
+    },
+    {
+     "productID": 5,
+     "count": 0,
+     "productName": "Sugar"
+    },
+    {
+     "productID": 77,
+     "count": 33,
+     "productName": "Avocado Shampoo"
+    },
+    {
+     "productID": 10,
+     "count": 69,
+     "productName": "Ketchup"
+    }
+   ],
+   "6": [
+    {
+     "productID": 45,
+     "count": 0,
+     "productName": "Skimmed Cheese"
+    },
+    {
+     "productID": 43,
+     "count": 9,
+     "productName": "Emmental Cheese"
+    },
+    {
+     "productID": 43,
+     "count": 0,
+     "productName": "Emmental Cheese"
+    },
+    {
+     "productID": 131,
+     "count": 0,
+     "productName": "Chicken"
+    },
+    {
+     "productID": 133,
+     "count": 0,
+     "productName": "Sliced Ham"
+    }
+   ],
+   "7": [
+    {
+     "productID": 227,
+     "count": 0,
+     "productName": "Orange Soda"
+    },
+    {
+     "productID": 6,
+     "count": 19,
+     "productName": "Margarine"
+    },
+    {
+     "productID": 228,
+     "count": 0,
+     "productName": "Pineapple Soda"
+    },
+    {
+     "productID": 230,
+     "count": 0,
+     "productName": "Green Tea Drink"
+    },
+    {
+     "productID": 239,
+     "count": 0,
+     "productName": "Cola Energy Drink"
+    }
+   ],
+   "8": [
+    {
+     "productID": 35,
+     "count": 37,
+     "productName": "Coffee"
+    },
+    {
+     "productID": 36,
+     "count": 27,
+     "productName": "Supreme Pasta"
+    },
+    {
+     "productID": 314,
+     "count": 25,
+     "productName": "Baking Powder"
+    },
+    {
+     "productID": 32,
+     "count": 0,
+     "productName": "Espresso Coffee"
+    },
+    {
+     "productID": 36,
+     "count": 0,
+     "productName": "Supreme Pasta"
+    },
+    {
+     "productID": 19,
+     "count": 7,
+     "productName": "Supreme Flour"
+    },
+    {
+     "productID": 41,
+     "count": 34,
+     "productName": "Sugar - Big Box"
+    },
+    {
+     "productID": 37,
+     "count": 0,
+     "productName": "Chocolate Cereals"
+    }
+   ],
+   "9": [
+    {
+     "productID": 57,
+     "count": 0,
+     "productName": "Soda Bottle"
+    },
+    {
+     "productID": 229,
+     "count": 0,
+     "productName": "Tropical Soda"
+    },
+    {
+     "productID": 60,
+     "count": 0,
+     "productName": "Premium Soda"
+    },
+    {
+     "productID": 46,
+     "count": 0,
+     "productName": "Fruit Yoghurt"
+    },
+    {
+     "productID": 233,
+     "count": 2,
+     "productName": "Cold Brew Coffee"
+    }
+   ],
+   "10": [
+    {
+     "productID": 0,
+     "count": 1,
+     "productName": "Pasta Penne"
+    },
+    {
+     "productID": 21,
+     "count": 27,
+     "productName": "Egg Box"
+    },
+    {
+     "productID": 74,
+     "count": 33,
+     "productName": "Toothpaste"
+    },
+    {
+     "productID": 31,
+     "count": 0,
+     "productName": "Potato Bag"
+    }
+   ],
+   "11": [
+    {
+     "productID": 2,
+     "count": 20,
+     "productName": "Honey Cereals"
+    },
+    {
+     "productID": 165,
+     "count": 7,
+     "productName": "Beer Barrel"
+    },
+    {
+     "productID": 15,
+     "count": 30,
+     "productName": "Mustard Sauce"
+    },
+    {
+     "productID": 165,
+     "count": 7,
+     "productName": "Beer Barrel"
+    }
+   ],
+   "12": [
+    {
+     "productID": 13,
+     "count": 15,
+     "productName": "Orange Juice"
+    },
+    {
+     "productID": 16,
+     "count": 7,
+     "productName": "Spaghetti Box"
+    },
+    {
+     "productID": 16,
+     "count": 0,
+     "productName": "Spaghetti Box"
+    },
+    {
+     "productID": 134,
+     "count": 65,
+     "productName": "Peas - Big"
+    }
+   ],
+   "13": [
+    {
+     "productID": 11,
+     "count": 15,
+     "productName": "Sliced Bread"
+    },
+    {
+     "productID": 17,
+     "count": 0,
+     "productName": "Tuna Pate"
+    },
+    {
+     "productID": 162,
+     "count": 9,
+     "productName": "Beer Pack"
+    },
+    {
+     "productID": 27,
+     "count": 28,
+     "productName": "Ecologic Sugar"
+    }
+   ],
+   "14": [
+    {
+     "productID": 144,
+     "count": 21,
+     "productName": "Mint"
+    },
+    {
+     "productID": 18,
+     "count": 9,
+     "productName": "Fiber Cereals"
+    },
+    {
+     "productID": 37,
+     "count": 22,
+     "productName": "Chocolate Cereals"
+    },
+    {
+     "productID": 23,
+     "count": 11,
+     "productName": "White Flour"
+    }
+   ],
+   "15": [
+    {
+     "productID": 17,
+     "count": 21,
+     "productName": "Tuna Pate"
+    },
+    {
+     "productID": 257,
+     "count": 78,
+     "productName": "Canned Peas"
+    },
+    {
+     "productID": 252,
+     "count": 38,
+     "productName": "Chickpeas"
+    },
+    {
+     "productID": 256,
+     "count": 3,
+     "productName": "Canned Corn"
+    }
+   ],
+   "16": [
+    {
+     "productID": 20,
+     "count": 25,
+     "productName": "Black Coffee"
+    },
+    {
+     "productID": 34,
+     "count": 6,
+     "productName": "Long Grain Rice"
+    },
+    {
+     "productID": 3,
+     "count": 24,
+     "productName": "Rice"
+    },
+    {
+     "productID": 38,
+     "count": 36,
+     "productName": "Premium Water"
+    }
+   ],
+   "17": [
+    {
+     "productID": 0,
+     "count": 15,
+     "productName": "Pasta Penne"
+    },
+    {
+     "productID": 19,
+     "count": 12,
+     "productName": "Supreme Flour"
+    },
+    {
+     "productID": 5,
+     "count": 17,
+     "productName": "Sugar"
+    },
+    {
+     "productID": 24,
+     "count": 0,
+     "productName": "Cane Sugar Box"
+    }
+   ],
+   "18": [
+    {
+     "productID": 129,
+     "count": 0,
+     "productName": "Veal"
+    },
+    {
+     "productID": 128,
+     "count": 0,
+     "productName": "Pure Beef"
+    },
+    {
+     "productID": 130,
+     "count": 0,
+     "productName": "Chicken Wings"
+    },
+    {
+     "productID": 131,
+     "count": 0,
+     "productName": "Chicken"
+    },
+    {
+     "productID": 127,
+     "count": 0,
+     "productName": "Chopped Beef"
+    }
+   ],
+   "19": [
+    {
+     "productID": 64,
+     "count": 0,
+     "productName": "Ham Cheese Crepe"
+    },
+    {
+     "productID": 65,
+     "count": 0,
+     "productName": "French Fries"
+    }
+   ],
+   "20": [
+    {
+     "productID": 26,
+     "count": 6,
+     "productName": "Macarroni"
+    },
+    {
+     "productID": 79,
+     "count": 0,
+     "productName": "Bath Gel"
+    },
+    {
+     "productID": 33,
+     "count": 32,
+     "productName": "Basmati Rice"
+    },
+    {
+     "productID": 22,
+     "count": 27,
+     "productName": "Houmous"
+    }
+   ],
+   "21": [
+    {
+     "productID": 12,
+     "count": 54,
+     "productName": "Pepper"
+    },
+    {
+     "productID": 30,
+     "count": 3,
+     "productName": "Mash Potatoes"
+    },
+    {
+     "productID": 23,
+     "count": 27,
+     "productName": "White Flour"
+    },
+    {
+     "productID": 9,
+     "count": 7,
+     "productName": "Olive Oil"
+    }
+   ],
+   "22": [
+    {
+     "productID": 25,
+     "count": 24,
+     "productName": "Sugar"
+    },
+    {
+     "productID": 11,
+     "count": 18,
+     "productName": "Sliced Bread"
+    },
+    {
+     "productID": 18,
+     "count": 17,
+     "productName": "Fiber Cereals"
+    },
+    {
+     "productID": 7,
+     "count": 13,
+     "productName": "Flour"
+    }
+   ],
+   "23": [
+    {
+     "productID": 24,
+     "count": 13,
+     "productName": "Cane Sugar Box"
+    },
+    {
+     "productID": 15,
+     "count": 40,
+     "productName": "Mustard Sauce"
+    },
+    {
+     "productID": 8,
+     "count": 34,
+     "productName": "Apple Juice"
+    },
+    {
+     "productID": 317,
+     "count": 3,
+     "productName": "Cocoa Powder"
+    }
+   ],
+   "24": [
+    {
+     "productID": 318,
+     "count": 57,
+     "productName": "Cornstarch"
+    },
+    {
+     "productID": 315,
+     "count": 51,
+     "productName": "Baking Soda"
+    },
+    {
+     "productID": 40,
+     "count": 25,
+     "productName": "Powdered Sugar"
+    },
+    {
+     "productID": 168,
+     "count": 12,
+     "productName": "Red Wine"
+    }
+   ],
+   "25": [
+    {
+     "productID": 31,
+     "count": 5,
+     "productName": "Potato Bag"
+    },
+    {
+     "productID": 165,
+     "count": 7,
+     "productName": "Beer Barrel"
+    },
+    {
+     "productID": 165,
+     "count": 7,
+     "productName": "Beer Barrel"
+    },
+    {
+     "productID": 165,
+     "count": 7,
+     "productName": "Beer Barrel"
+    }
+   ],
+   "26": [
+    {
+     "productID": 143,
+     "count": 24,
+     "productName": "Peppermint"
+    },
+    {
+     "productID": 28,
+     "count": 52,
+     "productName": "Brown Sugar"
+    },
+    {
+     "productID": 42,
+     "count": 37,
+     "productName": "Brown Sugar - Big Box"
+    },
+    {
+     "productID": 255,
+     "count": 3,
+     "productName": "Tomato Soup"
+    }
+   ],
+   "27": [
+    {
+     "productID": 253,
+     "count": 48,
+     "productName": "Meatballs"
+    },
+    {
+     "productID": 319,
+     "count": 57,
+     "productName": "Icing Tube"
+    },
+    {
+     "productID": 48,
+     "count": 30,
+     "productName": "Milk Brick"
+    },
+    {
+     "productID": 2,
+     "count": 20,
+     "productName": "Honey Cereals"
+    }
+   ],
+   "28": [
+    {
+     "productID": 66,
+     "count": 11,
+     "productName": "Crispy Potato Pops"
+    },
+    {
+     "productID": 62,
+     "count": 0,
+     "productName": "Fondue"
+    }
+   ],
+   "29": [
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    },
+    {
+     "productID": 317,
+     "count": 48,
+     "productName": "Cocoa Powder"
+    },
+    {
+     "productID": 162,
+     "count": 20,
+     "productName": "Beer Pack"
+    }
+   ],
+   "30": [
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    },
+    {
+     "productID": 320,
+     "count": 20,
+     "productName": "Candy Sprinkles"
+    },
+    {
+     "productID": 166,
+     "count": 7,
+     "productName": "Beer Barrel"
+    }
+   ],
+   "31": [
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    },
+    {
+     "productID": 30,
+     "count": 30,
+     "productName": "Mash Potatoes"
+    },
+    {
+     "productID": 141,
+     "count": 33,
+     "productName": "Lemon Tea"
+    }
+   ],
+   "32": [
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    },
+    {
+     "productID": 164,
+     "count": 0,
+     "productName": "Beer Pack"
+    }
+   ],
+   "33": [
+    {
+     "productID": 240,
+     "count": 0,
+     "productName": "Sugar Free Energy Drink"
+    },
+    {
+     "productID": 235,
+     "count": 0,
+     "productName": "Guava Energy Drink"
+    },
+    {
+     "productID": 132,
+     "count": 4,
+     "productName": "Parma Ham"
+    },
+    {
+     "productID": 238,
+     "count": 0,
+     "productName": "Mango Energy Drink"
+    },
+    {
+     "productID": 237,
+     "count": 0,
+     "productName": "Fruit Punch Energy Drink"
+    }
+   ],
+   "34": [
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    }
+   ],
+   "35": [
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    },
+    {
+     "productID": 167,
+     "count": 4,
+     "productName": "Vodka"
+    }
+   ],
+   "36": [
+    {
+     "productID": 75,
+     "count": 4,
+     "productName": "Toilet Paper"
+    },
+    {
+     "productID": 75,
+     "count": 0,
+     "productName": "Toilet Paper"
+    },
+    {
+     "productID": 75,
+     "count": 0,
+     "productName": "Toilet Paper"
+    },
+    {
+     "productID": 75,
+     "count": 0,
+     "productName": "Toilet Paper"
+    }
+   ],
+   "37": [
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    },
+    {
+     "productID": 75,
+     "count": 4,
+     "productName": "Toilet Paper"
+    }
+   ],
+   "38": [
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    },
+    {
+     "productID": 136,
+     "count": 27,
+     "productName": "Red Beans"
+    },
+    {
+     "productID": 135,
+     "count": 33,
+     "productName": "Tuna - Big"
+    }
+   ],
+   "39": [
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    },
+    {
+     "productID": 140,
+     "count": 29,
+     "productName": "Green Tea"
+    },
+    {
+     "productID": 142,
+     "count": 31,
+     "productName": "Black Tea"
+    }
+   ],
+   "40": [
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    },
+    {
+     "productID": 170,
+     "count": 2,
+     "productName": "White Wine"
+    },
+    {
+     "productID": 170,
+     "count": 4,
+     "productName": "White Wine"
+    },
+    {
+     "productID": 320,
+     "count": 50,
+     "productName": "Candy Sprinkles"
+    }
+   ],
+   "41": [
+    {
+     "productID": 171,
+     "count": 7,
+     "productName": "Beer Barrel"
+    },
+    {
+     "productID": 171,
+     "count": 1,
+     "productName": "Beer Barrel"
+    },
+    {
+     "productID": 171,
+     "count": 0,
+     "productName": "Beer Barrel"
+    },
+    {
+     "productID": 171,
+     "count": 0,
+     "productName": "Beer Barrel"
+    }
+   ],
+   "42": [
+    {
+     "productID": 286,
+     "count": 10,
+     "productName": "Universal Phone Charger"
+    },
+    {
+     "productID": 286,
+     "count": 13,
+     "productName": "Universal Phone Charger"
+    },
+    {
+     "productID": 285,
+     "count": 30,
+     "productName": "Universal TV Remote"
+    },
+    {
+     "productID": 284,
+     "count": 20,
+     "productName": "9V Batteries"
+    },
+    {
+     "productID": 284,
+     "count": 21,
+     "productName": "9V Batteries"
+    }
+   ],
+   "43": [
+    {
+     "productID": 283,
+     "count": 30,
+     "productName": "C Batteries"
+    },
+    {
+     "productID": 281,
+     "count": 20,
+     "productName": "AA Batteries"
+    },
+    {
+     "productID": 281,
+     "count": 23,
+     "productName": "AA Batteries"
+    },
+    {
+     "productID": 282,
+     "count": 30,
+     "productName": "AAA Batteries"
+    },
+    {
+     "productID": 282,
+     "count": 16,
+     "productName": "AAA Batteries"
+    }
+   ],
+   "44": [
+    {
+     "productID": 127,
+     "count": -1,
+     "productName": "Chopped Beef"
+    },
+    {
+     "productID": 129,
+     "count": -1,
+     "productName": "Veal"
+    },
+    {
+     "productID": 130,
+     "count": -1,
+     "productName": "Chicken Wings"
+    },
+    {
+     "productID": 135,
+     "count": -1,
+     "productName": "Tuna - Big"
+    },
+    {
+     "productID": 131,
+     "count": -1,
+     "productName": "Chicken"
+    },
+    {
+     "productID": 133,
+     "count": -1,
+     "productName": "Sliced Ham"
+    },
+    {
+     "productID": 132,
+     "count": -1,
+     "productName": "Parma Ham"
+    },
+    {
+     "productID": 128,
+     "count": -1,
+     "productName": "Pure Beef"
+    },
+    {
+     "productID": 130,
+     "count": -1,
+     "productName": "Chicken Wings"
+    },
+    {
+     "productID": 1,
+     "count": -1,
+     "productName": "Water Bottle"
+    }
+   ],
+   "45": [
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    }
+   ],
+   "46": [
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    }
+   ],
+   "47": [
+    {
+     "productID": 166,
+     "count": 2,
+     "productName": "Beer Barrel"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": -1,
+     "productName": "?"
+    }
+   ],
+   "48": [
+    {
+     "productID": 162,
+     "count": -1,
+     "productName": "Beer Pack"
+    },
+    {
+     "productID": 15,
+     "count": -1,
+     "productName": "Mustard Sauce"
+    },
+    {
+     "productID": 19,
+     "count": -1,
+     "productName": "Supreme Flour"
+    },
+    {
+     "productID": 14,
+     "count": -1,
+     "productName": "Barbacue Sauce"
+    },
+    {
+     "productID": 3,
+     "count": -1,
+     "productName": "Rice"
+    },
+    {
+     "productID": 77,
+     "count": -1,
+     "productName": "Avocado Shampoo"
+    },
+    {
+     "productID": 4,
+     "count": -1,
+     "productName": "Salt"
+    },
+    {
+     "productID": 143,
+     "count": -1,
+     "productName": "Peppermint"
+    },
+    {
+     "productID": 20,
+     "count": -1,
+     "productName": "Black Coffee"
+    },
+    {
+     "productID": 27,
+     "count": -1,
+     "productName": "Ecologic Sugar"
+    }
+   ],
+   "49": [
+    {
+     "productID": 74,
+     "count": -1,
+     "productName": "Toothpaste"
+    },
+    {
+     "productID": 78,
+     "count": -1,
+     "productName": "Egg Shampoo"
+    },
+    {
+     "productID": 165,
+     "count": -1,
+     "productName": "Beer Barrel"
+    },
+    {
+     "productID": 74,
+     "count": -1,
+     "productName": "Toothpaste"
+    },
+    {
+     "productID": 257,
+     "count": -1,
+     "productName": "Canned Peas"
+    },
+    {
+     "productID": 282,
+     "count": -1,
+     "productName": "AAA Batteries"
+    },
+    {
+     "productID": 25,
+     "count": -1,
+     "productName": "Sugar"
+    },
+    {
+     "productID": 12,
+     "count": -1,
+     "productName": "Pepper"
+    },
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    },
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    }
+   ],
+   "50": [
+    {
+     "productID": 143,
+     "count": -1,
+     "productName": "Peppermint"
+    },
+    {
+     "productID": 42,
+     "count": -1,
+     "productName": "Brown Sugar - Big Box"
+    },
+    {
+     "productID": 256,
+     "count": -1,
+     "productName": "Canned Corn"
+    },
+    {
+     "productID": 3,
+     "count": 5,
+     "productName": "Rice"
+    },
+    {
+     "productID": 145,
+     "count": -1,
+     "productName": "Valerian"
+    },
+    {
+     "productID": 135,
+     "count": -1,
+     "productName": "Tuna - Big"
+    },
+    {
+     "productID": 36,
+     "count": -1,
+     "productName": "Supreme Pasta"
+    },
+    {
+     "productID": 134,
+     "count": -1,
+     "productName": "Peas - Big"
+    },
+    {
+     "productID": 11,
+     "count": -1,
+     "productName": "Sliced Bread"
+    },
+    {
+     "productID": 134,
+     "count": -1,
+     "productName": "Peas - Big"
+    }
+   ],
+   "51": [
+    {
+     "productID": 31,
+     "count": -1,
+     "productName": "Potato Bag"
+    },
+    {
+     "productID": 108,
+     "count": 40,
+     "productName": "Chips"
+    },
+    {
+     "productID": 283,
+     "count": 18,
+     "productName": "C Batteries"
+    },
+    {
+     "productID": 38,
+     "count": 7,
+     "productName": "Premium Water"
+    },
+    {
+     "productID": 283,
+     "count": -1,
+     "productName": "C Batteries"
+    },
+    {
+     "productID": 283,
+     "count": 50,
+     "productName": "C Batteries"
+    },
+    {
+     "productID": 41,
+     "count": -1,
+     "productName": "Sugar - Big Box"
+    },
+    {
+     "productID": 75,
+     "count": -1,
+     "productName": "Toilet Paper"
+    },
+    {
+     "productID": 38,
+     "count": -1,
+     "productName": "Premium Water"
+    },
+    {
+     "productID": 31,
+     "count": -1,
+     "productName": "Potato Bag"
+    }
+   ],
+   "52": [
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    }
+   ],
+   "53": [
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    }
+   ],
+   "54": [
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    }
+   ],
+   "55": [
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    }
+   ],
+   "56": [
+    {
+     "productID": -1,
+     "count": 0,
+     "productName": "?"
+    }
+   ]
+  },
+  "byProduct": {
+   "14": 51,
+   "2": 55,
+   "4": 133,
+   "40": 25,
+   "1": 10,
+   "20": 24,
+   "39": 35,
+   "8": 39,
+   "169": 15,
+   "255": 36,
+   "145": 26,
+   "78": 29,
+   "138": 18,
+   "48": 42,
+   "21": 36,
+   "74": 214,
+   "165": 40,
+   "316": 48,
+   "33": 32,
+   "29": 17,
+   "5": 17,
+   "77": 32,
+   "10": 69,
+   "45": 0,
+   "43": 9,
+   "131": -1,
+   "133": -1,
+   "227": 0,
+   "6": 19,
+   "228": 0,
+   "230": 0,
+   "239": 0,
+   "35": 37,
+   "36": 26,
+   "314": 25,
+   "32": 0,
+   "19": 18,
+   "41": 33,
+   "37": 22,
+   "57": 0,
+   "229": 0,
+   "60": 0,
+   "46": 0,
+   "233": 2,
+   "0": 16,
+   "31": 3,
+   "15": 69,
+   "13": 15,
+   "16": 7,
+   "134": 63,
+   "11": 32,
+   "17": 21,
+   "162": 28,
+   "27": 27,
+   "144": 21,
+   "18": 26,
+   "23": 38,
+   "257": 77,
+   "252": 38,
+   "256": 2,
+   "34": 6,
+   "3": 28,
+   "38": 42,
+   "24": 13,
+   "129": -1,
+   "128": -1,
+   "130": -2,
+   "127": -1,
+   "64": 0,
+   "65": 0,
+   "26": 6,
+   "79": 0,
+   "22": 27,
+   "12": 53,
+   "30": 33,
+   "9": 7,
+   "25": 23,
+   "7": 13,
+   "317": 51,
+   "318": 57,
+   "315": 51,
+   "168": 12,
+   "143": 22,
+   "28": 52,
+   "42": 36,
+   "253": 48,
+   "319": 57,
+   "66": 11,
+   "62": 0,
+   "-1": -29,
+   "320": 70,
+   "166": 9,
+   "141": 33,
+   "164": 0,
+   "240": 0,
+   "235": 0,
+   "132": 3,
+   "238": 0,
+   "237": 0,
+   "167": 4,
+   "75": 7,
+   "136": 27,
+   "135": 31,
+   "140": 29,
+   "142": 31,
+   "170": 6,
+   "171": 8,
+   "286": 23,
+   "285": 30,
+   "284": 41,
+   "283": 97,
+   "281": 43,
+   "282": 45,
+   "108": 40
+  }
+ },
+ "pricing": {
+  "arrayLength": 339,
+  "prices": [
+   3.26,
+   2.49999976,
+   6.13003731,
+   4.100002,
+   1.2,
+   3.67,
+   5.180004,
+   2.35,
+   5.150023,
+   20.0000458,
+   6.05000639,
+   4.1900034,
+   3.00999975,
+   4.04999876,
+   5.070009,
+   6.00003052,
+   2.91,
+   10.960001,
+   7.140003,
+   4.30000639,
+   8.150066,
+   6.260025,
+   4.130002,
+   4.230005,
+   4.15000248,
+   3.05,
+   3.19,
+   3.90999985,
+   6.000015,
+   21.0200233,
+   5.04999971,
+   13.170001,
+   6.410006,
+   6.00002241,
+   6.100001,
+   9.000039,
+   6.05004549,
+   10.3001442,
+   2.149999,
+   2.299999,
+   6.00002,
+   9,
+   9.499954,
+   3.98999953,
+   4.990012,
+   5.749995,
+   5.55001926,
+   8.710005,
+   1.90000081,
+   3.65,
+   2.1,
+   2.7,
+   2.9,
+   3.5,
+   3.44999981,
+   4.590001,
+   10.1999588,
+   3.30999947,
+   3.88999987,
+   3.44999957,
+   5.67001438,
+   5.030023,
+   4.5,
+   7.000067,
+   8.150038,
+   4.05,
+   3.99,
+   4.5,
+   2.49,
+   3.19,
+   3.99,
+   3.79,
+   3.67,
+   3.45,
+   3.84999919,
+   10.239996,
+   2.05,
+   5,
+   5.350006,
+   6.000045,
+   4.6,
+   1.69,
+   2.25,
+   2.59,
+   3.99,
+   5.2,
+   2.5,
+   1.25,
+   2.65,
+   3.95,
+   3.3,
+   1.9,
+   3.6,
+   6.7,
+   4.6,
+   1.2,
+   1.9,
+   3.99,
+   4.5,
+   4.1,
+   0.9,
+   7.8,
+   2.5,
+   3.1,
+   6.37000275,
+   6.990012,
+   3.249999,
+   4.45001,
+   1.91,
+   3.64999938,
+   2.9,
+   4.5,
+   10.9,
+   4.8,
+   5.5,
+   2.7,
+   3.9,
+   3.6,
+   1.99,
+   2.99,
+   2.45,
+   2.55,
+   5.99,
+   3.99,
+   18.5,
+   4,
+   3.8,
+   6.100002,
+   9.000003,
+   10.0800257,
+   7.380026,
+   17.520052,
+   6.45000458,
+   4.65001154,
+   5.840003,
+   6.669999,
+   3.66999936,
+   9.000002,
+   19.2000732,
+   14.10003,
+   5.450018,
+   6.56003,
+   7.500019,
+   3.83,
+   3.87999988,
+   4.20000458,
+   19.99,
+   13.99,
+   12.99,
+   4.79,
+   9.99,
+   7.99,
+   7.99,
+   9.99,
+   9.99,
+   7.99,
+   7.99,
+   9.99,
+   9.99,
+   9.99,
+   7.99,
+   9.99,
+   15.23999,
+   18.4100056,
+   24.2,
+   31.1000481,
+   35.9994,
+   28.300045,
+   13.5,
+   19.8,
+   50,
+   44,
+   23.4,
+   25.6,
+   21.5,
+   29.99,
+   2.7,
+   3.5,
+   7.6,
+   5.6,
+   4.2,
+   8,
+   9.5,
+   8.99,
+   11.49,
+   12.99,
+   18.99,
+   13.49,
+   8.99,
+   8.95,
+   13.99,
+   4.05,
+   2.85,
+   2.79,
+   3.19,
+   2.99,
+   2.13,
+   6.79,
+   5.49,
+   4.89,
+   8.9,
+   5.65,
+   6.25,
+   6.99,
+   6.85,
+   2.45,
+   2.89,
+   2.65,
+   1.89,
+   2.99,
+   3.49,
+   3.98,
+   3.5,
+   4.7,
+   3.69,
+   3.69,
+   2.89,
+   4.49,
+   4.45,
+   15.99,
+   14.99,
+   16.99,
+   18.99,
+   23.99,
+   3.99,
+   3.19,
+   3.99,
+   4.260005,
+   3.75,
+   5.50003338,
+   5.480001,
+   4.71001053,
+   3.53,
+   5.64002228,
+   3.349999,
+   3.1,
+   5.000023,
+   5.00002146,
+   5.00002146,
+   4.200004,
+   5.780006,
+   3.95,
+   3.95,
+   3.95,
+   4.95,
+   4.95,
+   4.95,
+   7.45,
+   7.45,
+   9.95,
+   9.95,
+   14.95,
+   3.39999866,
+   4.14998531,
+   3.75,
+   4.5,
+   3.14999866,
+   3.14999914,
+   2.99,
+   2.49,
+   2.49,
+   2.99,
+   2.49,
+   2.99,
+   2.49,
+   2.99,
+   2.49,
+   2.49,
+   1.99,
+   3.49,
+   3.49,
+   3.49,
+   3.49,
+   4.99,
+   5.49,
+   4.99,
+   4.99,
+   9.99,
+   8.99,
+   2.99,
+   6.99,
+   9.24,
+   9.24,
+   11,
+   11,
+   17.91,
+   19.24,
+   49.9,
+   9.99,
+   8.99,
+   12.99,
+   14.99,
+   16.99,
+   13.99,
+   17.99,
+   35.99,
+   73.99,
+   44.99,
+   35.99,
+   99.99,
+   2.75,
+   3.75,
+   4.5,
+   3.25,
+   4,
+   3,
+   1.99,
+   2.99,
+   2.99,
+   3.55,
+   1.99,
+   2.79,
+   2.99,
+   2.49,
+   16.3000011,
+   7.49,
+   6.89,
+   6.50005674,
+   3.49,
+   4.99,
+   5.67001534,
+   9.99,
+   9.99,
+   9.99,
+   9.99,
+   9.99,
+   9.99,
+   9.99,
+   9.99,
+   6.99,
+   6.99,
+   3.49,
+   18.99,
+   9.99,
+   9.99,
+   9.99,
+   9.99,
+   9.99,
+   9.99
+  ]
+ },
+ "tier_unlocks": {
+  "arrayLength": 55,
+  "unlockedIndices": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   8,
+   9,
+   11,
+   12,
+   16,
+   20,
+   21,
+   22,
+   26,
+   27,
+   37,
+   38,
+   41,
+   46,
+   51
+  ]
+ },
+ "skill_unlocks": {
+  "arrayLength": 44,
+  "unlockedIndices": [
+   0,
+   6,
+   7,
+   8,
+   9,
+   10,
+   11,
+   17,
+   22,
+   26
+  ],
+  "perkIndexToSkill": [
+   5,
+   6,
+   7,
+   8,
+   9,
+   10,
+   11,
+   12,
+   13,
+   14,
+   15,
+   16,
+   17,
+   18,
+   19,
+   20,
+   21,
+   22,
+   23,
+   24,
+   25,
+   26,
+   27,
+   28,
+   29,
+   30,
+   31,
+   32,
+   33,
+   34,
+   35,
+   36,
+   37,
+   38,
+   39,
+   40,
+   41,
+   42,
+   43
+  ]
+ },
+ "manufacturing": {
+  "unlockedRecipes": [
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false,
+   false
+  ],
+  "playerRecipes": []
+ },
+ "employee_data": {
+  "hired": [
+   "5|83|6|10|7|8|10|8|10|big sb|0|5780|21050|1070|1086|1000|1000|1000",
+   "1|71|10|7|4|6|5|7|4|small sb|0|67944|1560|1012|1000|1000|1000|1000",
+   "3|52|9|8|1|6|2|7|10|medium sb|0|5000|3216|1000|3780|1000|1000|1000"
+  ],
+  "todays": []
+ },
+ "decorations": {
+  "prop": [
+   {
+    "buildableId": 7,
+    "posX": -0.01385969,
+    "posZ": 9.515559,
+    "rotation": 4.5,
+    "angle": 3.814697e-06,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 14
+   },
+   {
+    "buildableId": 7,
+    "posX": -0.00236088,
+    "posZ": 5.480311,
+    "rotation": 4.5,
+    "angle": 3.814697e-06,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 15
+   },
+   {
+    "buildableId": 7,
+    "posX": -6.002169,
+    "posZ": -0.09389755,
+    "rotation": 4.5,
+    "angle": 3.814697e-06,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 16
+   },
+   {
+    "buildableId": 7,
+    "posX": -0.05630958,
+    "posZ": -0.04657972,
+    "rotation": 4.5,
+    "angle": 1.001791e-05,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 17
+   },
+   {
+    "buildableId": 7,
+    "posX": 5.96191,
+    "posZ": -0.001728415,
+    "rotation": 4.5,
+    "angle": 1.001791e-05,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 18
+   },
+   {
+    "buildableId": 7,
+    "posX": 6.028525,
+    "posZ": 9.492283,
+    "rotation": 4.5,
+    "angle": 1.001791e-05,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 19
+   },
+   {
+    "buildableId": 7,
+    "posX": 5.997515,
+    "posZ": 5.486378,
+    "rotation": 4.5,
+    "angle": 1.001791e-05,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 20
+   },
+   {
+    "buildableId": 7,
+    "posX": 13.00014,
+    "posZ": 10.35998,
+    "rotation": 4.5,
+    "angle": 3.814697e-06,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 21
+   },
+   {
+    "buildableId": 7,
+    "posX": -5.982786,
+    "posZ": 9.535287,
+    "rotation": 4.5,
+    "angle": 3.814697e-06,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 13
+   },
+   {
+    "buildableId": 7,
+    "posX": -5.992254,
+    "posZ": 5.491499,
+    "rotation": 4.5,
+    "angle": 3.814697e-06,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 12
+   },
+   {
+    "buildableId": 7,
+    "posX": 28.51471,
+    "posZ": 7.215776,
+    "rotation": 0.0,
+    "angle": 180.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 11
+   },
+   {
+    "buildableId": 7,
+    "posX": 28.43803,
+    "posZ": 4.693981,
+    "rotation": 0.0,
+    "angle": 0.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 10
+   },
+   {
+    "buildableId": 7,
+    "posX": 28.529,
+    "posZ": 5.903549,
+    "rotation": 0.0,
+    "angle": 45.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 9
+   },
+   {
+    "buildableId": 7,
+    "posX": 9.741719,
+    "posZ": 3.222206,
+    "rotation": 0.0,
+    "angle": 180.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 8
+   },
+   {
+    "buildableId": 7,
+    "posX": -9.0,
+    "posZ": 3.61578,
+    "rotation": 3.493871,
+    "angle": 89.99998,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 7
+   },
+   {
+    "buildableId": 7,
+    "posX": 8.75,
+    "posZ": 11.24795,
+    "rotation": 3.557054,
+    "angle": 270.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 6
+   },
+   {
+    "buildableId": 7,
+    "posX": 14.53891,
+    "posZ": 4.061032,
+    "rotation": 0.0,
+    "angle": 270.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 5
+   },
+   {
+    "buildableId": 7,
+    "posX": 10.038,
+    "posZ": 2.425,
+    "rotation": 0.0,
+    "angle": 180.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 4
+   },
+   {
+    "buildableId": 7,
+    "posX": 13.01966,
+    "posZ": 4.592769,
+    "rotation": 4.5,
+    "angle": 3.814697e-06,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 22
+   },
+   {
+    "buildableId": 7,
+    "posX": 11.0007,
+    "posZ": 4.586427,
+    "rotation": 4.5,
+    "angle": 3.814697e-06,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 23
+   },
+   {
+    "buildableId": 7,
+    "posX": 10.9891,
+    "posZ": 10.37628,
+    "rotation": 4.5,
+    "angle": 3.814697e-06,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 24
+   },
+   {
+    "buildableId": 7,
+    "posX": 3.038833,
+    "posZ": -4.063536,
+    "rotation": 0.008569114,
+    "angle": 7.629395e-06,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 25
+   },
+   {
+    "buildableId": 7,
+    "posX": -2.991361,
+    "posZ": -4.040588,
+    "rotation": 0.008569114,
+    "angle": 180.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 26
+   },
+   {
+    "buildableId": 7,
+    "posX": -15.07565,
+    "posZ": -4.334916,
+    "rotation": 0.008569114,
+    "angle": 180.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 27
+   },
+   {
+    "buildableId": 7,
+    "posX": -13.14027,
+    "posZ": -5.536774,
+    "rotation": 0.008569114,
+    "angle": 270.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 28
+   },
+   {
+    "buildableId": 7,
+    "posX": -11.02828,
+    "posZ": -7.661572,
+    "rotation": 0.008569114,
+    "angle": 180.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 29
+   },
+   {
+    "buildableId": 7,
+    "posX": -7.024993,
+    "posZ": -7.679849,
+    "rotation": 0.008569114,
+    "angle": 180.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 30
+   },
+   {
+    "buildableId": 7,
+    "posX": 10.64162,
+    "posZ": 3.31728,
+    "rotation": 0.0,
+    "angle": 0.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 31
+   },
+   {
+    "buildableId": 7,
+    "posX": 11.35082,
+    "posZ": -3.979822,
+    "rotation": 0.008569114,
+    "angle": 0.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 32
+   },
+   {
+    "buildableId": 7,
+    "posX": 3.263158,
+    "posZ": -7.907562,
+    "rotation": 1.312171,
+    "angle": 3.814697e-06,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 33
+   },
+   {
+    "buildableId": 7,
+    "posX": 5.994431,
+    "posZ": 7.527187,
+    "rotation": 4.5,
+    "angle": 0.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 34
+   },
+   {
+    "buildableId": 7,
+    "posX": 0.004466623,
+    "posZ": 7.497943,
+    "rotation": 4.5,
+    "angle": 0.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 35
+   },
+   {
+    "buildableId": 7,
+    "posX": 7.699838,
+    "posZ": -3.25,
+    "rotation": 2.934149,
+    "angle": 180.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 36
+   },
+   {
+    "buildableId": 7,
+    "posX": 36.66704,
+    "posZ": -0.05063057,
+    "rotation": 0.0,
+    "angle": 270.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 37
+   },
+   {
+    "buildableId": 7,
+    "posX": 6.044961,
+    "posZ": -2.75,
+    "rotation": 4.138631,
+    "angle": 1.001791e-05,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 38
+   },
+   {
+    "buildableId": 7,
+    "posX": 0.04012084,
+    "posZ": -2.7,
+    "rotation": 4.188474,
+    "angle": 1.001791e-05,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 39
+   },
+   {
+    "buildableId": 7,
+    "posX": -11.5233,
+    "posZ": -0.4870971,
+    "rotation": 4.5,
+    "angle": 0.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 40
+   },
+   {
+    "buildableId": 7,
+    "posX": -6.003503,
+    "posZ": 7.510808,
+    "rotation": 4.5,
+    "angle": 0.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 41
+   },
+   {
+    "buildableId": 7,
+    "posX": -12.02891,
+    "posZ": 7.510205,
+    "rotation": 4.5,
+    "angle": 0.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 42
+   },
+   {
+    "buildableId": 7,
+    "posX": -12.01468,
+    "posZ": 5.488584,
+    "rotation": 4.5,
+    "angle": 0.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 43
+   },
+   {
+    "buildableId": 7,
+    "posX": -11.99583,
+    "posZ": 9.551507,
+    "rotation": 4.5,
+    "angle": 0.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 44
+   },
+   {
+    "buildableId": 7,
+    "posX": 14.072,
+    "posZ": -2.497,
+    "rotation": 0.0,
+    "angle": 0.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 3
+   },
+   {
+    "buildableId": 7,
+    "posX": 11.76131,
+    "posZ": 2.55,
+    "rotation": 0.0,
+    "angle": 180.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 2
+   },
+   {
+    "buildableId": 7,
+    "posX": 16.351,
+    "posZ": 3.155,
+    "rotation": 0.0,
+    "angle": 180.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 1
+   },
+   {
+    "buildableId": 7,
+    "posX": 10.96,
+    "posZ": 2.55,
+    "rotation": 0.0,
+    "angle": 180.0,
+    "containerInfo": {
+     "containerClass": 99,
+     "containerID": 7,
+     "cost": 1000,
+     "shelfLength": 1,
+     "shelfWidth": 1,
+     "shelfHeight": 1,
+     "buildableTag": "Buildable",
+     "energyCost": 0,
+     "energyWorkingHours": 0,
+     "employeeHappiness": 0,
+     "isVolumeRestricted": false,
+     "productVolumeLimit": 0.015,
+     "buildableName": "Checkout (Left)"
+    },
+    "index": 0
+   }
+  ],
+  "picture": [],
+  "paintable": []
+ },
+ "_meta": {
+  "snapshot_id": "2026-08-15T02-29-51",
+  "source_es3": "StoreFile0.es3",
+  "source_size_bytes": 48896,
+  "source_mtime": "2026-08-15T02:29:51.145383",
+  "extracted_at": "2026-08-15T03:01:10.881835",
+  "extractor_version": "1.0",
+  "hash": "e75bd6f77cb628d54991195556c13885"
+ }
+}

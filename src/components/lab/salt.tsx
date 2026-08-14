@@ -5,8 +5,11 @@ import { encyclopedia as ENC } from '@/lib/data-loader'
 import {
   computeSaltProbe,
   simulateCustomers,
-  computeDemandProxy,
 } from '@/lib/engine'
+import {
+  useLang,
+  productNameFor,
+} from '@/lib/i18n'
 import {
   ConfidenceBadge,
   StatCard,
@@ -57,11 +60,12 @@ interface SimRun {
   result: SimulationResult
   saltHits: number
   totalProducts: number
-  top5: { productId: number; name: string; hits: number }[]
-  topMissing: { productId: number; name: string; missed: number }[]
+  top5: { productId: number; hits: number }[]
+  topMissing: { productId: number; missed: number }[]
 }
 
 export function Salt() {
+  const lang = useLang()
   const probe = useMemo(() => computeSaltProbe(), [])
   const [activeMode, setActiveMode] = useState<Mode>('normal')
   const [runs, setRuns] = useState<Record<Mode, SimRun | null>>({
@@ -101,7 +105,6 @@ export function Salt() {
       const top5 = Array.from(res.productHits.entries())
         .map(([productId, hits]) => ({
           productId,
-          name: ENC.products.find((p) => p.id === productId)?.name.en ?? `#${productId}`,
           hits,
         }))
         .sort((a, b) => b.hits - a.hits)
@@ -109,7 +112,6 @@ export function Salt() {
 
       const topMissing = res.topMissing.slice(0, 5).map((m) => ({
         productId: m.productId,
-        name: m.name,
         missed: m.missed,
       }))
 
@@ -143,14 +145,12 @@ export function Salt() {
       const top5 = Array.from(res.productHits.entries())
         .map(([productId, hits]) => ({
           productId,
-          name: ENC.products.find((p) => p.id === productId)?.name.en ?? `#${productId}`,
           hits,
         }))
         .sort((a, b) => b.hits - a.hits)
         .slice(0, 5)
       const topMissing = res.topMissing.slice(0, 5).map((m2) => ({
         productId: m2.productId,
-        name: m2.name,
         missed: m2.missed,
       }))
       const saltHits = res.productHits.get(4) ?? 0
@@ -210,7 +210,7 @@ export function Salt() {
             <RawCard label="necessity[10] Staple Groceries pool" value="62 rawTokens" hint="Salt 出現 1 次 (1/62 ≈ 1.61%)" />
             <RawCard label="necessity[9] 權重來源" value="customer #47 = 0.5" hint="其餘 57 種顧客為 0" />
             <RawCard label="Salt basePrice" value={fmtMoney(probe.saltProduct.basePricePerUnit)} hint={`maxItemsPerBox = ${probe.saltProduct.maxItemsPerBox}`} />
-            <RawCard label="Salt tier / brand" value={`Tier ${probe.saltProduct.tier} / ${probe.saltProduct.brand}`} hint="基本商品、可立即進貨" />
+            <RawCard label="Salt 商品名稱 / tier / brand" value={productNameFor(probe.saltProduct.id, lang)} hint={`Tier ${probe.saltProduct.tier} / ${probe.saltProduct.brand} · 基本商品、可立即進貨`} />
           </div>
         </CardContent>
       </Card>
@@ -327,11 +327,11 @@ export function Salt() {
                       <TableCell className="font-mono text-xs">{c.product.id}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1.5">
-                          <span className="font-medium">{c.product.name.en}</span>
+                          <span className="font-medium">{productNameFor(c.product.id, lang)}</span>
                           {isSalt && <Badge variant="outline" className="text-[10px] border-fuchsia-500/30 bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-300">SALT</Badge>}
                           {isPremium && <Crown className="h-3 w-3 text-fuchsia-500" />}
                         </div>
-                        <div className="text-[10px] text-muted-foreground">{c.product.name.zhHant} · Tier {c.product.tier}</div>
+                        <div className="text-[10px] text-muted-foreground">Tier {c.product.tier}</div>
                       </TableCell>
                       <TableCell className="text-right font-mono text-xs">{fmtMoney(c.basePrice)}</TableCell>
                       <TableCell className="text-right font-mono text-xs">{fmtMoney(c.boxValue)}</TableCell>
@@ -483,6 +483,7 @@ export function Salt() {
 }
 
 function RunResultView({ run }: { run: SimRun }) {
+  const lang = useLang()
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -520,7 +521,7 @@ function RunResultView({ run }: { run: SimRun }) {
                   <TableRow key={h.productId} className={h.productId === 4 ? 'bg-fuchsia-500/10' : ''}>
                     <TableCell className="font-mono text-xs text-muted-foreground">{i + 1}</TableCell>
                     <TableCell className="text-xs">
-                      #{h.productId} {h.name}
+                      #{h.productId} {productNameFor(h.productId, lang)}
                       {h.productId === 4 && <Badge variant="outline" className="ml-1 text-[10px]">SALT</Badge>}
                     </TableCell>
                     <TableCell className="text-right font-mono text-xs">{h.hits}</TableCell>
@@ -555,7 +556,7 @@ function RunResultView({ run }: { run: SimRun }) {
                 {run.topMissing.map((h, i) => (
                   <TableRow key={h.productId}>
                     <TableCell className="font-mono text-xs text-muted-foreground">{i + 1}</TableCell>
-                    <TableCell className="text-xs">#{h.productId} {h.name}</TableCell>
+                    <TableCell className="text-xs">#{h.productId} {productNameFor(h.productId, lang)}</TableCell>
                     <TableCell className="text-right font-mono text-xs text-rose-600">{h.missed}</TableCell>
                   </TableRow>
                 ))}

@@ -14,6 +14,7 @@ import {
 import { encyclopedia as ENC } from '@/lib/data-loader'
 import { computeEmployeeSpeed, computeXpToNextLevel } from '@/lib/engine'
 import { useRoomStore, useSaveStore } from '@/lib/store'
+import { useLang, employeeTaskIdNameFor } from '@/lib/i18n'
 import {
   ConfidenceBadge,
   StatCard,
@@ -91,6 +92,7 @@ const STATIC_CHECKLIST = [
 ]
 
 export function Employees() {
+  const lang = useLang()
   const [level, setLevel] = useState(2)
   const [factor, setFactor] = useState(0)
   const snapshot = useSaveStore((s) => s.snapshot)
@@ -113,12 +115,13 @@ export function Employees() {
       const avgSkill = skillEntries.reduce((a, b) => a + b.value, 0) / skillEntries.length
       const taskId = emp.task
       const task = ENC.employeeTasks.find((t) => t.id === taskId)
+      const taskLabel = employeeTaskIdNameFor(taskId, lang)
       // Speed proxy: use average skill as level proxy (capped at 5)
       const levelProxy = Math.min(5, Math.round(avgSkill / 2))
       const speedProxy = computeEmployeeSpeed(levelProxy, 0).value
-      return { emp, idx: i, skillEntries, topSkill, avgSkill, task, levelProxy, speedProxy }
+      return { emp, idx: i, skillEntries, topSkill, avgSkill, task, taskLabel, levelProxy, speedProxy }
     })
-  }, [snapshot])
+  }, [snapshot, lang])
 
   const totalSalary = useMemo(
     () => hiredEmployees.reduce((a, b) => a + b.emp.salary, 0),
@@ -293,7 +296,7 @@ export function Employees() {
 
             {/* Employee cards */}
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-              {hiredEmployees.map(({ emp, idx, skillEntries, topSkill, avgSkill, task, levelProxy, speedProxy }) => (
+              {hiredEmployees.map(({ emp, idx, skillEntries, topSkill, avgSkill, task, taskLabel, levelProxy, speedProxy }) => (
                 <div
                   key={emp.id}
                   className="rounded-lg border bg-card p-3 space-y-2"
@@ -318,7 +321,7 @@ export function Employees() {
                             color: task?.color === '#ffffff' ? undefined : task?.color,
                           }}
                         >
-                          {task?.name?.zhHant ?? `task ${emp.task}`}
+                          {taskLabel}
                         </span>
                       </div>
                     </div>
@@ -645,7 +648,7 @@ export function Employees() {
                 }}
               >
                 <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ backgroundColor: t.color }} />
-                {t.id}: {t.name.zhHant}
+                {t.id}: {employeeTaskIdNameFor(t.id, lang)}
               </Badge>
             ))}
           </div>
@@ -671,7 +674,7 @@ export function Employees() {
                       className="rounded px-1.5 py-0.5 text-[10px] font-medium"
                       style={{ backgroundColor: `${color}20`, color: color === '#ffffff' ? undefined : color }}
                     >
-                      {task?.name.zhHant ?? '—'}
+                      {employeeTaskIdNameFor(taskId, lang)}
                     </span>
                   </div>
                   <p className="mt-1 text-[11px] text-muted-foreground">

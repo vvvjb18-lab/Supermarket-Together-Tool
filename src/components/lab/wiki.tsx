@@ -4,6 +4,15 @@ import { useMemo, useState, useCallback } from 'react'
 import { useSaveStore, useUIStore } from '@/lib/store'
 import { encyclopedia as ENC } from '@/lib/data-loader'
 import {
+  useLang,
+  productNameFor,
+  productNameOnly,
+  groupIdNameFor,
+  seasonIdNameFor,
+  necessityIdNameFor,
+  manufacturingIdNameFor,
+} from '@/lib/i18n'
+import {
   computeBoxValue,
   computeColliderVolume,
   computeValueDensity,
@@ -136,6 +145,7 @@ export function Wiki() {
   const setView = useUIStore((s) => s.setView)
   const selectedProductId = useUIStore((s) => s.selectedProductId)
   const setSelectedProduct = useUIStore((s) => s.setSelectedProduct)
+  const lang = useLang()
 
   // ---------- Precompute rows + percentiles ----------
   const { rows, stats, pct } = useMemo(() => {
@@ -401,7 +411,7 @@ export function Wiki() {
               <SelectContent>
                 <SelectItem value="all">所有群組</SelectItem>
                 {ENC.productGroups.map((g) => (
-                  <SelectItem key={g.id} value={String(g.id)}>{g.name.zhHant} ({g.id})</SelectItem>
+                  <SelectItem key={g.id} value={String(g.id)}>{groupIdNameFor(g.id, lang)} ({g.id})</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -419,7 +429,7 @@ export function Wiki() {
               <SelectContent>
                 <SelectItem value="all">所有季節</SelectItem>
                 {ENC.seasons.map((s) => (
-                  <SelectItem key={s.index} value={String(s.index)}>{s.name.zhHant} ({s.productIds.length})</SelectItem>
+                  <SelectItem key={s.index} value={String(s.index)}>{seasonIdNameFor(s.index, lang)} ({s.productIds.length})</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -428,7 +438,7 @@ export function Wiki() {
               <SelectContent>
                 <SelectItem value="all">所有需求池</SelectItem>
                 {ENC.necessities.map((n) => (
-                  <SelectItem key={n.index} value={String(n.index)}>[{n.index}] {n.name.zhHant} ({n.rawTokens.length})</SelectItem>
+                  <SelectItem key={n.index} value={String(n.index)}>[{n.index}] {necessityIdNameFor(n.index, lang)} ({n.rawTokens.length})</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -478,10 +488,7 @@ export function Wiki() {
                   >
                     <TableCell className="font-mono text-xs text-muted-foreground">{r.p.id}</TableCell>
                     <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-medium leading-tight">{r.p.name.en}</span>
-                        <span className="text-[10px] text-muted-foreground">{r.p.name.zhHant}</span>
-                      </div>
+                      <span className="font-medium leading-tight">{productNameFor(r.p.id, lang)}</span>
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">{r.p.brand}</TableCell>
                     <TableCell className="text-xs">
@@ -494,7 +501,7 @@ export function Wiki() {
                               : '#888',
                           }}
                         />
-                        {r.p.groupName.zhHant}
+                        {groupIdNameFor(r.p.group ?? 0, lang)}
                       </span>
                     </TableCell>
                     <TableCell className="text-xs">{r.p.tier}</TableCell>
@@ -606,6 +613,7 @@ function ProductDetail({
   onGoToProfit: () => void
 }) {
   const { p } = row
+  const lang = useLang()
   const conf: Confidence = 'confirmed'
   const proxyConf: Confidence = 'proxy'
   const mfg = row.manufacturingLink != null ? ENC.manufacturingProducts[row.manufacturingLink] : null
@@ -630,11 +638,11 @@ function ProductDetail({
           {row.seasons.length > 0 && <Badge variant="outline" className="text-[10px] border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300"><Sparkles className="mr-1 h-3 w-3" />季節</Badge>}
           {row.isStackable && <Badge variant="outline" className="text-[10px]"><Layers className="mr-1 h-3 w-3" />可堆疊</Badge>}
         </div>
-        <SheetTitle className="text-xl">{p.name.en}</SheetTitle>
+        <SheetTitle className="text-xl">{productNameFor(p.id, lang)}</SheetTitle>
         <SheetDescription className="flex flex-wrap items-center gap-2">
           <span className="font-mono text-xs">#{p.id}</span>
-          <span>{p.name.zhHant}</span>
-          <span className="text-muted-foreground">· {p.name.zhHans}</span>
+          <span className="text-muted-foreground">· {p.brand}</span>
+          <span className="text-muted-foreground">· Tier {p.tier}</span>
         </SheetDescription>
       </SheetHeader>
 
@@ -648,7 +656,7 @@ function ProductDetail({
           <DetailRow label="品牌" value={p.brand} conf={conf} formula="products[].brand" />
           <DetailRow label="Tier" value={`Tier ${p.tier} · ${p.tierName}`} conf={conf} formula="products[].tier / tierName" />
           <DetailRow label="Tier 分類" value={p.category.zhHant} conf={conf} formula="products[].category" />
-          <DetailRow label="商品群組" value={p.groupName.zhHant} conf={conf} formula="products[].groupName" />
+          <DetailRow label="商品群組" value={groupIdNameFor(p.group ?? 0, lang)} conf={conf} formula="products[].groupName" />
         </DetailSection>
 
         {/* Pricing */}
@@ -728,7 +736,7 @@ function ProductDetail({
                   <div className="flex flex-wrap gap-1">
                     {row.necessities.map((ni) => (
                       <Badge key={ni} variant="outline" className="text-[10px]">
-                        [{ni}] {ENC.necessities[ni].name.zhHant}
+                        [{ni}] {necessityIdNameFor(ni, lang)}
                       </Badge>
                     ))}
                   </div>
@@ -746,7 +754,7 @@ function ProductDetail({
                   <div className="flex flex-wrap gap-1">
                     {row.seasons.map((si) => (
                       <Badge key={si} variant="outline" className="text-[10px] border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300">
-                        {ENC.seasons[si].name.zhHant}
+                        {seasonIdNameFor(si, lang)}
                       </Badge>
                     ))}
                   </div>
@@ -767,7 +775,7 @@ function ProductDetail({
         {mfg && (
           <DetailSection title="製造連結">
             <DetailRow label="manufacturing id" value={<code className="font-mono text-xs">{mfg.id}</code>} conf={conf} />
-            <DetailRow label="製造品名稱" value={mfg.name.zhHant} conf={conf} />
+            <DetailRow label="製造品名稱" value={manufacturingIdNameFor(mfg.id, lang)} conf={conf} />
             <DetailRow label="itemsPerBox" value={mfg.itemsPerBox} conf={conf} />
             <DetailRow label="isStackable (製造)" value={mfg.isStackable ? 'true' : 'false'} conf={conf} />
             <DetailRow

@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useCallback } from 'react'
 import { encyclopedia as ENC } from '@/lib/data-loader'
+import { useLang, containerNameFor } from '@/lib/i18n'
 import {
   ConfidenceBadge,
   StatCard,
@@ -60,6 +61,7 @@ type SortKey =
 type SortDir = 'asc' | 'desc'
 
 export function Containers() {
+  const lang = useLang()
   const [sortKey, setSortKey] = useState<SortKey>('costPerVolume')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
 
@@ -108,7 +110,7 @@ export function Containers() {
       switch (sortKey) {
         case 'containerClass': return r.containerClass
         case 'containerID': return r.containerID
-        case 'buildableName': return r.buildableName
+        case 'buildableName': return r.buildableName // sort by raw English key for stable ordering
         case 'cost': return r.cost
         case 'shelfVolume': return r.shelfVolume
         case 'costPerVolume': return r.costPerVolume
@@ -145,14 +147,15 @@ export function Containers() {
       .filter((r) => r.shelfVolume > 0)
       .sort((a, b) => a.costPerVolume - b.costPerVolume)
       .map((r) => ({
-        name: r.buildableName,
+        name: containerNameFor(r, lang),
+        rawName: r.buildableName,
         costPerVolume: r.costPerVolume,
         energyFree: r.energyCost === 0,
         containerID: r.containerID,
         cost: r.cost,
         shelfVolume: r.shelfVolume,
       }))
-  }, [rows])
+  }, [rows, lang])
 
   return (
     <div className="mx-auto max-w-[1700px] space-y-4 p-4">
@@ -169,7 +172,7 @@ export function Containers() {
         <StatCard
           label="最便宜"
           value={fmtMoney(stats.cheapest.cost)}
-          hint={stats.cheapest.buildableName}
+          hint={containerNameFor(stats.cheapest, lang)}
           confidence="confirmed"
           formula="min(cost)"
           accent="good"
@@ -178,7 +181,7 @@ export function Containers() {
           label="最高容量"
           value={fmt(stats.highestCap.shelfVolume, 3)}
           unit="u³"
-          hint={stats.highestCap.buildableName}
+          hint={containerNameFor(stats.highestCap, lang)}
           confidence="confirmed"
           formula="max(shelfVolume)"
           accent="good"
@@ -187,7 +190,7 @@ export function Containers() {
           label="最佳成本/容量比"
           value={fmtMoney(stats.bestCostPerVol.costPerVolume)}
           unit="/u³"
-          hint={stats.bestCostPerVol.buildableName}
+          hint={containerNameFor(stats.bestCostPerVol, lang)}
           confidence="proxy"
           formula="min(costPerVolume) where costPerVolume=cost/shelfVolume"
           accent="good"
@@ -217,6 +220,7 @@ export function Containers() {
           confidence="confirmed"
           formula="filter energyCost=0; min(cost)"
           note="早期資金緊張時首選"
+          lang={lang}
         />
         <BestOfCard
           icon={<Layers className="h-4 w-4 text-teal-500" />}
@@ -227,6 +231,7 @@ export function Containers() {
           confidence="confirmed"
           formula="max(shelfVolume) = max(L×W×H)"
           note="大件低密度品項主货架"
+          lang={lang}
         />
         <BestOfCard
           icon={<Zap className="h-4 w-4 text-amber-500" />}
@@ -237,6 +242,7 @@ export function Containers() {
           confidence="proxy"
           formula="filter energyCost=0; max(shelfVolume)"
           note="長期持有成本最低"
+          lang={lang}
         />
         <BestOfCard
           icon={<Crown className="h-4 w-4 text-fuchsia-500" />}
@@ -247,6 +253,7 @@ export function Containers() {
           confidence="proxy"
           formula="filter energyCost=0; sort by shelfVolume desc (small productVolumeLimit is fine)"
           note="USB 1TB / 電子類等高密度品項適用"
+          lang={lang}
         />
         {bestOf.trap.map((t, i) => (
           <BestOfCard
@@ -260,6 +267,7 @@ export function Containers() {
             formula="costPerVolume = cost / shelfVolume; top 3 highest"
             note="高成本、低容量的反面教材"
             accent="bad"
+            lang={lang}
           />
         ))}
       </div>
@@ -303,10 +311,21 @@ export function Containers() {
                   cursor={{ fill: 'rgba(0,0,0,0.04)' }}
                   content={({ active, payload }) => {
                     if (!active || !payload || payload.length === 0) return null
-                    const d = payload[0].payload as { name: string; costPerVolume: number; energyFree: boolean; containerID: number; cost: number; shelfVolume: number }
+                    const d = payload[0].payload as {
+                      name: string
+                      rawName: string
+                      costPerVolume: number
+                      energyFree: boolean
+                      containerID: number
+                      cost: number
+                      shelfVolume: number
+                    }
                     return (
                       <div className="rounded-md border bg-popover p-2 text-xs shadow-md">
                         <div className="font-medium">{d.name} <span className="text-muted-foreground">(ID {d.containerID})</span></div>
+                        {d.name !== d.rawName && (
+                          <div className="text-[10px] text-muted-foreground">{d.rawName}</div>
+                        )}
                         <div className="mt-1 font-mono text-[10px]">costPerVolume: {fmtMoney(d.costPerVolume)} /u³</div>
                         <div className="font-mono text-[10px]">cost: {fmtMoney(d.cost)}</div>
                         <div className="font-mono text-[10px]">shelfVolume: {fmt(d.shelfVolume, 3)} u³</div>
@@ -352,7 +371,7 @@ export function Containers() {
                 <TableRow>
                   <SortHead label="class" k="containerClass" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
                   <SortHead label="ID" k="containerID" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
-                  <SortHead label="buildableName" k="buildableName" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
+                  <SortHead label="容器名稱" k="buildableName" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
                   <SortHead label="cost" k="cost" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} numeric />
                   <TableHead className="text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">L × W × H</TableHead>
                   <SortHead label="shelfVol" k="shelfVolume" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} numeric />
@@ -373,9 +392,12 @@ export function Containers() {
                       <TableCell className="font-mono text-xs text-muted-foreground">{r.containerID}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1.5">
-                          <span className="font-medium">{r.buildableName}</span>
+                          <span className="font-medium">{containerNameFor(r, lang)}</span>
                           {isEnergyFree && <Zap className="h-3 w-3 text-emerald-500" />}
                         </div>
+                        {containerNameFor(r, lang) !== r.buildableName && (
+                          <div className="text-[10px] text-muted-foreground">{r.buildableName}</div>
+                        )}
                       </TableCell>
                       <TableCell className="text-right font-mono text-xs">{fmtMoney(r.cost)}</TableCell>
                       <TableCell className="text-right font-mono text-[10px] text-muted-foreground">
@@ -457,6 +479,7 @@ function BestOfCard({
   formula,
   note,
   accent,
+  lang,
 }: {
   icon: React.ReactNode
   title: string
@@ -467,6 +490,7 @@ function BestOfCard({
   formula: string
   note?: string
   accent?: 'good' | 'warn' | 'bad' | 'neutral'
+  lang: ReturnType<typeof useLang>
 }) {
   const accentClass =
     accent === 'good'
@@ -476,6 +500,7 @@ function BestOfCard({
         : accent === 'bad'
           ? 'border-rose-500/30'
           : ''
+  const displayName = containerNameFor(row, lang)
   return (
     <div className={`rounded-lg border bg-card p-4 shadow-sm ${accentClass}`}>
       <div className="flex items-center justify-between gap-2">
@@ -486,7 +511,10 @@ function BestOfCard({
         <ConfidenceBadge confidence={confidence} formula={formula} />
       </div>
       <div className="mt-2">
-        <div className="text-lg font-bold leading-tight">{row.buildableName}</div>
+        <div className="text-lg font-bold leading-tight">{displayName}</div>
+        {displayName !== row.buildableName && (
+          <div className="text-[10px] text-muted-foreground">{row.buildableName}</div>
+        )}
         <div className="mt-0.5 text-[10px] text-muted-foreground">
           containerID {row.containerID} · class {row.containerClass}
         </div>

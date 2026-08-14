@@ -13,6 +13,13 @@ import {
 import { useSaveStore, useRoomStore } from '@/lib/store'
 import type { RestockItem, Product } from '@/lib/types'
 import {
+  useLang,
+  productNameFor,
+  groupIdNameFor,
+  seasonIdNameFor,
+} from '@/lib/i18n'
+import type { Lang } from '@/lib/store'
+import {
   ConfidenceBadge,
   StatCard,
   SectionHeader,
@@ -86,6 +93,7 @@ function buildMarkdown(
   recs: RestockRecommendation[],
   formula: string,
   snapshotLabel: string,
+  lang: Lang,
   note?: string,
 ): string {
   const totalCost = recs.reduce((s, r) => s + r.costEstimate, 0)
@@ -103,7 +111,7 @@ function buildMarkdown(
   md += `## 採購清單 (${recs.length} 項)\n\n`
   md += `| # | Product | ID | Boxes | Units | Cost | Revenue Proxy | Reason |\n|---|---|---|---|---|---|---|---|\n`
   recs.forEach((r, i) => {
-    md += `| ${i + 1} | ${r.productName} | ${r.productId} | ${r.buyBoxes} | ${r.units} | $${r.costEstimate.toFixed(2)} | $${r.revenueProxy.toFixed(2)} | ${r.reason} |\n`
+    md += `| ${i + 1} | ${productNameFor(r.productId, lang)} | ${r.productId} | ${r.buyBoxes} | ${r.units} | $${r.costEstimate.toFixed(2)} | $${r.revenueProxy.toFixed(2)} | ${r.reason} |\n`
   })
   return md
 }
@@ -121,6 +129,7 @@ export function Restock() {
   const loadDemo = useSaveStore((s) => s.loadDemo)
   const room = useRoomStore((s) => s.room)
   const setRestockPlan = useRoomStore((s) => s.setRestockPlan)
+  const lang = useLang()
 
   const [strategy, setStrategy] = useState<RestockStrategy>('balanced')
   const [budget, setBudget] = useState(5000)
@@ -139,7 +148,7 @@ export function Restock() {
       .sort((a, b) => a.count - b.count)
       .slice(0, 10)
     // negative / invalid inventory entries from storeLayout
-    const negativeEntries: { propIndex: number; product: number; count: number; productName: string }[] = []
+    const negativeEntries: { propIndex: number; product: number; count: number }[] = []
     for (const prop of snapshot.storeLayout ?? []) {
       for (const e of prop.inventory) {
         if (e.count < 0) {
@@ -147,7 +156,6 @@ export function Restock() {
             propIndex: prop.index,
             product: e.product,
             count: e.count,
-            productName: (productById.get(e.product) as Product | undefined)?.name.en ?? `#${e.product}`,
           })
         }
       }
@@ -222,7 +230,7 @@ export function Restock() {
 
   const handleExportMd = () => {
     if (!result) return toast.warning('請先執行計算')
-    const md = buildMarkdown(strategy, budget, recs, result.formula, snapshotLabel, result.note)
+    const md = buildMarkdown(strategy, budget, recs, result.formula, snapshotLabel, lang, result.note)
     downloadBlob(`restock-plan-${strategy}-${Date.now()}.md`, md, 'text/markdown')
     toast.success('已下載 Markdown 報告')
   }
@@ -349,8 +357,8 @@ export function Restock() {
                 {detection.lowStock.map((x) => (
                   <DataRow
                     key={x.p.id}
-                    title={x.p.name.en}
-                    subtitle={`#${x.p.id} · ${x.p.name.zhHant} · ${x.p.groupName?.zhHant ?? ''}`}
+                    title={productNameFor(x.p.id, lang)}
+                    subtitle={`#${x.p.id} · ${groupIdNameFor(x.p.group ?? 0, lang)}`}
                     right={<Badge variant="outline" className="text-[10px] text-amber-600">stock {x.count}</Badge>}
                   />
                 ))}
@@ -363,7 +371,7 @@ export function Restock() {
                   <DataRow
                     key={i}
                     index={i + 1}
-                    title={x.productName}
+                    title={productNameFor(x.product, lang)}
                     subtitle={`prop#${x.propIndex} · product #${x.product}`}
                     right={<Badge variant="outline" className="text-[10px] text-rose-600">count {x.count}</Badge>}
                   />
@@ -376,7 +384,7 @@ export function Restock() {
                 {detection.neverStocked.map((x) => (
                   <DataRow
                     key={x.p.id}
-                    title={x.p.name.en}
+                    title={productNameFor(x.p.id, lang)}
                     subtitle={`#${x.p.id} · tier ${x.p.tier} · demand ${x.demand.toFixed(5)}`}
                     right={
                       <div className="flex w-24 flex-col items-end gap-0.5">
@@ -394,8 +402,8 @@ export function Restock() {
                 {detection.highDemandAbsent.map((x) => (
                   <DataRow
                     key={x.p.id}
-                    title={x.p.name.en}
-                    subtitle={`#${x.p.id} · ${x.p.name.zhHant} · tier ${x.p.tier}`}
+                    title={productNameFor(x.p.id, lang)}
+                    subtitle={`#${x.p.id} · tier ${x.p.tier}`}
                     right={
                       <div className="flex w-24 flex-col items-end gap-0.5">
                         <span className="font-mono text-[10px] text-rose-600">{x.demand.toFixed(5)}</span>
@@ -466,7 +474,7 @@ export function Restock() {
                   <SelectContent>
                     {ENC.seasons.map((s) => (
                       <SelectItem key={s.index} value={String(s.index)}>
-                        {s.name.zhHant} ({s.name.en}) · {s.productIds.length} items
+                        {seasonIdNameFor(s.index, lang)} · {s.productIds.length} items
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -579,9 +587,9 @@ export function Restock() {
                         <tr key={r.productId} className="border-b hover:bg-muted/40">
                           <td className="p-2 font-mono text-muted-foreground">{i + 1}</td>
                           <td className="p-2">
-                            <div className="font-medium">{r.productName}</div>
+                            <div className="font-medium">{productNameFor(r.productId, lang)}</div>
                             <div className="text-[10px] text-muted-foreground">
-                              #{r.productId} · {p?.name.zhHant ?? ''} · tier {p?.tier ?? '-'}
+                              #{r.productId} · tier {p?.tier ?? '-'}
                             </div>
                           </td>
                           <td className="p-2 text-right font-mono tabular-nums">{r.buyBoxes}</td>

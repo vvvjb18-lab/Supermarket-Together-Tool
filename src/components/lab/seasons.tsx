@@ -19,6 +19,12 @@ import {
 } from '@/lib/engine'
 import { useRoomStore } from '@/lib/store'
 import {
+  useLang,
+  seasonIdNameFor,
+  productNameFor,
+  groupIdNameFor,
+} from '@/lib/i18n'
+import {
   ConfidenceBadge,
   SectionHeader,
   StatCard,
@@ -30,6 +36,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Sparkles,
@@ -40,6 +47,7 @@ import {
   Star,
   TrendingUp,
   Plus,
+  BarChart3,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Product } from '@/lib/types'
@@ -73,8 +81,10 @@ const STATIC_CHECKLIST_BY_SEASON: Record<number, string[]> = {
 }
 
 export function Seasons() {
+  const lang = useLang()
   const [seasonIdx, setSeasonIdx] = useState(0)
   const [sortKey, setSortKey] = useState<'demand' | 'boxValue' | 'name' | 'group'>('demand')
+  const [view, setView] = useState<'rank' | 'scatter'>('rank')
 
   const season = ENC.seasons[seasonIdx]
   const otherSeasonIds = useMemo(() => {
@@ -96,7 +106,7 @@ export function Seasons() {
       const isExclusive = !otherSeasonIds.has(pid)
       const otherSeasons = ENC.seasons
         .filter((s, i) => i !== seasonIdx && s.productIds.includes(pid))
-        .map((s) => s.name.zhHant || s.name.en)
+        .map((s, i) => seasonIdNameFor(i, lang))
       return { p, box, demand, isPremium, isExclusive, otherSeasons, score: demand * box }
     }).filter(Boolean) as {
       p: Product
@@ -108,7 +118,7 @@ export function Seasons() {
       score: number
     }[]
     return rows
-  }, [season, otherSeasonIds, seasonIdx])
+  }, [season, otherSeasonIds, seasonIdx, lang])
 
   const sortedPool = useMemo(() => {
     const arr = [...pool]
@@ -117,19 +127,26 @@ export function Seasons() {
         case 'demand': return b.demand - a.demand
         case 'boxValue': return b.box - a.box
         case 'name':
-          return (a.p.name.zhHant || a.p.name.en).localeCompare(b.p.name.zhHant || b.p.name.en)
+          return productNameFor(a.p.id, lang).localeCompare(productNameFor(b.p.id, lang))
         case 'group': return (a.p.group ?? -1) - (b.p.group ?? -1)
         default: return 0
       }
     })
     return arr
-  }, [pool, sortKey])
+  }, [pool, sortKey, lang])
 
   // Top 10 pre-season recommendations
   const top10 = useMemo(
     () => [...pool].sort((a, b) => b.score - a.score).slice(0, 10),
     [pool],
   )
+
+  // Top 15 for the ranking bar chart (simplified view of overlap)
+  const top15Rank = useMemo(
+    () => [...pool].sort((a, b) => b.score - a.score).slice(0, 15),
+    [pool],
+  )
+  const maxRankScore = top15Rank[0]?.score ?? 1
 
   // Exclusive seasonal-only products
   const exclusive = useMemo(
@@ -148,14 +165,14 @@ export function Seasons() {
     const scatterData = pool.map((r) => ({
       x: r.demand,
       y: r.box,
-      name: r.p.name.zhHant || r.p.name.en,
+      name: productNameFor(r.p.id, lang),
       id: r.p.id,
       isPremium: r.isPremium,
       isExclusive: r.isExclusive,
       isAbove: r.demand >= medianDemand && r.box >= medianBox,
     }))
     return { above, medianDemand, medianBox, scatterData }
-  }, [pool])
+  }, [pool, lang])
 
   // All-seasons overview stats
   const overview = useMemo(() => {
@@ -168,15 +185,14 @@ export function Seasons() {
       const avgBox = boxes.length > 0 ? boxes.reduce((a, b) => a + b, 0) / boxes.length : 0
       return {
         idx: i,
-        name: s.name.zhHant || s.name.en,
-        nameEn: s.name.en,
+        name: seasonIdNameFor(i, lang),
         size: s.productIds.length,
         avgBox,
         premiumCount,
         color: SEASON_COLORS[i],
       }
     })
-  }, [])
+  }, [lang])
 
   // Room checklist
   const room = useRoomStore((s) => s.room)
@@ -186,18 +202,20 @@ export function Seasons() {
   // Filter room.checklist for season items (or show all if none)
   const seasonChecklist = useMemo(() => {
     if (!room) return null
-    const kw = [season.name.zhHant, season.name.en, '季節', 'season', '春季', '夏季', '秋季', '冬季', '萬聖']
+    const curSeasonName = seasonIdNameFor(seasonIdx, lang)
+    const kw = [curSeasonName, '季節', 'season', '春季', '夏季', '秋季', '冬季', '萬聖']
     const filtered = room.checklist.filter((c) =>
       kw.some((k) => k && c.label.toLowerCase().includes(k.toLowerCase())),
     )
     return filtered.length > 0 ? filtered : room.checklist.slice(0, 5)
-  }, [room, season])
+  }, [room, seasonIdx, lang])
 
   const staticChecklist = STATIC_CHECKLIST_BY_SEASON[seasonIdx] ?? []
 
   function addSeasonItemsToRoom() {
     if (!room) return
-    staticChecklist.forEach((label) => addChecklist(`[${season.name.zhHant}] ${label}`))
+    const curSeasonName = seasonIdNameFor(seasonIdx, lang)
+    staticChecklist.forEach((label) => addChecklist(`[${curSeasonName}] ${label}`))
   }
 
   const scatterColors = (d: any) => {
@@ -279,7 +297,7 @@ export function Seasons() {
                     className="mr-1 inline-block h-2 w-2 rounded-full"
                     style={{ backgroundColor: SEASON_COLORS[i] }}
                   />
-                  {s.name.zhHant || s.name.en}
+                  {seasonIdNameFor(i, lang)}
                   <span className="ml-1 text-[10px] text-muted-foreground">({s.productIds.length})</span>
                 </TabsTrigger>
               ))}
@@ -287,9 +305,9 @@ export function Seasons() {
           </Tabs>
           <div className="mt-2 text-xs text-muted-foreground">
             當前選擇：<span className="font-semibold" style={{ color: SEASON_COLORS[seasonIdx] }}>
-              {season.name.zhHant || season.name.en}
+              {seasonIdNameFor(seasonIdx, lang)}
             </span>{' '}
-            · {season.name.en} · {season.productIds.length} 個商品
+            · {season.productIds.length} 個商品
           </div>
         </CardContent>
       </Card>
@@ -361,10 +379,10 @@ export function Seasons() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-medium">
-                    {r.p.name.zhHant || r.p.name.en}
+                    {productNameFor(r.p.id, lang)}
                   </div>
                   <div className="text-[10px] text-muted-foreground">
-                    #{r.p.id} · {r.p.name.en}
+                    #{r.p.id} · {groupIdNameFor(r.p.group, lang)}
                   </div>
                   <div className="mt-1">
                     <MiniBar value={r.score} max={top10[0]?.score ?? 1} color="bg-amber-500" />
@@ -415,7 +433,7 @@ export function Seasons() {
                   <Star className="h-3.5 w-3.5 shrink-0 text-fuchsia-500" />
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-medium">
-                      {r.p.name.zhHant || r.p.name.en}
+                      {productNameFor(r.p.id, lang)}
                     </div>
                     <div className="text-[10px] text-muted-foreground">
                       #{r.p.id} · box {fmtMoney(r.box)}
@@ -429,95 +447,189 @@ export function Seasons() {
         </CardContent>
       </Card>
 
-      {/* Overlap scatter plot */}
+      {/* Overlap analysis — view toggle: 排行榜 / 散佈圖 */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="flex items-center justify-between text-base">
-            <span className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <CardTitle className="flex items-center gap-2 text-base">
               <TrendingUp className="h-4 w-4 text-rose-500" />
-              Overlap 散佈圖：demandProxy vs boxValue
-            </span>
+              Overlap 分析：demandProxy × boxValue
+            </CardTitle>
+            <ToggleGroup
+              type="single"
+              value={view}
+              onValueChange={(v) => v && setView(v as 'rank' | 'scatter')}
+              variant="outline"
+              size="sm"
+            >
+              <ToggleGroupItem value="rank" className="text-xs">
+                <BarChart3 className="mr-1 h-3.5 w-3.5" />排行榜
+              </ToggleGroupItem>
+              <ToggleGroupItem value="scatter" className="text-xs">
+                <TrendingUp className="mr-1 h-3.5 w-3.5" />散佈圖
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
+          <div className="mt-1">
             <ConfidenceBadge
               confidence="proxy"
-              formula="x=demandProxy, y=boxValue"
-              note="紅點=高於中位數（重點備貨），紫=限定，琥珀=premium"
+              formula="rank = demandProxy × boxValue"
+              note={view === 'rank'
+                ? '排行榜：前 15 名商品，依 score 排序；顏色 = exclusive / premium / 一般'
+                : '散佈圖：每個點是一個商品，X=需求推算、Y=單箱價值'}
             />
-          </CardTitle>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="mb-2 flex flex-wrap gap-2 text-[10px]">
-            <span className="flex items-center gap-1">
-              <span className="inline-block h-2 w-2 rounded-full bg-rose-500" /> above median (重點)
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="inline-block h-2 w-2 rounded-full bg-violet-500" /> 季節限定
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="inline-block h-2 w-2 rounded-full bg-amber-500" /> premium
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="inline-block h-2 w-2 rounded-full bg-zinc-500" /> 一般
-            </span>
-          </div>
-          <div className="h-[360px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <ScatterChart margin={{ top: 8, right: 16, bottom: 16, left: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                <XAxis
-                  type="number"
-                  dataKey="x"
-                  name="demandProxy"
-                  tick={{ fontSize: 10 }}
-                  label={{ value: 'demandProxy', position: 'insideBottom', offset: -8, fontSize: 10 }}
-                />
-                <YAxis
-                  type="number"
-                  dataKey="y"
-                  name="boxValue"
-                  tick={{ fontSize: 10 }}
-                  label={{ value: 'boxValue ($)', angle: -90, position: 'insideLeft', fontSize: 10 }}
-                />
-                <ZAxis range={[40, 40]} />
-                <RTooltip
-                  cursor={{ strokeDasharray: '3 3' }}
-                  content={({ active, payload }) => {
-                    if (!active || !payload || !payload.length) return null
-                    const d = payload[0].payload as any
-                    return (
-                      <div className="rounded-md border bg-background p-2 text-xs shadow-md">
-                        <div className="font-semibold">{d.name}</div>
-                        <div className="text-muted-foreground">#{d.id}</div>
-                        <div className="mt-1 font-mono">
-                          demand: <span className="font-bold">{fmt(d.x, 5)}</span>
+          {view === 'rank' ? (
+            <div>
+              <div className="mb-3 text-xs text-muted-foreground">
+                前 15 名商品（依 demandProxy × boxValue 排序），越長越值得備貨：
+              </div>
+              <div className="space-y-1.5">
+                {top15Rank.map((r, i) => {
+                  const pct = (r.score / maxRankScore) * 100
+                  const barColor = r.isExclusive
+                    ? 'bg-violet-500'
+                    : r.isPremium
+                      ? 'bg-amber-500'
+                      : 'bg-emerald-500'
+                  return (
+                    <button
+                      key={r.p.id}
+                      onClick={() => {/* could navigate to wiki */}}
+                      className="flex w-full items-center gap-2 rounded-md border bg-card px-2.5 py-1.5 text-left text-xs transition-colors hover:bg-accent"
+                      title={`#${r.p.id} · demand ${fmt(r.demand, 5)} · box ${fmtMoney(r.box)}`}
+                    >
+                      <span className="w-6 shrink-0 text-right font-mono text-[10px] text-muted-foreground">
+                        #{i + 1}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-medium">
+                          {productNameFor(r.p.id, lang)}
                         </div>
-                        <div className="font-mono">
-                          box: <span className="font-bold">{fmtMoney(d.y)}</span>
-                        </div>
-                        <div className="mt-1 flex flex-wrap gap-1">
-                          {d.isAbove && <Badge variant="outline" className="text-[9px] text-rose-600">above median</Badge>}
-                          {d.isExclusive && <Badge variant="outline" className="text-[9px] text-violet-600">exclusive</Badge>}
-                          {d.isPremium && <Badge variant="outline" className="text-[9px] text-amber-600">premium</Badge>}
+                        <div className="mt-1 h-2.5 w-full overflow-hidden rounded-full bg-muted">
+                          <div
+                            className={cn('h-full rounded-full', barColor)}
+                            style={{ width: `${pct}%` }}
+                          />
                         </div>
                       </div>
-                    )
-                  }}
-                />
-                <Scatter data={overlap.scatterData} fill="#8884d8">
-                  {overlap.scatterData.map((d: any, i: number) => (
-                    <Cell key={i} fill={scatterColors(d)} />
-                  ))}
-                </Scatter>
-              </ScatterChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="mt-2 rounded-md bg-muted/40 p-2 text-xs">
-            <span className="font-mono text-muted-foreground">中位數：</span>
-            demandProxy = <span className="font-mono font-bold">{fmt(overlap.medianDemand, 5)}</span>
-            ， boxValue = <span className="font-mono font-bold">{fmtMoney(overlap.medianBox)}</span>
-            <span className="ml-2 text-muted-foreground">
-              （{overlap.above.length} 個商品同時高於兩個中位數 — 重點備貨清單）
-            </span>
-          </div>
+                      <div className="shrink-0 text-right">
+                        <div className="font-mono text-[10px] text-muted-foreground">
+                          d={fmt(r.demand, 4)}
+                        </div>
+                        <div className="font-mono text-[10px] text-muted-foreground">
+                          box={fmtMoney(r.box)}
+                        </div>
+                      </div>
+                      <div className="shrink-0 flex flex-col gap-0.5">
+                        {r.isExclusive && (
+                          <Badge variant="outline" className="h-3.5 px-1 text-[9px] text-violet-600">exclusive</Badge>
+                        )}
+                        {r.isPremium && (
+                          <Badge variant="outline" className="h-3.5 px-1 text-[9px] text-amber-600">premium</Badge>
+                        )}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-3 text-[10px]">
+                <span className="flex items-center gap-1">
+                  <span className="inline-block h-2.5 w-2.5 rounded-sm bg-emerald-500" /> 一般商品
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block h-2.5 w-2.5 rounded-sm bg-amber-500" /> premium
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block h-2.5 w-2.5 rounded-sm bg-violet-500" /> 季節限定
+                </span>
+                <span className="text-muted-foreground">
+                  · 中位數 demand={fmt(overlap.medianDemand, 5)} box={fmtMoney(overlap.medianBox)}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div className="mb-2 flex flex-wrap gap-2 text-[10px]">
+                <span className="flex items-center gap-1">
+                  <span className="inline-block h-2 w-2 rounded-full bg-rose-500" /> above median (重點)
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block h-2 w-2 rounded-full bg-violet-500" /> 季節限定
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block h-2 w-2 rounded-full bg-amber-500" /> premium
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block h-2 w-2 rounded-full bg-zinc-500" /> 一般
+                </span>
+              </div>
+              <div className="mb-2 rounded-md border border-dashed bg-muted/30 px-2 py-1 text-[10px] text-muted-foreground">
+                進階：每個點是一個商品，X=需求推算、Y=單箱價值。紅點=高於中位數（重點備貨）。
+              </div>
+              <div className="h-[360px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ScatterChart margin={{ top: 8, right: 16, bottom: 16, left: 8 }}>
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                    <XAxis
+                      type="number"
+                      dataKey="x"
+                      name="demandProxy"
+                      tick={{ fontSize: 10 }}
+                      label={{ value: 'demandProxy', position: 'insideBottom', offset: -8, fontSize: 10 }}
+                    />
+                    <YAxis
+                      type="number"
+                      dataKey="y"
+                      name="boxValue"
+                      tick={{ fontSize: 10 }}
+                      label={{ value: 'boxValue ($)', angle: -90, position: 'insideLeft', fontSize: 10 }}
+                    />
+                    <ZAxis range={[40, 40]} />
+                    <RTooltip
+                      cursor={{ strokeDasharray: '3 3' }}
+                      content={({ active, payload }) => {
+                        if (!active || !payload || !payload.length) return null
+                        const d = payload[0].payload as any
+                        return (
+                          <div className="rounded-md border bg-background p-2 text-xs shadow-md">
+                            <div className="font-semibold">{d.name}</div>
+                            <div className="text-muted-foreground">#{d.id}</div>
+                            <div className="mt-1 font-mono">
+                              demand: <span className="font-bold">{fmt(d.x, 5)}</span>
+                            </div>
+                            <div className="font-mono">
+                              box: <span className="font-bold">{fmtMoney(d.y)}</span>
+                            </div>
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {d.isAbove && <Badge variant="outline" className="text-[9px] text-rose-600">above median</Badge>}
+                              {d.isExclusive && <Badge variant="outline" className="text-[9px] text-violet-600">exclusive</Badge>}
+                              {d.isPremium && <Badge variant="outline" className="text-[9px] text-amber-600">premium</Badge>}
+                            </div>
+                          </div>
+                        )
+                      }}
+                    />
+                    <Scatter data={overlap.scatterData} fill="#8884d8">
+                      {overlap.scatterData.map((d: any, i: number) => (
+                        <Cell key={i} fill={scatterColors(d)} />
+                      ))}
+                    </Scatter>
+                  </ScatterChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="mt-2 rounded-md bg-muted/40 p-2 text-xs">
+                <span className="font-mono text-muted-foreground">中位數：</span>
+                demandProxy = <span className="font-mono font-bold">{fmt(overlap.medianDemand, 5)}</span>
+                ， boxValue = <span className="font-mono font-bold">{fmtMoney(overlap.medianBox)}</span>
+                <span className="ml-2 text-muted-foreground">
+                  （{overlap.above.length} 個商品同時高於兩個中位數 — 重點備貨清單）
+                </span>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -563,7 +675,7 @@ export function Seasons() {
               )}
               <Button size="sm" variant="outline" onClick={addSeasonItemsToRoom}>
                 <Plus className="mr-1 h-3.5 w-3.5" />
-                加入「{season.name.zhHant || season.name.en}」季節項目（{staticChecklist.length}）
+                加入「{seasonIdNameFor(seasonIdx, lang)}」季節項目（{staticChecklist.length}）
               </Button>
             </div>
           ) : (
@@ -594,7 +706,7 @@ export function Seasons() {
 
       {/* Full season product pool table */}
       <SectionHeader
-        title={`完整季節商品池 — ${season.name.zhHant || season.name.en}`}
+        title={`完整季節商品池 — ${seasonIdNameFor(seasonIdx, lang)}`}
         description={`所有 ${pool.length} 個商品，可排序。欄位：name, group, basePrice, boxValue, demandProxy, isPremium, isAlsoInOtherSeasons`}
         confidence="confirmed"
         formula="NPC_Manager.productsPerSeason[]"
@@ -642,13 +754,14 @@ export function Seasons() {
                   >
                     <td className="py-2 pr-3 font-mono text-xs">{r.p.id}</td>
                     <td className="py-2 pr-3">
-                      <div className="font-medium">{r.p.name.zhHant || r.p.name.en}</div>
-                      <div className="text-[10px] text-muted-foreground">{r.p.name.en}</div>
+                      <div className="font-medium">{productNameFor(r.p.id, lang)}</div>
                     </td>
                     <td className="py-2 pr-3 font-mono text-xs">
                       {r.p.group ?? '—'}
-                      {r.p.groupName && (
-                        <div className="text-[10px] text-muted-foreground">{r.p.groupName.zhHant}</div>
+                      {r.p.group != null && (
+                        <div className="text-[10px] text-muted-foreground">
+                          {groupIdNameFor(r.p.group, lang)}
+                        </div>
                       )}
                     </td>
                     <td className="py-2 pr-3 font-mono text-xs tabular-nums">{fmtMoney(r.p.basePricePerUnit)}</td>

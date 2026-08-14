@@ -9,6 +9,11 @@ import {
   computeDemandProxy,
 } from '@/lib/engine'
 import {
+  useLang,
+  productNameFor,
+  groupIdNameFor,
+} from '@/lib/i18n'
+import {
   ConfidenceBadge,
   StatCard,
   MiniBar,
@@ -269,6 +274,7 @@ function ProductSelector({
   selectedId: number | null
   onSelect: (id: number) => void
 }) {
+  const lang = useLang()
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
 
@@ -322,8 +328,8 @@ function ProductSelector({
                     className="flex w-full items-center justify-between gap-2 border-b last:border-b-0 px-3 py-2 text-left text-sm hover:bg-accent"
                   >
                     <div className="min-w-0">
-                      <div className="truncate font-medium">{p.name.zhHant} <span className="text-muted-foreground">/ {p.name.en}</span></div>
-                      <div className="truncate text-xs text-muted-foreground">#{p.id} · {p.brand} · {p.groupName.zhHant}</div>
+                      <div className="truncate font-medium">{productNameFor(p.id, lang)}</div>
+                      <div className="truncate text-xs text-muted-foreground">#{p.id} · {p.brand} · {groupIdNameFor(p.group ?? 0, lang)}</div>
                     </div>
                     <span className="shrink-0 font-mono text-xs text-muted-foreground">${fmt(p.basePricePerUnit, 2)}</span>
                   </button>
@@ -334,7 +340,7 @@ function ProductSelector({
           {selected && (
             <Badge variant="outline" className="shrink-0 gap-1">
               <Check className="h-3 w-3 text-emerald-500" />
-              {selected.name.zhHant} #{selected.id}
+              {productNameFor(selected.id, lang)} #{selected.id}
             </Badge>
           )}
         </div>
@@ -355,6 +361,7 @@ function SelectedProductCard({
   boxValue: number
   boxValueFormula?: string
 }) {
+  const lang = useLang()
   const demand = useMemo(
     () => computeDemandProxy(product.id, ENC.necessities, ENC.customerTypes).value,
     [product.id],
@@ -364,8 +371,7 @@ function SelectedProductCard({
     <div className="space-y-2">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="truncate text-base font-semibold">{product.name.zhHant}</div>
-          <div className="truncate text-xs text-muted-foreground">{product.name.en}</div>
+          <div className="truncate text-base font-semibold">{productNameFor(product.id, lang)}</div>
         </div>
         {isPremium && (
           <Badge variant="outline" className="shrink-0 text-fuchsia-600">Premium</Badge>
@@ -375,7 +381,7 @@ function SelectedProductCard({
         <Field label="ID" value={`#${product.id}`} mono />
         <Field label="Brand" value={product.brand} />
         <Field label="Tier" value={product.tierName} />
-        <Field label="Group" value={product.groupName.zhHant} />
+        <Field label="Group" value={groupIdNameFor(product.group ?? 0, lang)} />
         <Field label="Category" value={product.category.zhHant} />
         <Field label="Max / Box" value={String(product.maxItemsPerBox)} mono />
       </div>
@@ -441,6 +447,7 @@ function PlayerPriceEditor({
   onApply: (productId: number, price: number) => void
   onLoadDemo: () => void
 }) {
+  const lang = useLang()
   const [draft, setDraft] = useState<string>(String(playerPrice))
 
   if (!product) return null
@@ -466,7 +473,7 @@ function PlayerPriceEditor({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <div className="flex-1">
             <label className="mb-1 block text-xs font-medium text-muted-foreground">
-              {product.name.zhHant} #{product.id} — 單價
+              {productNameFor(product.id, lang)} #{product.id} — 單價
             </label>
             <Input
               type="number"
@@ -556,6 +563,7 @@ function RoomVotePanel({
   selfId: string
   onProposeExperiment: (e: PriceExperiment) => void
 }) {
+  const lang = useLang()
   // votes: memberId -> 'approve' | 'reject' | null (local-only tally)
   const [votes, setVotes] = useState<Record<string, 'approve' | 'reject'>>({})
 
@@ -579,7 +587,7 @@ function RoomVotePanel({
         <div className="rounded-md border bg-muted/30 p-3 text-sm">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <span className="font-semibold">{product.name.zhHant}</span>{' '}
+              <span className="font-semibold">{productNameFor(product.id, lang)}</span>{' '}
               <span className="text-muted-foreground">#{product.id}</span>
             </div>
             <div className="flex items-center gap-3 font-mono text-xs">
@@ -669,6 +677,7 @@ function BulkPricingView({
   hasSnapshot: boolean
   onApplyBalanced: (productId: number, balanced: number) => void
 }) {
+  const lang = useLang()
   const rows = useMemo(() => {
     return ENC.products
       .map((p) => {
@@ -713,7 +722,7 @@ function BulkPricingView({
                 <TableRow key={r.p.id}>
                   <TableCell>
                     <div className="flex flex-col">
-                      <span className="truncate font-medium">{r.p.name.zhHant}</span>
+                      <span className="truncate font-medium">{productNameFor(r.p.id, lang)}</span>
                       <span className="text-xs text-muted-foreground">#{r.p.id} · {r.p.brand}</span>
                     </div>
                   </TableCell>
@@ -767,6 +776,7 @@ function ExperimentTracker({
   oldPrice: number
   onUpsert: (e: PriceExperiment) => void
 }) {
+  const lang = useLang()
   // Local-only experiments (used when no room).
   const [localExps, setLocalExps] = useState<PriceExperiment[]>([])
   const experiments = roomPricePlan ?? localExps
@@ -852,7 +862,7 @@ function ExperimentTracker({
                     <TableRow key={e.id}>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="truncate font-medium">{p?.name.zhHant ?? `#${e.productId}`}</span>
+                          <span className="truncate font-medium">{p ? productNameFor(p.id, lang) : `#${e.productId}`}</span>
                           <span className="text-xs text-muted-foreground">#{e.productId}</span>
                         </div>
                       </TableCell>

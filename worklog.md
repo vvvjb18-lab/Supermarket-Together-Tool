@@ -235,3 +235,176 @@ Stage Summary:
 - 真實存檔資料現在貫穿 Dashboard（存檔概覽）+ Employees（花名冊）+ Upload（檔案選擇）+ Layout + Pricing 等頁面。
 - room-service 已用 setsid 啟動（port 3003 listening），BroadcastChannel fallback 仍可用。
 - 已截圖：`download/upload-after-fix.png`、`download/dashboard-save-overview.png`、`download/employees-roster.png`。
+
+---
+Task ID: 8-foundation
+Agent: orchestrator (main)
+Task: 語言選擇 + 遊戲內中文名稱 — 基礎層
+
+Work Log:
+- 使用者反映：用中文玩遊戲但網站全是英文名稱，對不上；希望做好語言選擇，所有遊戲資料用遊戲內名稱（即便翻譯有誤）；熱力圖/散佈圖太細太複雜，希望更直觀，可把一個表拆成多個簡單圖表。
+- 在 UI store 新增 `lang: 'zhHant' | 'en' | 'both'`（預設 zhHant）+ `setLang` action，持久化於 localStorage (stl-ui)。
+- 新建 `src/lib/i18n.ts`（~280 行）：
+  - `loc(name, lang)` / `locShort(name, lang)`：核心 LocalizedName 解析器，支援「中文 / English」雙語格式。
+  - 14 個實體專用 resolver（純函式，接 lang）：productNameFor / productNameOnly / groupNameFor / groupIdNameFor / tierNameFor / tierIdNameFor / buildableNameFor / buildableIdNameFor / skillNameFor / skillDescFor / necessityNameFor / necessityIdNameFor / seasonNameFor / seasonIdNameFor / employeeTaskNameFor / employeeTaskIdNameFor / manufacturingNameFor / manufacturingIdNameFor。
+  - 容器名稱：containerNameFor / containerIdNameFor — 透過 buildableName 反查 Buildable.zhHant（容器本身只有英文 buildableName）。
+  - 客戶類型標籤：customerTypeLabel(ct, lang) — 從 11 權重陣列生成「基本食品×1、個人衛生×0.25、藥品×0.15」格式（中/英雙語）。
+  - 成就中文名稱：ACH_ZH map（51 項手動翻譯：Millionaire→百萬富翁、Restocker A→補貨員 A 等），achievementNameFor(a, lang)。
+  - React hooks：useLang() / useProductName(id) / useProductNameOnly(id) / useT() — 訂閱 store，切換語言時自動重渲染。
+  - UI 字串表：t(key, lang) — confidence 標籤、通用 chrome 字串中文化。
+  - LANG_LABELS / LANG_FULL_LABELS：語言切換器顯示用。
+- 更新 `src/components/shared/primitives.tsx` ConfidenceBadge：改用 useLang() + t() 動態顯示「已確認/推算值/未驗證/漏洞候選/範本/需上傳存檔/需實機驗證」。
+- 新建 `src/components/shared/language-switcher.tsx`：DropdownMenu 語言切換器（繁中 / English / 雙語），含勾選標記與說明文字。
+- TopBar 加入 LanguageSwitcher（在 theme toggle 旁）。
+- `bun run lint` 0 errors。
+
+Stage Summary:
+- 基礎層完成：UI store lang 欄位 + i18n.ts 全套 resolver + LanguageSwitcher + localized ConfidenceBadge。
+- 所有頁面元件現在可改用 `useLang()` + `productNameFor(id, lang)` 等取代舊的 `productName(id)`（只回傳英文）。
+- 下一步：3 個子代理並行重構 18 個頁面 + 簡化 Simulator 熱力圖 / Profit 散佈圖 / Seasons 散佈圖。
+
+---
+Task ID: 8-c
+Agent: full-stack-developer
+Task: 重構 9 個頁面元件改用 i18n 在地化名稱（skills/employees/manufacturing/achievements/raw-data/dashboard/upload/room/exploits）
+
+Work Log:
+- 讀 worklog.md 了解 8-foundation 已建好 i18n 基礎層（`useLang()` + 14 個 entity resolver + ACH_ZH 翻譯表 + UI 字串表）。
+- 9 個檔案逐一檢視，將所有 `entity.name.zhHant` / `.name.en` / `topSummary` / `buildableName` / `productZhName(id)` 等硬編碼英文名稱改為 `entityXxxFor(id, lang)` / `useLang()` 模式。
+- skills.tsx：BarChart data 加 `label` 欄位（避免在 dataKey 內呼叫函式）；SkillCard 加 `lang` prop；consensus 橫幅、tooltip、44 張卡片的 name+description 全部改用 `skillNameFor` / `skillDescFor`。
+- employees.tsx：Hired Employees Roster 卡片的 task badge 改用 `employeeTaskIdNameFor(taskId, lang)`；role assignment 7-role grid 的 task 標籤同樣改用 resolver；employeeConfig.skills 來自 JSON 字串保留 zhHant role label（玩家設定參考用）。
+- manufacturing.tsx：移除 `productZhName` import；30-product 表、density leaderboard、production queue、required input products grid 全部改用 `manufacturingIdNameFor` + `productNameFor`；BarChart data 加 `label` 欄位；DensityRow 加 `lang` prop。
+- achievements.tsx：51-achievement table、Top-10 cards、guide notes、search filter 全部改用 `achievementNameFor(a, lang)`；搜尋同時比對 `a.name`（英文 Steam 名）+ `achievementNameFor(a, 'zhHant')`（中文）+ `steamId`；sort by name 也用 localized 字串 localeCompare；TopCard 加 `lang` prop。
+- raw-data.tsx：新增 `localizeCell(tab, column, raw, lang, rowIndex)` helper 處理 14 個分頁的名稱欄位：generic LocalizedName 物件統一處理 + 各 tab 特殊欄位（products.tier/group 顯示「id · 中文名」、customerTypes.topSummary 改用 customerTypeLabel、containers.buildableName 改用 containerIdNameFor、achievements.name 改用 achievementNameFor、manufacturingProducts.linkedProductID 顯示「id · 產品名」、storeLayout.buildableId 顯示「id · buildable 名」）；StoreLayout 摘要 byProduct 改用 `productNameFor`；TSV 匯出改用 localizeCell 產生在地化表格。
+- dashboard.tsx：4 個 Top-10 列表（urgentRestocks/wastedSlots/opportunities/missedSales）的 DataRow title 改用 `productNameFor(p.id, lang)`；useMemo deps 加 lang；移除未使用的 `Product` type import。
+- upload.tsx：員工快覽表的 Task 欄改顯示「id · employeeTaskIdNameFor」；店面道具快覽表的 buildableId 欄改顯示「id · buildableIdNameFor」。
+- room.tsx：技能投票 Tab 的 12 個 skill 卡片名稱改用 `skillNameFor(s, lang)`；Task labels、checklist items 維持玩家自輸入文字（非遊戲實體名稱）。
+- exploits.tsx：FeaturedCard 與 CandidateCard 的 product chips 改顯示「#id · productNameFor」；移除原本的 font-mono class 改用一般 text 以容納中文名稱。
+- 修正 `Lang` type import 來源：`Lang` 定義在 `@/lib/store` 而非 `@/lib/i18n`（i18n.ts 內部 import 但未 re-export）；4 個檔案（skills/employees/manufacturing/raw-data）改用 `import { ..., type Lang } from '@/lib/store'`。
+- 移除 employees.tsx 未使用的 `type Lang` import（lang 變數從 useLang() 推導型別，不需顯式標註）。
+- 移除 dashboard.tsx 未使用的 `Product` type import。
+- 移除 raw-data.tsx 未使用的 `productById`、`Product` type 與多餘 i18n helper imports（productNameOnly/necessityIdNameFor/seasonIdNameFor/skillNameFor/employeeTaskIdNameFor/manufacturingIdNameFor）。
+- `bun run lint` → 0 errors。`bunx tsc --noEmit` → 9 個檔案全部 0 errors（剩餘錯誤皆在其他 agent 的檔案：profit.tsx Lang import、store-layout.tsx productZhName 未匯入，以及 skills/ 外部腳本）。
+
+Stage Summary:
+- 修改檔案：9 個頁面元件（skills.tsx, employees.tsx, manufacturing.tsx, achievements.tsx, raw-data.tsx, dashboard.tsx, upload.tsx, room.tsx, exploits.tsx）全部改用 `useLang()` + `entityXxxFor(id, lang)` 模式。
+- 所有遊戲實體名稱現在會根據 UI store 的 lang 設定（zhHant / en / both）動態顯示。切換語言時所有頁面即時重渲染。
+- 'both' 模式下：技能/產品/製造品/容器/員工任務用 `locShort` 格式（「中文（English）」），成就用 `loc` 格式（「中文 / English」），客戶類型用「、」分隔的多必要品權重。
+- 保留：所有玩家自訂名稱（員工姓名、房間名稱、chat、checklist label、task label）、UI chrome 中文標題、confidence badge 標籤（已在 8-foundation 中文化）、guide notes 中文說明、ES3 欄位對照表中文說明。
+- 匯出功能：TSV 匯出使用 localizeCell 產生在地化表格（與畫面顯示一致）；JSON/Markdown 匯出保留原始資料結構。
+- 已知遺留（非本任務範圍）：profit.tsx 與 store-layout.tsx 有 `Lang`/`productZhName` 型別錯誤，屬 8-a/8-b 子代理的檔案，需由各自 agent 修復。
+
+---
+Task ID: 8-a
+Agent: full-stack-developer
+Task: 重構 5 個 lab 頁面（wiki / profit / pricing / salt / restock）改用 i18n 層的本地化名稱；同時簡化 Profit Lab 的散佈圖（使用者反映太複雜）為「排行榜橫條圖 / 散佈圖」雙檢視。
+
+Work Log:
+- 讀取 worklog.md 確認 Task 8-foundation 已建立 i18n 層（`src/lib/i18n.ts`，含 `useLang` hook + 14 個純函式 resolver + `Lang` type 在 `@/lib/store`）。
+- 5 個檔案全部加入 `const lang = useLang()` 在元件頂端，並把 `lang` 加入需要計算名稱字串的 `useMemo` deps（profit scatterData/notableLabels、restock buildMarkdown）。
+- **wiki.tsx**：
+  - 表格名稱欄：`r.p.name.en` + `r.p.name.zhHant` 雙行 → 單行 `productNameFor(r.p.id, lang)`（both 模式自動帶「中文（English）」）。
+  - 表格群組欄：`r.p.groupName.zhHant` → `groupIdNameFor(r.p.group ?? 0, lang)`。
+  - 篩選下拉：群組 `g.name.zhHant` → `groupIdNameFor(g.id, lang)`；季節 `s.name.zhHant` → `seasonIdNameFor(s.index, lang)`；需求池 `n.name.zhHant` → `necessityIdNameFor(n.index, lang)`。
+  - Sheet 詳情：`SheetTitle {p.name.en}` → `productNameFor(p.id, lang)`；`SheetDescription {p.name.zhHant}/{p.name.zhHans}` → 簡化為 `#{id} · brand · Tier`（名稱已在 title）。
+  - 詳情 區段：群組列 `p.groupName.zhHant` → `groupIdNameFor`；需求池 badge `ENC.necessities[ni].name.zhHant` → `necessityIdNameFor(ni, lang)`；季節 badge `ENC.seasons[si].name.zhHant` → `seasonIdNameFor(si, lang)`；製造品 `mfg.name.zhHant` → `manufacturingIdNameFor(mfg.id, lang)`。
+  - 保留 "名稱 (en/zhHant/zhHans)" 三個原始語言 DetailRow（標籤已標明語言，顯示原始值合理）。
+- **profit.tsx**：
+  - 移除 Row interface 的 `groupName` 欄位（改在 render 用 `groupIdNameFor` 即時解析，避免 useMemo deps 卡住 lang 切換）。
+  - **新增檢視切換 Tabs**：「排行榜」（預設）+「散佈圖（進階）」。
+  - **排行榜 tab**：新增 `MetricBarCard` 元件，4 個卡片各顯示 Top-10 商品的 CSS 橫條（rank + name + bar + value），bar 顏色 = group 顏色、可點擊跳到 wiki。4 個指標：單箱價值 / 價值密度 / 需求 / 加權。
+  - **散佈圖 tab**：保留原 ScatterChart（X=demandProxy、Y=valueDensity log、泡泡=boxValue），上方加 amber 提示框：「進階：每個點是一個商品，X=需求推算、Y=價值密度（對數）、泡泡大小=單箱價值」。
+  - scatterData useMemo 加入 `lang` dep，series.name 改 `groupIdNameFor`，data 點的 name/zhName 改 `productNameFor`/`productNameOnly`。tooltip 簡化為只顯示 `#{id} {name}`（不再重複 zhName 括號）。
+  - notableLabels useMemo 加入 `lang` dep，name 改 `productNameFor`。
+  - LeaderboardTable 內部 `useLang()`，name 改 `productNameFor`、subtitle 改 `productNameOnly · Tier`、group 改 `groupIdNameFor`。
+- **pricing.tsx**：6 個子元件（ProductSelector / SelectedProductCard / PlayerPriceEditor / RoomVotePanel / BulkPricingView / ExperimentTracker）各自 `useLang()`；搜尋下拉項、選擇 badge、selected card 名稱+群組、player price editor 標籤、room vote panel 標題、bulk pricing 表格、experiment tracker 表格全部改用 `productNameFor` + `groupIdNameFor`。搜尋 filter 保留比對 `p.name.en`+`p.name.zhHant`（兩語都比對）。修正一處 React hooks 順序：PlayerPriceEditor 的 `useLang()` 移到 early return 之前。
+- **salt.tsx**：`Salt` 元件 + `RunResultView` 子元件各自 `useLang()`。SimRun interface 的 `top5`/`topMissing` 移除 `name` 欄位（改為 render 時用 `productNameFor` 解析，避免 stored state 在 lang 切換後不更新）。比較表 `c.product.name.en` + `c.product.name.zhHant` → 單行 `productNameFor(c.product.id, lang)` + `Tier {tier}`。Salt 機制說明卡片新增「Salt 商品名稱 / tier / brand」RawCard 顯示 `productNameFor(probe.saltProduct.id, lang)` + tier/brand hint。移除未使用的 `computeDemandProxy` import（pre-existing dead import）。
+- **restock.tsx**：`Restock` 元件 `useLang()`；`buildMarkdown` 函式新增 `lang: Lang` 參數，採購清單 markdown 表改用 `productNameFor(r.productId, lang)`。偵測面板 `negativeEntries` 移除 `productName` 欄位（render 時用 `productNameFor(x.product, lang)`）。四個 DetectionList 的 `title` 全部改 `productNameFor`；low stock subtitle 用 `groupIdNameFor`；移除多餘的 zhHant 副標。季節 Select 下拉 `s.name.zhHant (s.name.en)` → `seasonIdNameFor(s.index, lang)`。採購清單表格主名稱改 `productNameFor(r.productId, lang)`、副標簡化為 `#{id} · tier`。
+- **型別修正**：`Lang` type 不在 `@/lib/i18n` re-export（只在 `@/lib/store`），profit.tsx 與 restock.tsx 改為 `import type { Lang } from '@/lib/store'`。
+- `bun run lint` → 0 errors。`bunx tsc --noEmit` → 我的 5 個檔案 0 errors（只剩 skills/ 資料夾 2 個 pre-existing 無關錯誤）。
+
+Stage Summary:
+- 5 個 lab 頁面全部完成 i18n 重構：使用者切換語言（繁中 / English / 雙語）時，所有商品名稱、群組名稱、季節名稱、需求池名稱、製造品名稱會即時跟著切換。
+- Profit Lab 散佈圖簡化完成：預設顯示 4 張 Top-10 橫條圖（單箱價值/價值密度/需求/加權），用 CSS bar + group 顏色 + 可點擊；散佈圖退到第二個 tab 並加上中文進階說明。
+- 所有既有功能保留：room sync / confidence badges / 匯出 markdown+JSON / 模擬模式 / 偵測面板 / 實驗追蹤器全部正常運作，只改變「名稱如何顯示」。
+- 修改檔案：`src/components/lab/wiki.tsx`、`profit.tsx`、`pricing.tsx`、`salt.tsx`、`restock.tsx`（5 個，全部在 owned 範圍內）。
+- `bun run lint` 0 errors；`bunx tsc --noEmit` 0 errors（owned files）。
+
+---
+Task ID: 8-b
+Agent: full-stack-developer
+Task: 重構 4 個 lab 頁面（simulator / seasons / containers / store-layout）— 全面 i18n 化 + 簡化複雜圖表（11×58 熱力圖、散佈圖）
+
+Work Log:
+- 讀取 worklog.md（特別是 Task 8-foundation 的 i18n 層）+ i18n.ts + 4 個目標檔案現況 + types/engine/data-loader 確認資料形狀（CustomerType.necessitiesChances[11]、Season.productIds、Container.buildableName、LayoutProp.inventory）。
+- **simulator.tsx**（707 → 870 行）— 完整重寫：
+  - 移除舊的 11×58 necessity×customer CSS-grid 熱力圖（使用者抱怨太密集）。
+  - 改為 3 個 shadcn Tabs：「顧客最愛」/「需求熱門」/「模擬器」。
+  - Tab A「顧客最愛」：左欄 58 張顧客卡（每張顯示 customerTypeLabel + #編號 + comp[] + premium 徽章），右欄顯示選中顧客的 top necessities — 用 CSS horizontal bar（emerald，width=weight/max），每條附「佔此顧客需求 X%」的佔比標籤。
+  - Tab B「需求熱門」：左欄 11 個 necessity 卡（顯示 necessityIdNameFor + 顧客數 + 總權重），右欄顯示需要該類別的顧客排行（按 weight desc）— 點擊任一顧客跳到 Tab A 顯示該顧客詳情。
+  - Tab C「模擬器」：保留原本 Monte Carlo 控制台（N slider、raw/unique switch、equal/custom spawn、all/from-save/none stocked）+ OutputPanel（4 StatCards + Top-20 hits/missed + 漏單 by group + 過度備貨）。
+  - 所有名稱改用 i18n：productNameFor(pid, lang)、groupIdNameFor(group, lang)、necessityIdNameFor(idx, lang)、customerTypeLabel(c, lang)。OutputPanel 內 useLang() 訂閱切換。
+  - 頂部加入中文 helper：「選擇一位顧客類型查看他最需要的商品類別，或選擇一個商品類別查看哪些顧客需要它。」
+  - 移除 productHitsRows / missedRows / missedByGroup 中的 zhName 雙欄位，統一用單一 name 欄（productNameFor）。
+- **seasons.tsx**（699 → 812 行）— 重寫：
+  - 加入 view toggle（ToggleGroup）：「排行榜」（預設）/「散佈圖」（進階）。
+  - 排行榜 mode：top-15 商品 horizontal bars，依 demandProxy × boxValue 排序，bar 顏色 = exclusive（紫）/ premium（琥珀）/ 一般（emerald），每條附 demand+box 數字 + exclusive/premium 徽章。比原本散佈圖直觀得多。
+  - 散佈圖 mode：保留原本 ScatterChart，加入中文 note：「進階：每個點是一個商品，X=需求推算、Y=單箱價值。」
+  - 所有 s.name.zhHant || s.name.en → seasonIdNameFor(idx, lang)；r.p.name.zhHant || r.p.name.en → productNameFor(r.p.id, lang)；p.groupName.zhHant → groupIdNameFor(p.group, lang)；otherSeasons 用 seasonIdNameFor。
+  - pool / sortedPool / overlap / overview / seasonChecklist 等 useMemo 全部加上 lang 到依賴陣列。
+- **containers.tsx**（517 → 545 行）— 完整重寫：
+  - 加入 const lang = useLang()。
+  - 所有 r.buildableName 顯示 → containerNameFor(r, lang)：5 張 summary cards 的 hint、5 張 BestOf cards 的標題、chart 的 X 軸 name、chart tooltip、比較表的容器名稱欄。
+  - 比較表多加一行小字顯示 raw buildableName（英文）方便對照（只在兩者不同時顯示）。
+  - chart tooltip 同時顯示 localized name + rawName（若不同）+ containerID + cost/shelfVolume/energy。
+  - BestOfCard 加入 lang prop（型別 ReturnType<typeof useLang>），formula/note/confidence 全部保留。
+  - 排序邏輯保留 sort by raw buildableName 維持穩定排序。
+- **store-layout.tsx**（947 → 1026 行）— 多處 Edit：
+  - 移除 productZhName import，加入 useLang + productNameFor + groupIdNameFor + buildableIdNameFor（from @/lib/i18n）。
+  - 移除 buildableById/_buildableById/Buildable import（不再需要，所有名稱查詢改走 buildableIdNameFor）。
+  - 加入 const lang = useLang()。
+  - aggregates.topGroups：p.groupName.zhHant → groupIdNameFor(p.group, lang)（lang 加入 useMemo deps）。
+  - swapRecs：productZhName(pid) → productNameFor(pid, lang)（lang 加入 deps）。
+  - SVG legend：b?.name.zhHant → buildableIdNameFor(id, lang)。
+  - PropDetailCard：加入 lang prop；buildable?.name.zhHant → buildableIdNameFor(prop.buildableId, lang)；inventory 清單的 productZhName(inv.product) → productNameFor(inv.product, lang)。
+  - 效率排行榜表格的 Buildable 欄：buildable?.name.zhHant → buildableIdNameFor(prop.buildableId, lang)。
+  - **新增「Top 5 問題貨架（快速掃描）」卡片**：topProblematic useMemo 依 (negativeAnomalies×10) + (empty?5:0) + emptySlots + (duplicated×2) + lowDemand 計算問題分數排序，取前 5 名。每列顯示：#排名、貨架 #+buildable 名稱、問題清單（負庫存/空貨架/空格/重複/低需求）→ 建議（檢查存檔/補貨/集中/替換）。點擊可直接跳到該貨架詳情。
+  - AlertCircle + ArrowRight 加入 lucide import。
+- 驗證：`bun run lint` 0 errors（exit 0）；`bunx tsc --noEmit` 對 4 個 owned 檔案 0 errors（pre-existing skills/ 與其他 agent 的 profit/restock 與本次無關）。
+
+Stage Summary:
+- 4 個檔案完成 i18n 化 + 圖表簡化：
+  - simulator.tsx：11×58 熱力圖 → 3-tab（顧客最愛 horizontal bars / 需求熱門 ranked bars / 模擬器）— 大幅提升可讀性。
+  - seasons.tsx：散佈圖預設 → 排行榜 horizontal bars（保留散佈圖為進階模式）。
+  - containers.tsx：所有 buildableName → containerNameFor 中文化（42 個容器名稱現在顯示遊戲內中文名）。
+  - store-layout.tsx：所有商品/貨架名稱中文化 + 新增 Top 5 問題貨架快速掃描卡（點擊跳轉）。
+- 所有 `useMemo` 計算名稱的 deps 都加上 lang，切換語言時自動重渲染。
+- 未修改任何 4 個 owned 檔案以外的檔案。無測試碼。Dev server 在 :3000（system-managed）。
+- Agent-ctx 記錄：/home/z/my-project/agent-ctx/8-b-full-stack-developer.md
+
+---
+Task ID: 8-integration
+Agent: orchestrator (main)
+Task: 語言選擇 + 中文名稱 + 圖表簡化 — 整合驗證
+
+Work Log:
+- 3 個子代理並行完成 18 個頁面的 i18n 重構 + 圖表簡化：
+  - Task 8-a: Wiki / Profit / Pricing / Salt / Restock — Profit 散佈圖改為「排行榜（預設）+ 散佈圖（進階）」雙 tab，排行榜用 Top-10 水平條形圖。
+  - Task 8-b: Simulator / Seasons / Containers / Layout — Simulator 11×58 熱力圖完全移除，改為 3 tab（顧客最愛 / 需求熱門 / 模擬器）；Seasons 散佈圖改為「排行榜（預設）+ 散佈圖（進階）」。
+  - Task 8-c: Skills / Employees / Manufacturing / Achievements / RawData / Dashboard / Upload / Room / Exploits — 全部改用 localized 名稱。
+- 整合 lint：`bun run lint` 0 errors（全專案）。
+- 整合 tsc：`bunx tsc --noEmit` src/ 0 errors（僅 skills/ 外部目錄有 pre-existing 無關錯誤）。
+- agent-browser 端對端驗證（在同一 bash session 啟動 dev server + keepalive 避免被 sandbox reap）：
+  1. **語言切換器**：TopBar 右側出現「繁中」按鈕 → 點擊展開下拉（繁體中文 / English / 雙語顯示）→ 選 English → Salt 頁商品名從「可樂包 Tier 8」變「Cola Pack Tier 8」、ConfidenceBadge 從「已確認」變「CONFIRMED」→ 選回繁體中文 → 名稱恢復「可樂包」「切片麵包」。✓
+  2. **Wiki 頁**：表格顯示「通心粉 / Panzati / 基本產品s / $1.35 / 30 / $40.5」— 商品中文名、群組中文名全部正確。✓
+  3. **Profit Lab**：預設顯示「排行榜」tab（選中），內含「單箱價值 Top 10」水平條形圖；「散佈圖（進階）」為第二 tab（預設隱藏）。✓ 使用者抱怨的複雜散佈圖已改為直觀排行榜。
+  4. **顧客模擬器**：11×58 熱力圖完全消失，改為 3 tab：「顧客最愛」（預設選中）/「需求熱門」/「模擬器」。✓ 使用者抱怨的密集熱力圖已拆成簡單的單一視圖。
+- dev server + keepalive 以 setsid 啟動（跨 bash session 存活），port 3000。
+
+Stage Summary:
+- 使用者 3 項需求全部完成：
+  1. **語言選擇**：TopBar 語言切換器（繁中/EN/雙語），持久化於 localStorage，所有頁面即時切換。
+  2. **遊戲內中文名稱**：339 商品、44 技能、42 容器、51 成就、58 客戶類型、19 群組、11 必需品、4 季節、8 員工任務、30 製造品 — 全部用遊戲內中文名稱（products/skills/buildables 用資料庫的 zhHant；containers 透過 buildableName 反查；customerTypes 從權重陣列生成中文標籤；achievements 手動翻譯 51 項）。
+  3. **圖表簡化**：Simulator 熱力圖 → 3 tab 簡單視圖；Profit/Seasons 散佈圖 → 排行榜條形圖（預設）+ 散佈圖（進階，摺疊）。一句話原則：把一個複雜圖表拆成多個簡單圖表。
+- ConfidenceBadge 也中文化：已確認 / 推算值 / 未驗證 / 漏洞候選 / 範本 / 需上傳存檔 / 需實機驗證。
+- `bun run lint` 0 errors、src/ tsc 0 errors、agent-browser 4 頁 QA 全綠。
