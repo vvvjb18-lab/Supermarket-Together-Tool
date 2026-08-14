@@ -1,0 +1,947 @@
+'use client'
+
+import { useMemo, useState } from 'react'
+import { useSaveStore, useRoomStore } from '@/lib/store'
+import { encyclopedia as ENC, buildableById as _buildableById, productZhName } from '@/lib/data-loader'
+import { computeShelfEfficiency, computeDemandProxy } from '@/lib/engine'
+import type { PropEfficiency } from '@/lib/engine'
+import {
+  ConfidenceBadge,
+  StatCard,
+  SectionHeader,
+  MiniBar,
+  fmt,
+  fmtMoney,
+} from '@/components/shared/primitives'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from '@/components/ui/toggle-group'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  MapIcon,
+  ArrowUpDown,
+  Lightbulb,
+  Boxes,
+  X,
+  Layers,
+} from 'lucide-react'
+import type { LayoutProp, Buildable } from '@/lib/types'
+
+// Cast the imported map to its proper typed form (see pricing.tsx for rationale).
+const buildableById = _buildableById as unknown as Map<number, Buildable>
+
+// ============================================================
+// Store Layout Analyzer
+// ------------------------------------------------------------
+// Top-down SVG map of all store props (save data if available,
+// else encyclopedia demo layout of 41 props). Each prop is
+// positioned by posX/posZ, rotated by angle, colored by
+// buildableId. Multiple highlight modes surface empty / low /
+// high-value / duplicated / anomaly shelves.
+// ============================================================
+
+type HighlightMode =
+  | 'none'
+  | 'empty'
+  | 'low'
+  | 'high-value'
+  | 'low-value'
+  | 'duplicated'
+  | 'missing-demand'
+  | 'negative'
+
+const BUILDABLE_PALETTE: Record<number, string> = {
+  0: '#94a3b8', // slate-400 — Placement Mode (default shelf)
+  1: '#10b981', // emerald-500 — Product Shelf
+  2: '#0ea5e9', // sky-500 — Basic Fridge
+  3: '#6366f1', // indigo-500 — Double Fridge
+}
+const FALLBACK_COLOR = '#a1a1aa'
+
+type SortKey = 'efficiency' | 'shelfValue' | 'totalUnits' | 'demandCoverage' | 'emptySlots' | 'distinctProducts'
+
+const HIGHLIGHT_LABELS: { value: HighlightMode; label: string; color: string }[] = [
+  { value: 'none', label: '無', color: '#a1a1aa' },
+  { value: 'empty', label: '空貨架', color: '#f43f5e' },
+  { value: 'low', label: '低庫存', color: '#f59e0b' },
+  { value: 'high-value', label: '高價值', color: '#10b981' },
+  { value: 'low-value', label: '低價值', color: '#71717a' },
+  { value: 'duplicated', label: '重複商品', color: '#a855f7' },
+  { value: 'missing-demand', label: '缺高需求', color: '#fb923c' },
+  { value: 'negative', label: '負庫存', color: '#e11d48' },
+]
+
+export function StoreLayout() {
+  const snapshot = useSaveStore((s) => s.snapshot)
+  const room = useRoomStore((s) => s.room)
+  const assignShelf = useRoomStore((s) => s.assignShelf)
+
+  const layout: LayoutProp[] = useMemo(
+    () => snapshot?.storeLayout ?? ENC.storeLayout,
+    [snapshot],
+  )
+
+  const effResult = useMemo(() => computeShelfEfficiency(layout), [layout])
+  const efficiencies = effResult.value
+
+  // Precompute product demand for "missing-demand" highlight.
+  const demandCache = useMemo(() => {
+    const m = new Map<number, number>()
+    for (const p of ENC.products) {
+      m.set(p.id, computeDemandProxy(p.id, ENC.necessities, ENC.customerTypes).value)
+    }
+    return m
+  }, [])
+
+  const ighlight, setHighlight] = useState<HighlightMode>('none')
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null)
+  const [sortKey, setSortKey] = useState<SortKey>('efficiency')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
+  const [assignPlayerId, setAssignPlayerId] = useState<string>('')
+
+  // Map bounds (with padding) for the SVG viewBox.
+  const bounds = useMemo(() => {
+    if (layout.length === 0) return { minX: 0, minY: 0, w: 10, h: 10 }
+    const xs = layout.map((p) => p.posX)
+    const zs = layout.map((p) => p.posZ)
+    const minX = Math.min(...xs) - 1
+    const maxX = Math.max(...xs) + 1
+    const minZ = Math.min(...zs) - 1
+    const maxZ = Math.max(...zs) + 1
+    return { minX, minZ, w: maxX - minX, h: maxZ - minZ }
+  }, [layout])
+
+  // Highlight thresholds.
+  const thresholds = useMemo(() => {
+    if (efficiencies.length === 0) {
+      return { valueTop: 0, valueBottom: 0 }
+    }
+    const sorted = [...efficiencies].sort((a, b) => a.shelfValue - b.shelfValue)
+    const q = Math.max(1, Math.floor(efficiencies.length / 4))
+    return {
+      valueTop: sorted[sorted.length - q].shelfValue,
+      valueBottom: sorted[q - 1].shelfValue,
+    }
+  }, [efficiencies])
+
+  const getHighlight = (eff: PropEfficiency): { stroke: string; width: number; blink?: boolean } | null => {
+    if (highlight === 'none') return null
+    switch (highlight) {
+      case 'empty':
+        return eff.emptySlots > 0 ? { stroke: '#f43f5e', width: 0.08 } : null
+      case 'low':
+        return eff.totalUnits < 5 ? { stroke: '#f59e0b', width: 0.08 } : null
+      case 'high-value':
+        return eff.shelfValue >= thresholds.valueTop ? { stroke: '#10b981', width: 0.08 } : null
+      case 'low-value':
+        return eff.shelfValue <= thresholds.valueBottom ? { stroke: '#71717a', width: 0.08 } : null
+      case 'duplicated':
+        return eff.duplicatedProducts > 0 ? { stroke: '#a855f7', width: 0.08 } : null
+      case 'missing-demand': {
+        const prop = layout.find((p) => p.index === eff.propIndex)
+        if (!prop) return null
+        const maxDemand = Math.max(
+          0,
+          ...prop.inventory
+            .filter((i) => i.product >= 0 && i.count > 0)
+            .map((i) => demandCache.get(i.product) ?? 0),
+        )
+        return maxDemand < 0.002 ? { stroke: '#fb923c', width: 0.08 } : null
+      }
+      case 'negative':
+        return eff.negativeAnomalies > 0 ? { stroke: '#e11d48', width: 0.1, blink: true } : null
+    }
+    return null
+  }
+
+  // Sorted leaderboard rows.
+  const sortedEffs = useMemo(() => {
+    const arr = [...efficiencies]
+    arr.sort((a, b) => {
+      const av = a[sortKey]
+      const bv = b[sortKey]
+      return sortDir === 'asc' ? av - bv : bv - av
+    })
+    return arr
+  }, [efficiencies, sortKey, sortDir])
+
+  const selectedProp = selectedIdx != null ? layout.find((p) => p.index === selectedIdx) ?? null : null
+  const selectedEff = selectedIdx != null ? efficiencies.find((e) => e.propIndex === selectedIdx) ?? null : null
+
+  // Layout-wide aggregates for the report.
+  const aggregates = useMemo(() => {
+    const totalProps = layout.length
+    const totalUnits = efficiencies.reduce((s, e) => s + e.totalUnits, 0)
+    const totalShelfValue = efficiencies.reduce((s, e) => s + e.shelfValue, 0)
+    const totalEmptySlots = efficiencies.reduce((s, e) => s + e.emptySlots, 0)
+    const totalAnomalies = efficiencies.reduce((s, e) => s + e.negativeAnomalies, 0)
+    const totalDuplicated = efficiencies.reduce((s, e) => s + e.duplicatedProducts, 0)
+    const totalDemandCoverage = efficiencies.reduce((s, e) => s + e.demandCoverage, 0)
+    const demandCoveragePct = totalUnits > 0 ? Math.min(100, (totalDemandCoverage / totalUnits) * 1000) : 0
+
+    // Inventory by product (aggregate across props).
+    const byProduct = new Map<number, number>()
+    for (const prop of layout) {
+      for (const inv of prop.inventory) {
+        if (inv.product < 0 || inv.count <= 0) continue
+        byProduct.set(inv.product, (byProduct.get(inv.product) ?? 0) + inv.count)
+      }
+    }
+    const topProducts = [...byProduct.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 20)
+      .map(([pid, count]) => ({ pid, count }))
+
+    // Inventory by group.
+    const byGroup = new Map<string, { count: number; value: number }>()
+    for (const prop of layout) {
+      for (const inv of prop.inventory) {
+        if (inv.product < 0 || inv.count <= 0) continue
+        const p = ENC.products.find((x) => x.id === inv.product)
+        if (!p) continue
+        const gname = p.groupName.zhHant
+        const cur = byGroup.get(gname) ?? { count: 0, value: 0 }
+        cur.count += inv.count
+        cur.value += inv.count * p.basePricePerUnit
+        byGroup.set(gname, cur)
+      }
+    }
+    const topGroups = [...byGroup.entries()]
+      .sort((a, b) => b[1].value - a[1].value)
+      .map(([name, v]) => ({ name, ...v }))
+
+    return {
+      totalProps,
+      totalUnits,
+      totalShelfValue,
+      totalEmptySlots,
+      totalAnomalies,
+      totalDuplicated,
+      demandCoveragePct,
+      topProducts,
+      topGroups,
+    }
+  }, [layout, efficiencies])
+
+  // Recommended shelf swaps.
+  const swapRecs = useMemo(() => {
+    const recs: { from: number; to: number; reason: string }[] = []
+    const byEff = [...efficiencies].sort((a, b) => a.efficiency - b.efficiency)
+    // Bottom 5 props — suggest action.
+    for (const e of byEff.slice(0, 5)) {
+      if (e.emptySlots > 0) {
+        recs.push({
+          from: e.propIndex,
+          to: -1,
+          reason: `貨架 #${e.propIndex} 有 ${e.emptySlots} 個空格 — 從 storage 補上高 demand 商品`,
+        })
+      } else if (e.demandCoverage < 0.0001 && e.totalUnits > 0) {
+        recs.push({
+          from: e.propIndex,
+          to: -1,
+          reason: `貨架 #${e.propIndex} 商品 demand 偏低 (coverage=${fmt(e.demandCoverage, 5)}) — 考慮替換為高 demand 商品`,
+        })
+      }
+    }
+    // Duplicated products across props — suggest consolidation.
+    const productToProps = new Map<number, number[]>()
+    for (const prop of layout) {
+      for (const inv of prop.inventory) {
+        if (inv.product < 0 || inv.count <= 0) continue
+        const arr = productToProps.get(inv.product) ?? []
+        arr.push(prop.index)
+        productToProps.set(inv.product, arr)
+      }
+    }
+    let dupCount = 0
+    for (const [pid, props] of productToProps) {
+      if (props.length > 1 && dupCount < 5) {
+        recs.push({
+          from: props[0],
+          to: props[1],
+          reason: `商品 ${productZhName(pid)} (#${pid}) 同時出現在貨架 #${props[0]} 與 #${props[1]} — 考慮集中放置`,
+        })
+        dupCount++
+      }
+    }
+    return recs.slice(0, 8)
+  }, [layout, efficiencies])
+
+  const layoutSource = snapshot ? `save (${snapshot.source})` : 'encyclopedia (demo)'
+
+  return (
+    <div className="mx-auto max-w-[1600px] space-y-4 p-4">
+      <SectionHeader
+        title="店面平面圖分析"
+        description={`來源: ${layoutSource} · ${layout.length} props · ${aggregates.totalUnits} units`}
+        confidence={snapshot ? 'confirmed' : 'demo'}
+        formula="snapshot.storeLayout ?? encyclopedia.storeLayout"
+        note={snapshot ? '從存檔讀取之實際店面配置' : '未上傳存檔 — 顯示百科 demo 配置（41 props）'}
+        right={
+          <Badge variant="outline" className="text-xs">
+            <Layers className="mr-1 h-3 w-3" /> {layout.length} props
+          </Badge>
+        }
+      />
+
+      {/* Map card */}
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <MapIcon className="h-4 w-4 text-emerald-500" />
+              俯視地圖
+            </CardTitle>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs text-muted-foreground">高亮模式:</span>
+              <ToggleGroup
+                type="single"
+                value={highlight}
+                onValueChange={(v) => v && setHighlight(v as HighlightMode)}
+                variant="outline"
+                size="sm"
+                className="flex-wrap"
+              >
+                {HIGHLIGHT_LABELS.map((h) => (
+                  <ToggleGroupItem key={h.value} value={h.value} className="text-xs">
+                    <span
+                      className="mr-1 inline-block h-2 w-2 rounded-full"
+                      style={{ backgroundColor: h.color }}
+                    />
+                    {h.label}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+            {/* SVG map */}
+            <div className="lg:col-span-2">
+              <div className="overflow-x-auto scrollbar-thin">
+                <svg
+                  viewBox={`${bounds.minX} ${bounds.minZ} ${bounds.w} ${bounds.h}`}
+                  preserveAspectRatio="xMidYMid meet"
+                  className="w-full min-w-[480px] rounded-md border bg-muted/30"
+                  style={{ aspectRatio: `${bounds.w} / ${bounds.h}` }}
+                >
+                  {/* Grid lines */}
+                  <defs>
+                    <pattern id="grid" width="1" height="1" patternUnits="userSpaceOnUse">
+                      <path d="M 1 0 L 0 0 0 1" fill="none" stroke="currentColor" strokeWidth="0.02" className="text-muted-foreground/30" />
+                    </pattern>
+                  </defs>
+                  <rect
+                    x={bounds.minX}
+                    y={bounds.minZ}
+                    width={bounds.w}
+                    height={bounds.h}
+                    fill="url(#grid)"
+                  />
+
+                  {/* Props */}
+                  {layout.map((prop) => {
+                    const eff = efficiencies.find((e) => e.propIndex === prop.index)
+                    if (!eff) return null
+                    const color = BUILDABLE_PALETTE[prop.buildableId] ?? FALLBACK_COLOR
+                    const hl = getHighlight(eff)
+                    const assignment = room?.shelfAssignments[String(prop.index)]
+                    const assignedMember = assignment ? room?.members.find((m) => m.id === assignment) : null
+                    const isSelected = selectedIdx === prop.index
+                    const rectW = 0.6
+                    const rectH = 0.4
+                    return (
+                      <g
+                        key={prop.index}
+                        transform={`translate(${prop.posX}, ${prop.posZ}) rotate(${prop.angle})`}
+                        onClick={() => setSelectedIdx(prop.index)}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        {/* Assigned player ring */}
+                        {assignedMember && (
+                          <rect
+                            x={-rectW / 2 - 0.08}
+                            y={-rectH / 2 - 0.08}
+                            width={rectW + 0.16}
+                            height={rectH + 0.16}
+                            fill="none"
+                            stroke={assignedMember.color}
+                            strokeWidth={0.06}
+                            rx={0.05}
+                          />
+                        )}
+                        {/* Prop body */}
+                        <rect
+                          x={-rectW / 2}
+                          y={-rectH / 2}
+                          width={rectW}
+                          height={rectH}
+                          fill={color}
+                          stroke={hl?.stroke ?? (isSelected ? '#0a0a0a' : '#00000033')}
+                          strokeWidth={hl?.width ?? (isSelected ? 0.08 : 0.02)}
+                          rx={0.04}
+                          className={hl?.blink ? 'animate-pulse' : ''}
+                        />
+                        {/* Inventory count label */}
+                        <text
+                          x={0}
+                          y={0}
+                          textAnchor="middle"
+                          dominantBaseline="central"
+                          fontSize={0.28}
+                          className="fill-white font-bold pointer-events-none"
+                          style={{ paintOrder: 'stroke', stroke: '#00000080', strokeWidth: 0.03 }}
+                        >
+                          {eff.totalUnits}
+                        </text>
+                        {/* Prop index (small, top-right) */}
+                        <text
+                          x={rectW / 2 - 0.04}
+                          y={-rectH / 2 + 0.04}
+                          textAnchor="end"
+                          dominantBaseline="hanging"
+                          fontSize={0.13}
+                          className="fill-white/80 pointer-events-none"
+                        >
+                          #{prop.index}
+                        </text>
+                      </g>
+                    )
+                  })}
+                </svg>
+              </div>
+
+              {/* Legend */}
+              <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
+                <span className="text-muted-foreground">Buildable 顏色:</span>
+                {[0, 1, 2, 3].map((id) => {
+                  const b = buildableById.get(id)
+                  return (
+                    <div key={id} className="flex items-center gap-1.5">
+                      <span
+                        className="inline-block h-3 w-3 rounded-sm"
+                        style={{ backgroundColor: BUILDABLE_PALETTE[id] ?? FALLBACK_COLOR }}
+                      />
+                      <span>{b?.name.zhHant ?? `#${id}`}</span>
+                    </div>
+                  )
+                })}
+                <span className="ml-2 text-muted-foreground">數字 = 該貨架總庫存單位</span>
+              </div>
+            </div>
+
+            {/* Detail panel */}
+            <div>
+              {selectedProp && selectedEff ? (
+                <PropDetailCard
+                  prop={selectedProp}
+                  eff={selectedEff}
+                  demandCache={demandCache}
+                  onClose={() => setSelectedIdx(null)}
+                  room={room}
+                  onAssign={(playerId) => assignShelf(String(selectedProp.index), playerId)}
+                />
+              ) : (
+                <div className="flex h-full flex-col items-center justify-center rounded-md border border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+                  <MapIcon className="mb-2 h-8 w-8 opacity-50" />
+                  <div>點擊地圖上任一貨架查看詳細資訊</div>
+                  <div className="mt-1 text-xs">含庫存清單、效率、缺漏、負庫存異常</div>
+                </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Layout report */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center justify-between text-base">
+            <span>配置報告</span>
+            <ConfidenceBadge
+              confidence={snapshot ? 'confirmed' : 'demo'}
+              formula={effResult.formula}
+              note="庫存資料來自存檔；效率指標為 proxy（含 demandProxy 假設）"
+            />
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+            <StatCard label="總貨架數" value={aggregates.totalProps} confidence={snapshot ? 'confirmed' : 'demo'} accent="neutral" />
+            <StatCard label="總庫存單位" value={fmt(aggregates.totalUnits, 0)} confidence={snapshot ? 'confirmed' : 'demo'} accent="neutral" />
+            <StatCard
+              label="總貨架價值"
+              value={fmtMoney(aggregates.totalShelfValue)}
+              confidence="proxy"
+              formula="Σ count × basePrice"
+              accent="good"
+            />
+            <StatCard
+              label="空格總數"
+              value={aggregates.totalEmptySlots}
+              confidence="proxy"
+              accent={aggregates.totalEmptySlots > 5 ? 'bad' : 'neutral'}
+            />
+            <StatCard
+              label="負庫存異常"
+              value={aggregates.totalAnomalies}
+              confidence="proxy"
+              accent={aggregates.totalAnomalies > 0 ? 'bad' : 'good'}
+              hint={aggregates.totalAnomalies > 0 ? '存檔資料異常' : '正常'}
+            />
+            <StatCard
+              label="Demand Coverage"
+              value={fmt(aggregates.demandCoveragePct, 1)}
+              unit="%"
+              confidence="proxy"
+              formula="Σ demandCoverage / totalUnits × 1000"
+              accent={aggregates.demandCoveragePct > 30 ? 'good' : 'warn'}
+            />
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {/* Top products */}
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <h4 className="text-sm font-semibold">Top 20 商品（按庫存單位）</h4>
+                <ConfidenceBadge confidence={snapshot ? 'confirmed' : 'demo'} />
+              </div>
+              <div className="max-h-80 space-y-1 overflow-y-auto scrollbar-thin pr-1">
+                {aggregates.topProducts.map(({ pid, count }, i) => {
+                  const p = ENC.products.find((x) => x.id === pid)
+                  const demand = demandCache.get(pid) ?? 0
+                  const maxCount = aggregates.topProducts[0]?.count || 1
+                  return (
+                    <div key={pid} className="flex items-center gap-2 rounded border bg-card px-2 py-1.5 text-xs">
+                      <span className="w-5 shrink-0 text-right font-mono text-muted-foreground">{i + 1}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-medium">{productZhName(pid)} <span className="text-muted-foreground">#{pid}</span></div>
+                        <div className="truncate text-[10px] text-muted-foreground">{p?.brand} · demand {fmt(demand, 4)}</div>
+                      </div>
+                      <div className="w-16 shrink-0">
+                        <MiniBar value={count} max={maxCount} color={demand > 0.005 ? 'bg-emerald-500' : 'bg-amber-500'} />
+                      </div>
+                      <span className="w-10 shrink-0 text-right font-mono">{count}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* By group */}
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <h4 className="text-sm font-semibold">依商品分類（按貨架價值）</h4>
+                <ConfidenceBadge confidence="proxy" formula="Σ count × basePrice per group" />
+              </div>
+              <div className="max-h-80 space-y-1 overflow-y-auto scrollbar-thin pr-1">
+                {aggregates.topGroups.map((g, i) => {
+                  const maxValue = aggregates.topGroups[0]?.value || 1
+                  return (
+                    <div key={g.name} className="flex items-center gap-2 rounded border bg-card px-2 py-1.5 text-xs">
+                      <span className="w-5 shrink-0 text-right font-mono text-muted-foreground">{i + 1}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-medium">{g.name}</div>
+                        <div className="truncate text-[10px] text-muted-foreground">{g.count} units</div>
+                      </div>
+                      <div className="w-20 shrink-0">
+                        <MiniBar value={g.value} max={maxValue} color="bg-sky-500" />
+                      </div>
+                      <span className="w-16 shrink-0 text-right font-mono">{fmtMoney(g.value)}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Recommended swaps */}
+          <div className="mt-4">
+            <div className="mb-2 flex items-center justify-between">
+              <h4 className="flex items-center gap-1.5 text-sm font-semibold">
+                <Lightbulb className="h-4 w-4 text-amber-500" />
+                建議貨架調整
+              </h4>
+              <ConfidenceBadge confidence="unverified" note="啟發式建議，需人工評估" />
+            </div>
+            {swapRecs.length === 0 ? (
+              <div className="rounded-md border bg-muted/20 p-3 text-center text-xs text-muted-foreground">
+                目前無明顯問題 — 所有貨架皆有庫存且無重複。
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {swapRecs.map((r, i) => (
+                  <div key={i} className="flex items-start gap-2 rounded-md border bg-card px-3 py-2 text-xs">
+                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-[10px] font-bold text-amber-700 dark:text-amber-300">{i + 1}</span>
+                    <div className="min-w-0 flex-1 text-muted-foreground">
+                      <span className="text-foreground">{r.reason}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Efficiency leaderboard */}
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Boxes className="h-4 w-4 text-sky-500" />
+              貨架效率排行
+            </CardTitle>
+            <ConfidenceBadge
+              confidence="proxy"
+              formula={effResult.formula}
+              note={effResult.note}
+            />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="max-h-96 overflow-y-auto scrollbar-thin">
+            <Table>
+              <TableHeader className="sticky top-0 bg-card z-10">
+                <TableRow>
+                  <TableHead className="w-12 text-right">#</TableHead>
+                  <TableHead>Buildable</TableHead>
+                  <SortableTh label="Units" k="totalUnits" sortKey={sortKey} sortDir={sortDir} onSort={(k, d) => { setSortKey(k); setSortDir(d) }} />
+                  <SortableTh label="Distinct" k="distinctProducts" sortKey={sortKey} sortDir={sortDir} onSort={(k, d) => { setSortKey(k); setSortDir(d) }} />
+                  <SortableTh label="Shelf Value" k="shelfValue" sortKey={sortKey} sortDir={sortDir} onSort={(k, d) => { setSortKey(k); setSortDir(d) }} />
+                  <SortableTh label="Demand Cov" k="demandCoverage" sortKey={sortKey} sortDir={sortDir} onSort={(k, d) => { setSortKey(k); setSortDir(d) }} />
+                  <SortableTh label="Empty" k="emptySlots" sortKey={sortKey} sortDir={sortDir} onSort={(k, d) => { setSortKey(k); setSortDir(d) }} />
+                  <TableHead className="text-right">Anom</TableHead>
+                  <TableHead className="text-right">Dup</TableHead>
+                  <SortableTh label="Efficiency" k="efficiency" sortKey={sortKey} sortDir={sortDir} onSort={(k, d) => { setSortKey(k); setSortDir(d) }} />
+                  {room && <TableHead>分配</TableHead>}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sortedEffs.map((e, i) => {
+                  const prop = layout.find((p) => p.index === e.propIndex)
+                  const buildable = prop ? buildableById.get(prop.buildableId) : null
+                  const assignment = room?.shelfAssignments[String(e.propIndex)]
+                  const assignedMember = assignment ? room?.members.find((m) => m.id === assignment) : null
+                  return (
+                    <TableRow
+                      key={e.propIndex}
+                      className="cursor-pointer"
+                      onClick={() => setSelectedIdx(e.propIndex)}
+                      data-state={selectedIdx === e.propIndex ? 'selected' : undefined}
+                    >
+                      <TableCell className="text-right font-mono text-xs text-muted-foreground">{i + 1}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5">
+                          <span
+                            className="inline-block h-2.5 w-2.5 shrink-0 rounded-sm"
+                            style={{ backgroundColor: BUILDABLE_PALETTE[prop?.buildableId ?? -1] ?? FALLBACK_COLOR }}
+                          />
+                          <span className="text-xs">{buildable?.name.zhHant ?? `#${prop?.buildableId}`}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right font-mono">{e.totalUnits}</TableCell>
+                      <TableCell className="text-right font-mono">{e.distinctProducts}</TableCell>
+                      <TableCell className="text-right font-mono">{fmtMoney(e.shelfValue)}</TableCell>
+                      <TableCell className="text-right font-mono">{fmt(e.demandCoverage, 5)}</TableCell>
+                      <TableCell className={`text-right font-mono ${e.emptySlots > 0 ? 'text-rose-600' : ''}`}>{e.emptySlots}</TableCell>
+                      <TableCell className={`text-right font-mono ${e.negativeAnomalies > 0 ? 'text-rose-600 font-bold' : ''}`}>{e.negativeAnomalies}</TableCell>
+                      <TableCell className={`text-right font-mono ${e.duplicatedProducts > 0 ? 'text-fuchsia-600' : ''}`}>{e.duplicatedProducts}</TableCell>
+                      <TableCell className="text-right font-mono font-semibold">{fmt(e.efficiency, 0)}</TableCell>
+                      {room && (
+                        <TableCell>
+                          {assignedMember ? (
+                            <Badge variant="outline" className="text-xs" style={{ borderLeft: `3px solid ${assignedMember.color}` }}>
+                              {assignedMember.name}
+                            </Badge>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Room assignment hint when no room */}
+      {!room && (
+        <Card className="border-dashed">
+          <CardContent className="flex items-center gap-3 p-4 text-sm">
+            <Boxes className="h-5 w-5 shrink-0 text-muted-foreground" />
+            <div className="text-muted-foreground">
+              <span className="font-medium text-foreground">多人房間模式：</span>
+              建立或加入房間後，可在此分配每個貨架給特定玩家，並在地图上以該玩家顏色標示。
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Room assignment controls */}
+      {room && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Boxes className="h-4 w-4 text-fuchsia-500" />
+              貨架分配（房間模式）
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-sm text-muted-foreground">選擇玩家後，至下方表格或地图貨架點擊分配：</span>
+              <Select value={assignPlayerId} onValueChange={setAssignPlayerId}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="選擇玩家" />
+                </SelectTrigger>
+                <SelectContent>
+                  {room.members.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      <span className="flex items-center gap-2">
+                        <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: m.color }} />
+                        {m.name}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {assignPlayerId && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    if (selectedIdx == null) return
+                    assignShelf(String(selectedIdx), assignPlayerId)
+                  }}
+                  disabled={selectedIdx == null}
+                >
+                  分配貨架 #{selectedIdx ?? '?'} → {room.members.find((m) => m.id === assignPlayerId)?.name}
+                </Button>
+              )}
+            </div>
+            <div className="mt-3 text-xs text-muted-foreground">
+              目前已分配 {Object.keys(room.shelfAssignments).length} / {layout.length} 個貨架
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  )
+}
+
+// ============================================================
+// Sortable table header
+// ============================================================
+function SortableTh({
+  label,
+  k,
+  sortKey,
+  sortDir,
+  onSort,
+}: {
+  label: string
+  k: SortKey
+  sortKey: SortKey
+  sortDir: 'asc' | 'desc'
+  onSort: (k: SortKey, dir: 'asc' | 'desc') => void
+}) {
+  const active = sortKey === k
+  return (
+    <TableHead className="text-right">
+      <button
+        className="inline-flex items-center gap-1 text-xs hover:text-foreground"
+        onClick={() => onSort(k, active && sortDir === 'desc' ? 'asc' : 'desc')}
+      >
+        {label}
+        <ArrowUpDown className={`h-3 w-3 ${active ? 'opacity-100' : 'opacity-30'}`} />
+        {active && <span className="text-[9px]">{sortDir === 'desc' ? '↓' : '↑'}</span>}
+      </button>
+    </TableHead>
+  )
+}
+
+// ============================================================
+// Prop detail card
+// ============================================================
+function PropDetailCard({
+  prop,
+  eff,
+  demandCache,
+  onClose,
+  room,
+  onAssign,
+}: {
+  prop: LayoutProp
+  eff: PropEfficiency
+  demandCache: Map<number, number>
+  onClose: () => void
+  room: ReturnType<typeof useRoomStore.getState>['room']
+  onAssign: (playerId: string) => void
+}) {
+  const buildable = buildableById.get(prop.buildableId)
+  const inventory = prop.inventory.filter((i) => i.product >= 0)
+  const assignment = room?.shelfAssignments[String(prop.index)]
+  const assignedMember = assignment ? room?.members.find((m) => m.id === assignment) : null
+
+  return (
+    <Card className="border-emerald-500/30">
+      <CardHeader className="pb-2">
+        <div className="flex items-start justify-between">
+          <CardTitle className="text-sm">
+            <div className="flex items-center gap-2">
+              <span
+                className="inline-block h-3 w-3 rounded-sm"
+                style={{ backgroundColor: BUILDABLE_PALETTE[prop.buildableId] ?? FALLBACK_COLOR }}
+              />
+              貨架 #{prop.index}
+            </div>
+            <div className="mt-0.5 text-xs font-normal text-muted-foreground">
+              {buildable?.name.zhHant ?? `buildable #${prop.buildableId}`}
+            </div>
+          </CardTitle>
+          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={onClose}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="grid grid-cols-3 gap-1.5 text-xs">
+          <div className="rounded border bg-muted/20 px-2 py-1">
+            <div className="text-muted-foreground">posX</div>
+            <div className="font-mono">{fmt(prop.posX, 2)}</div>
+          </div>
+          <div className="rounded border bg-muted/20 px-2 py-1">
+            <div className="text-muted-foreground">posZ</div>
+            <div className="font-mono">{fmt(prop.posZ, 2)}</div>
+          </div>
+          <div className="rounded border bg-muted/20 px-2 py-1">
+            <div className="text-muted-foreground">angle</div>
+            <div className="font-mono">{prop.angle}°</div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <StatCard label="總單位" value={eff.totalUnits} confidence="confirmed" accent="neutral" />
+          <StatCard label="Distinct" value={eff.distinctProducts} confidence="confirmed" accent="neutral" />
+          <StatCard label="貨架價值" value={fmtMoney(eff.shelfValue)} confidence="proxy" formula="Σ count × basePrice" accent="good" />
+          <StatCard label="Demand Cov" value={fmt(eff.demandCoverage, 5)} confidence="proxy" formula="Σ count × demandProxy" accent="neutral" />
+          <StatCard
+            label="空格"
+            value={eff.emptySlots}
+            confidence="proxy"
+            accent={eff.emptySlots > 0 ? 'bad' : 'good'}
+          />
+          <StatCard
+            label="負庫存"
+            value={eff.negativeAnomalies}
+            confidence="proxy"
+            accent={eff.negativeAnomalies > 0 ? 'bad' : 'good'}
+          />
+        </div>
+
+        {eff.duplicatedProducts > 0 && (
+          <div className="rounded-md border border-fuchsia-500/30 bg-fuchsia-500/5 p-2 text-xs text-fuchsia-700 dark:text-fuchsia-300">
+            <span className="font-semibold">偵測到 {eff.duplicatedProducts} 個重複商品</span>{' '}
+            — 部分商品同時出現在此貨架與其他貨架
+          </div>
+        )}
+
+        {/* Inventory list */}
+        <div>
+          <h5 className="mb-1 text-xs font-semibold text-muted-foreground">庫存清單</h5>
+          <div className="max-h-48 space-y-1 overflow-y-auto scrollbar-thin pr-1">
+            {inventory.length === 0 ? (
+              <div className="rounded border bg-muted/20 p-2 text-center text-xs text-muted-foreground">無庫存</div>
+            ) : (
+              inventory.map((inv, i) => {
+                const p = ENC.products.find((x) => x.id === inv.product)
+                const demand = demandCache.get(inv.product) ?? 0
+                return (
+                  <div
+                    key={`${inv.product}-${i}`}
+                    className="flex items-center gap-2 rounded border bg-card px-2 py-1 text-xs"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-medium">{productZhName(inv.product)}</div>
+                      <div className="truncate text-[10px] text-muted-foreground">
+                        #{inv.product} · {p?.brand} · demand {fmt(demand, 4)}
+                      </div>
+                    </div>
+                    <span
+                      className={`shrink-0 font-mono font-bold ${
+                        inv.count < 0
+                          ? 'text-rose-600'
+                          : inv.count === 0
+                            ? 'text-muted-foreground'
+                            : 'text-foreground'
+                      }`}
+                    >
+                      {inv.count}
+                    </span>
+                  </div>
+                )
+              })
+            )}
+          </div>
+        </div>
+
+        {/* Room assignment */}
+        {room && (
+          <div>
+            <h5 className="mb-1 text-xs font-semibold text-muted-foreground">分配給玩家</h5>
+            <div className="flex flex-wrap gap-1.5">
+              <Button
+                size="sm"
+                variant={assignment ? 'outline' : 'default'}
+                className="h-7 text-xs"
+                onClick={() => onAssign('')}
+                disabled={!assignment}
+              >
+                清除
+              </Button>
+              {room.members.map((m) => (
+                <Button
+                  key={m.id}
+                  size="sm"
+                  variant={assignment === m.id ? 'default' : 'outline'}
+                  className="h-7 text-xs"
+                  style={assignment === m.id ? { backgroundColor: m.color, borderColor: m.color } : { borderLeft: `3px solid ${m.color}` }}
+                  onClick={() => onAssign(m.id)}
+                >
+                  {m.name}
+                </Button>
+              ))}
+            </div>
+            {assignedMember && (
+              <div className="mt-1 text-xs text-muted-foreground">
+                目前分配給 <span className="font-medium" style={{ color: assignedMember.color }}>{assignedMember.name}</span>
+              </div>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}

@@ -1,0 +1,676 @@
+     1→'use client'
+     2→
+     3→import { useMemo, useState, useRef, useCallback } from 'react'
+     4→import { skillGraph } from '@/lib/data-loader'
+     5→import { encyclopedia as ENC } from '@/lib/data-loader'
+     6→import { useSaveStore } from '@/lib/store'
+     7→import { useLang } from '@/lib/i18n'
+     8→import type { SkillGraphNode } from '@/lib/types'
+     9→import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+    10→import { Badge } from '@/components/ui/badge'
+    11→import { Button } from '@/components/ui/button'
+    12→import { ConfidenceBadge, fmt } from '@/components/shared/primitives'
+    13→import {
+    14→  Tooltip,
+    15→  TooltipContent,
+    16→  TooltipProvider,
+    17→  TooltipTrigger,
+    18→} from '@/components/ui/tooltip'
+    19→import {
+    20→  Table,
+    21→  TableBody,
+    22→  TableCell,
+    23→  TableHead,
+    24→  TableHeader,
+    25→  TableRow,
+    26→} from '@/components/ui/table'
+    27→import {
+    28→  ZoomIn,
+    29→  ZoomOut,
+    30→  Maximize2,
+    31→  Eye,
+    32→  EyeOff,
+    33→  CircleDot,
+    34→  Square,
+    35→  Lock,
+    36→  Unlock,
+    37→  Search,
+    38→} from 'lucide-react'
+    39→import { cn } from '@/lib/utils'
+    40→
+    41→// ============================================================
+    42→// SkillTreeView — interactive SVG graph of the in-game skill tree
+    43→// ============================================================
+    44→//
+    45→// Data source: skill-graph.json (extracted from Unity UI hierarchy).
+    46→// 99 nodes (44 perks + 55 category nodes), 93 edges (visual lines).
+    47→// IMPORTANT (from _meta.note): no perk prerequisites — all cost 1000 FP,
+    48→// lines are visual organization only (the UI connection structure).
+    49→
+    50→interface Bounds {
+    51→  minX: number
+    52→  minY: number
+    53→  maxX: number
+    54→  maxY: number
+    55→  w: number
+    56→  h: number
+    57→}
+    58→
+    59→function computeBounds(nodes: SkillGraphNode[]): Bounds {
+    60→  if (nodes.length === 0) return { minX: 0, minY: 0, maxX: 1, maxY: 1, w: 1, h: 1 }
+    61→  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+    62→  for (const n of nodes) {
+    63→    if (n.x < minX) minX = n.x
+    64→    if (n.y < minY) minY = n.y
+    65→    if (n.x > maxX) maxX = n.x
+    66→    if (n.y > maxY) maxY = n.y
+    67→  }
+    68→  const pad = 40
+    69→  return { minX: minX - pad, minY: minY - pad, maxX: maxX + pad, maxY: maxY + pad, w: maxX - minX + pad * 2, h: maxY - minY + pad * 2 }
+    70→}
+    71→
+    72→export function SkillTreeView() {
+    73→  const lang = useLang()
+    74→  const snapshot = useSaveStore((s) => s.snapshot)
+    75→  const [showCategories, setShowCategories] = useState(true)
+    76→  const [showEdges, setShowEdges] = useState(true)
+    77→  const [showUnlockedOnly, setShowUnlockedOnly] = useState(false)
+    78→  const [selectedId, setSelectedId] = useState<string | null>(null)
+    79→  const [zoom, setZoom] = useState(1)
+    80→  const [pan, setPan] = useState({ x: 0, y: 0 })
+    81→  const dragRef = useRef<{ x: number; y: number; px: number; py: number } | null>(null)
+    82→
+    83→  const bounds = useMemo(() => computeBounds(skillGraph.nodes), [])
+    84→  const nodeById = useMemo(() => {
+    85→    const m = new Map<string, SkillGraphNode>()
+    86→    for (const n of skillGraph.nodes) m.set(n.id, n)
+    87→    return m
+    88→  }, [])
+    89→
+    90→  // Unlocked perk indices from save (skillUnlocks = indices into the 44-perk array)
+    91→  const unlockedSet = useMemo(() => {
+    92→    const s = new Set<number>()
+    93→    if (snapshot?.skillUnlocks) {
+    94→      for (const idx of snapshot.skillUnlocks) s.add(idx)
+    95→    }
+    96→    return s
+    97→  }, [snapshot])
+    98→
+    99→  // encyclopedia skill lookup by id (for extra fields)
+   100→  const encSkillById = useMemo(() => {
+   101→    const m = new Map<string, typeof ENC.skills[number]>()
+   102→    for (const s of ENC.skills) m.set(s.id, s)
+   103→    return m
+   104→  }, [])
+   105→
+   106→  const filteredNodes = useMemo(() => {
+   107→    if (!showUnlockedOnly) return skillGraph.nodes
+   108→    return skillGraph.nodes.filter((n) => {
+   109→      if (n.type !== 'perk') return showCategories
+   110→      return unlockedSet.has(n.index)
+   111→    })
+   112→  }, [showUnlockedOnly, unlockedSet, showCategories])
+   113→
+   114→  const visibleEdges = useMemo(() => {
+   115→    if (!showEdges) return []
+   116→    const visibleIds = new Set(filteredNodes.map((n) => n.id))
+   117→    return skillGraph.edges.filter((e) => visibleIds.has(e.from) && visibleIds.has(e.to))
+   118→  }, [showEdges, filteredNodes])
+   119→
+   120→  const selectedNode = selectedId ? nodeById.get(selectedId) ?? null : null
+   121→  const selectedEncSkill = selectedNode?.skill_id ? encSkillById.get(selectedNode.skill_id) ?? null : null
+   122→
+   123→  const onWheel = useCallback((e: React.WheelEvent) => {
+   124→    e.preventDefault()
+   125→    const delta = e.deltaY > 0 ? 0.9 : 1.1
+   126→    setZoom((z) => Math.max(0.3, Math.min(4, z * delta)))
+   127→  }, [])
+   128→
+   129→  const onMouseDown = useCallback((e: React.MouseEvent) => {
+   130→    dragRef.current = { x: e.clientX, y: e.clientY, px: pan.x, py: pan.y }
+   131→  }, [pan])
+   132→
+   133→  const onMouseMove = useCallback((e: React.MouseEvent) => {
+   134→    if (!dragRef.current) return
+   135→    const dx = e.clientX - dragRef.current.x
+   136→    const dy = e.clientY - dragRef.current.y
+   137→    setPan({ x: dragRef.current.px + dx, y: dragRef.current.py + dy })
+   138→  }, [])
+   139→
+   140→  const onMouseUp = useCallback(() => { dragRef.current = null }, [])
+   141→
+   142→  const reset = useCallback(() => {
+   143→    setZoom(1)
+   144→    setPan({ x: 0, y: 0 })
+   145→  }, [])
+   146→
+   147→  const realPerkCount = skillGraph.nodes.filter((n) => n.type === 'perk' && !n.is_placeholder).length
+   148→  const placeholderCount = skillGraph.nodes.filter((n) => n.type === 'perk' && n.is_placeholder).length
+   149→  const unlockedCount = unlockedSet.size
+   150→
+   151→  // helper: localized name for a node
+   152→  const nodeName = (n: SkillGraphNode): string => {
+   153→    if (lang === 'en') return n.name_en || n.raw_name || n.id
+   154→    const zh = n.name_zhHant
+   155→    if (lang === 'zhHant') return zh || n.name_en || n.id
+   156→    // both
+   157→    if (zh && n.name_en && zh !== n.name_en) return `${zh} / ${n.name_en}`
+   158→    return zh || n.name_en || n.id
+   159→  }
+   160→
+   161→  const viewBox = `${bounds.minX} ${bounds.minY} ${bounds.w} ${bounds.h}`
+   162→
+   163→  return (
+   164→    <Card>
+   165→      <CardHeader className="pb-2">
+   166→        <CardTitle className="flex flex-wrap items-center justify-between gap-2 text-base">
+   167→          <span className="flex items-center gap-2">
+   168→            <CircleDot className="h-4 w-4 text-emerald-500" />
+   169→            技能樹完整圖譜
+   170→          </span>
+   171→          <div className="flex flex-wrap items-center gap-2">
+   172→            <Badge variant="outline" className="text-[10px]">
+   173→              {skillGraph.nodes.length} 節點
+   174→            </Badge>
+   175→            <Badge variant="outline" className="text-[10px]">
+   176→              {skillGraph.edges.length} 連線
+   177→            </Badge>
+   178→            <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+   179→              {realPerkCount} 實技能
+   180→            </Badge>
+   181→            <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-700 dark:text-amber-300">
+   182→              {placeholderCount} 佔位（員工）
+   183→            </Badge>
+   184→            {unlockedCount > 0 && (
+   185→              <Badge variant="outline" className="text-[10px] bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-300">
+   186→                <Unlock className="mr-1 h-2.5 w-2.5" />{unlockedCount}/44 已解鎖
+   187→              </Badge>
+   188→            )}
+   189→            <ConfidenceBadge
+   190→              confidence="confirmed"
+   191→              formula="skill-graph.json (Unity UI hierarchy)"
+   192→              note={skillGraph._meta.note}
+   193→            />
+   194→          </div>
+   195→        </CardTitle>
+   196→      </CardHeader>
+   197→      <CardContent className="space-y-3">
+   198→        {/* Controls */}
+   199→        <div className="flex flex-wrap items-center gap-2">
+   200→          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setZoom((z) => Math.min(4, z * 1.2))}>
+   201→            <ZoomIn className="mr-1 h-3 w-3" />放大
+   202→          </Button>
+   203→          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setZoom((z) => Math.max(0.3, z * 0.83))}>
+   204→            <ZoomOut className="mr-1 h-3 w-3" />縮小
+   205→          </Button>
+   206→          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={reset}>
+   207→            <Maximize2 className="mr-1 h-3 w-3" />重設
+   208→          </Button>
+   209→          <div className="mx-1 h-4 w-px bg-border" />
+   210→          <Button
+   211→            variant={showEdges ? 'default' : 'outline'}
+   212→            size="sm"
+   213→            className="h-7 text-xs"
+   214→            onClick={() => setShowEdges((v) => !v)}
+   215→          >
+   216→            {showEdges ? <Eye className="mr-1 h-3 w-3" /> : <EyeOff className="mr-1 h-3 w-3" />}
+   217→            連線
+   218→          </Button>
+   219→          <Button
+   220→            variant={showCategories ? 'default' : 'outline'}
+   221→            size="sm"
+   222→            className="h-7 text-xs"
+   223→            onClick={() => setShowCategories((v) => !v)}
+   224→          >
+   225→            <Square className="mr-1 h-3 w-3" />
+   226→            分類節點
+   227→          </Button>
+   228→          {unlockedCount > 0 && (
+   229→            <Button
+   230→              variant={showUnlockedOnly ? 'default' : 'outline'}
+   231→              size="sm"
+   232→              className="h-7 text-xs"
+   233→              onClick={() => setShowUnlockedOnly((v) => !v)}
+   234→            >
+   235→              <Unlock className="mr-1 h-3 w-3" />
+   236→              只看已解鎖
+   237→            </Button>
+   238→          )}
+   239→          <div className="ml-auto text-[10px] text-muted-foreground">
+   240→            拖曳平移 · 滾輪縮放 · 縮放 {fmt(zoom, 2)}×
+   241→          </div>
+   242→        </div>
+   243→
+   244→        {/* SVG canvas */}
+   245→        <div
+   246→          className="relative h-[520px] w-full cursor-grab overflow-hidden rounded-md border bg-background active:cursor-grabbing"
+   247→          onWheel={onWheel}
+   248→          onMouseDown={onMouseDown}
+   249→          onMouseMove={onMouseMove}
+   250→          onMouseUp={onMouseUp}
+   251→          onMouseLeave={onMouseUp}
+   252→        >
+   253→          <svg
+   254→            viewBox={viewBox}
+   255→            className="h-full w-full"
+   256→            preserveAspectRatio="xMidYMid meet"
+   257→            style={{ transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`, transformOrigin: 'center' }}
+   258→          >
+   259→            {/* Edges */}
+   260→            <g stroke="currentColor" className="text-muted-foreground/30">
+   261→              {visibleEdges.map((e) => {
+   262→                const a = nodeById.get(e.from)
+   263→                const b = nodeById.get(e.to)
+   264→                if (!a || !b) return null
+   265→                return (
+   266→                  <line
+   267→                    key={e.line}
+   268→                    x1={a.x}
+   269→                    y1={a.y}
+   270→                    x2={b.x}
+   271→                    y2={b.y}
+   272→                    strokeWidth={0.8}
+   273→                  />
+   274→                )
+   275→              })}
+   276→            </g>
+   277→
+   278→            {/* Category nodes */}
+   279→            {showCategories && filteredNodes.filter((n) => n.type === 'category').map((n) => (
+   280→              <g key={n.id} className="cursor-pointer" onClick={(ev) => { ev.stopPropagation(); setSelectedId(n.id) }}>
+   281→                <rect
+   282→                  x={n.x - 5}
+   283→                  y={n.y - 5}
+   284→                  width={10}
+   285→                  height={10}
+   286→                  rx={1.5}
+   287→                  className="fill-zinc-400/50 stroke-zinc-500/60"
+   288→                  strokeWidth={0.5}
+   289→                />
+   290→                <text
+   291→                  x={n.x}
+   292→                  y={n.y + 14}
+   293→                  textAnchor="middle"
+   294→                  className="fill-muted-foreground"
+   295→                  style={{ fontSize: 5, fontWeight: 400 }}
+   296→                >
+   297→                  {n.name_en.replace(/_/g, ' ')}
+   298→                </text>
+   299→              </g>
+   300→            ))}
+   301→
+   302→            {/* Perk nodes */}
+   303→            {filteredNodes.filter((n) => n.type === 'perk').map((n) => {
+   304→              const isUnlocked = unlockedSet.has(n.index)
+   305→              const isSelected = selectedId === n.id
+   306→              const r = n.is_placeholder ? 7 : 8
+   307→              const fill = n.is_placeholder
+   308→                ? (isUnlocked ? '#f59e0b' : '#fbbf24')
+   309→                : (isUnlocked ? '#10b981' : '#34d399')
+   310→              const stroke = isSelected ? '#0ea5e9' : isUnlocked ? fill : 'rgba(0,0,0,0.2)'
+   311→              return (
+   312→                <Tooltip key={n.id}>
+   313→                  <TooltipTrigger asChild>
+   314→                    <g
+   315→                      className="cursor-pointer"
+   316→                      onClick={(ev) => { ev.stopPropagation(); setSelectedId(n.id) }}
+   317→                    >
+   318→                      <circle
+   319→                        cx={n.x}
+   320→                        cy={n.y}
+   321→                        r={r * (isSelected ? 1.3 : 1)}
+   322→                        fill={fill}
+   323→                        stroke={stroke}
+   324→                        strokeWidth={isSelected ? 2 : 0.8}
+   325→                        opacity={isUnlocked ? 1 : 0.55}
+   326→                      />
+   327→                      {isUnlocked && (
+   328→                        <circle cx={n.x} cy={n.y} r={r + 3} fill="none" stroke={fill} strokeWidth={0.6} opacity={0.4} />
+   329→                      )}
+   330→                      <text
+   331→                        x={n.x}
+   332→                        y={n.y + r + 8}
+   333→                        textAnchor="middle"
+   334→                        className="fill-foreground"
+   335→                        style={{ fontSize: 5.5, fontWeight: 600 }}
+   336→                      >
+   337→                        {n.is_placeholder ? `員工${n.index + 1}` : (lang === 'en' ? n.name_en : (n.name_zhHant || n.name_en))}
+   338→                      </text>
+   339→                    </g>
+   340→                  </TooltipTrigger>
+   341→                  <TooltipContent side="top" className="max-w-xs">
+   342→                    <div className="space-y-1 text-xs">
+   343→                      <div className="flex items-center gap-2">
+   344→                        <span className="font-semibold">{nodeName(n)}</span>
+   345→                        {n.is_placeholder && <Badge variant="outline" className="text-[9px] bg-amber-500/10">佔位</Badge>}
+   346→                        {isUnlocked && <Badge variant="outline" className="text-[9px] bg-emerald-500/10">已解鎖</Badge>}
+   347→                      </div>
+   348→                      <div className="font-mono text-[10px] text-muted-foreground">
+   349→                        {n.id} · perk#{n.index} · {n.skill_id}
+   350→                      </div>
+   351→                      {n.desc_en && <div className="italic">{n.desc_en}</div>}
+   352→                      <div className="text-[10px] text-muted-foreground">點擊查看詳情</div>
+   353→                    </div>
+   354→                  </TooltipContent>
+   355→                </Tooltip>
+   356→              )
+   357→            })}
+   358→          </svg>
+   359→
+   360→          {/* Legend */}
+   361→          <div className="pointer-events-none absolute bottom-2 left-2 flex flex-col gap-1 rounded-md border bg-card/90 p-2 text-[10px] backdrop-blur">
+   362→            <div className="flex items-center gap-1.5">
+   363→              <span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-500" />
+   364→              <span>實技能（39）</span>
+   365→            </div>
+   366→            <div className="flex items-center gap-1.5">
+   367→              <span className="inline-block h-2.5 w-2.5 rounded-full bg-amber-400" />
+   368→              <span>員工佔位（5，+1 員工）</span>
+   369→            </div>
+   370→            <div className="flex items-center gap-1.5">
+   371→              <span className="inline-block h-2.5 w-2.5 rounded-full border-2 border-emerald-500 bg-emerald-500/30" />
+   372→              <span>已解鎖（外圈光環）</span>
+   373→            </div>
+   374→            <div className="flex items-center gap-1.5">
+   375→              <span className="inline-block h-2.5 w-2.5 bg-zinc-400/60" />
+   376→              <span>分類節點（產品 tier）</span>
+   377→            </div>
+   378→          </div>
+   379→        </div>
+   380→
+   381→        {/* Note */}
+   382→        <div className="rounded-md border border-sky-500/30 bg-sky-500/5 p-3 text-xs">
+   383→          <div className="font-semibold text-sky-700 dark:text-sky-300 mb-1">設計重點</div>
+   384→          <p className="text-muted-foreground leading-relaxed">
+   385→            {skillGraph._meta.note} — 每個技能獨立可用 1000 FP 購買，連線僅為 UI 視覺組織（非前置條件）。
+   386→            5 個佔位 perk（Employee I-V）各 +1 最大員工數；其餘 39 個為實際技能。
+   387→          </p>
+   388→        </div>
+   389→
+   390→        {/* Selected node detail */}
+   391→        {selectedNode && (
+   392→          <div className="rounded-md border bg-card p-3">
+   393→            <div className="mb-2 flex items-center gap-2">
+   394→              <Badge variant="outline" className="text-[10px]">
+   395→                {selectedNode.type === 'perk' ? 'Perk' : 'Category'}
+   396→              </Badge>
+   397→              <span className="text-base font-semibold">{nodeName(selectedNode)}</span>
+   398→              {selectedNode.is_placeholder && (
+   399→                <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-700 dark:text-amber-300">
+   400→                  佔位 perk
+   401→                </Badge>
+   402→              )}
+   403→              {selectedNode.type === 'perk' && unlockedSet.has(selectedNode.index) && (
+   404→                <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+   405→                  <Unlock className="mr-1 h-2.5 w-2.5" />已解鎖
+   406→                </Badge>
+   407→              )}
+   408→              {selectedNode.type === 'perk' && !unlockedSet.has(selectedNode.index) && (
+   409→                <Badge variant="outline" className="text-[10px] bg-zinc-500/10 text-zinc-600 dark:text-zinc-300">
+   410→                  <Lock className="mr-1 h-2.5 w-2.5" />未解鎖
+   411→                </Badge>
+   412→              )}
+   413→            </div>
+   414→            <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+   415→              <div><span className="text-muted-foreground">node id：</span><span className="font-mono">{selectedNode.id}</span></div>
+   416→              <div><span className="text-muted-foreground">perk #：</span><span className="font-mono">{selectedNode.index}</span></div>
+   417→              {selectedNode.skill_id && <div><span className="text-muted-foreground">skill id：</span><span className="font-mono">{selectedNode.skill_id}</span></div>}
+   418→              <div><span className="text-muted-foreground">座標：</span><span className="font-mono">({selectedNode.x.toFixed(1)}, {selectedNode.y.toFixed(1)})</span></div>
+   419→              <div><span className="text-muted-foreground">成本：</span><span className="font-mono">1000 FP</span></div>
+   420→            </div>
+   421→            {selectedNode.desc_en && (
+   422→              <div className="mt-2 text-xs">
+   423→                <span className="text-muted-foreground">效果：</span>
+   424→                <span className="italic">{selectedNode.desc_en}</span>
+   425→              </div>
+   426→            )}
+   427→            {selectedEncSkill && (
+   428→              <div className="mt-2 text-xs">
+   429→                <span className="text-muted-foreground">encyclopedia：</span>
+   430→                <span className="font-mono">{selectedEncSkill.effect || '—'}</span>
+   431→                {selectedEncSkill.perk != null && <span className="ml-2 text-muted-foreground">perk={selectedEncSkill.perk}</span>}
+   432→              </div>
+   433→            )}
+   434→            {selectedNode.type === 'perk' && skillGraph.perk_to_category[selectedNode.id] && (
+   435→              <div className="mt-2 text-xs">
+   436→                <span className="text-muted-foreground">最近分類：</span>
+   437→                <span className="font-mono">{skillGraph.perk_to_category[selectedNode.id].category_name}</span>
+   438→                <span className="ml-2 text-muted-foreground">（距離 {skillGraph.perk_to_category[selectedNode.id].distance.toFixed(1)}）</span>
+   439→              </div>
+   440→            )}
+   441→          </div>
+   442→        )}
+   443→      </CardContent>
+   444→    </Card>
+   445→  )
+   446→}
+   447→
+   448→// ============================================================
+   449→// PerksTableView — 44-perk TSV table with all columns
+   450→// ============================================================
+   451→
+   452→type SortKey = 'index' | 'name' | 'category' | 'placeholder'
+   453→
+   454→export function PerksTableView() {
+   455→  const lang = useLang()
+   456→  const snapshot = useSaveStore((s) => s.snapshot)
+   457→  const [query, setQuery] = useState('')
+   458→  const [sortKey, setSortKey] = useState<SortKey>('index')
+   459→  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
+   460→  const [filterPlaceholder, setFilterPlaceholder] = useState<'all' | 'real' | 'placeholder'>('all')
+   461→
+   462→  const unlockedSet = useMemo(() => {
+   463→    const s = new Set<number>()
+   464→    if (snapshot?.skillUnlocks) {
+   465→      for (const idx of snapshot.skillUnlocks) s.add(idx)
+   466→    }
+   467→    return s
+   468→  }, [snapshot])
+   469→
+   470→  const encSkillByPerk = useMemo(() => {
+   471→    const m = new Map<number, typeof ENC.skills[number]>()
+   472→    for (const s of ENC.skills) {
+   473→      if (s.perk != null) m.set(s.perk, s)
+   474→    }
+   475→    return m
+   476→  }, [])
+   477→
+   478→  const rows = useMemo(() => {
+   479→    const perks = skillGraph.nodes.filter((n) => n.type === 'perk')
+   480→    let list = perks
+   481→    if (filterPlaceholder === 'real') list = list.filter((n) => !n.is_placeholder)
+   482→    else if (filterPlaceholder === 'placeholder') list = list.filter((n) => n.is_placeholder)
+   483→    const q = query.trim().toLowerCase()
+   484→    if (q) {
+   485→      list = list.filter((n) =>
+   486→        n.name_en.toLowerCase().includes(q) ||
+   487→        (n.name_zhHant ?? '').toLowerCase().includes(q) ||
+   488→        (n.skill_id ?? '').toLowerCase().includes(q) ||
+   489→        (n.desc_en ?? '').toLowerCase().includes(q) ||
+   490→        String(n.index).includes(q)
+   491→      )
+   492→    }
+   493→    const sorted = [...list].sort((a, b) => {
+   494→      let av: string | number, bv: string | number
+   495→      if (sortKey === 'index') { av = a.index; bv = b.index }
+   496→      else if (sortKey === 'name') { av = (a.name_zhHant || a.name_en).toLowerCase(); bv = (b.name_zhHant || b.name_en).toLowerCase() }
+   497→      else if (sortKey === 'category') {
+   498→        av = skillGraph.perk_to_category[a.id]?.category_name ?? ''
+   499→        bv = skillGraph.perk_to_category[b.id]?.category_name ?? ''
+   500→      }
+   501→      else { av = a.is_placeholder ? 1 : 0; bv = b.is_placeholder ? 1 : 0 }
+   502→      if (av < bv) return sortDir === 'asc' ? -1 : 1
+   503→      if (av > bv) return sortDir === 'asc' ? 1 : -1
+   504→      return 0
+   505→    })
+   506→    return sorted
+   507→  }, [query, sortKey, sortDir, filterPlaceholder])
+   508→
+   509→  const toggleSort = (k: SortKey) => {
+   510→    if (sortKey === k) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+   511→    else { setSortKey(k); setSortDir('asc') }
+   512→  }
+   513→
+   514→  const nameFor = (n: SkillGraphNode): string => {
+   515→    if (lang === 'en') return n.name_en || '—'
+   516→    if (lang === 'zhHant') return n.name_zhHant || n.name_en || '—'
+   517→    if (n.name_zhHant && n.name_en && n.name_zhHant !== n.name_en) return `${n.name_zhHant} / ${n.name_en}`
+   518→    return n.name_zhHant || n.name_en || '—'
+   519→  }
+   520→
+   521→  return (
+   522→    <Card>
+   523→      <CardHeader className="pb-2">
+   524→        <CardTitle className="flex flex-wrap items-center justify-between gap-2 text-base">
+   525→          <span className="flex items-center gap-2">
+   526→            <Search className="h-4 w-4 text-emerald-500" />
+   527→            44 技能完整總表
+   528→          </span>
+   529→          <div className="flex flex-wrap items-center gap-2">
+   530→            <Badge variant="outline" className="text-[10px]">{rows.length} / 44</Badge>
+   531→            {unlockedSet.size > 0 && (
+   532→              <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+   533→                <Unlock className="mr-1 h-2.5 w-2.5" />{unlockedSet.size} 已解鎖
+   534→              </Badge>
+   535→            )}
+   536→            <ConfidenceBadge
+   537→              confidence="confirmed"
+   538→              formula="perks.tsv + skill-graph.json"
+   539→              note="perk_index 0-43 對應存檔 skill_unlocks 陣列索引"
+   540→            />
+   541→          </div>
+   542→        </CardTitle>
+   543→      </CardHeader>
+   544→      <CardContent className="space-y-3">
+   545→        {/* Filter bar */}
+   546→        <div className="flex flex-wrap items-center gap-2">
+   547→          <div className="relative flex-1 min-w-[200px]">
+   548→            <Search className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+   549→            <input
+   550→              className="h-8 w-full rounded-md border bg-background pl-7 pr-3 text-xs"
+   551→              placeholder="搜尋名稱 / skill_id / 描述…"
+   552→              value={query}
+   553→              onChange={(e) => setQuery(e.target.value)}
+   554→            />
+   555→          </div>
+   556→          <div className="flex items-center gap-1">
+   557→            {(['all', 'real', 'placeholder'] as const).map((f) => (
+   558→              <Button
+   559→                key={f}
+   560→                variant={filterPlaceholder === f ? 'default' : 'outline'}
+   561→                size="sm"
+   562→                className="h-7 text-xs"
+   563→                onClick={() => setFilterPlaceholder(f)}
+   564→              >
+   565→                {f === 'all' ? '全部' : f === 'real' ? '實技能' : '員工佔位'}
+   566→              </Button>
+   567→            ))}
+   568→          </div>
+   569→        </div>
+   570→
+   571→        {/* Table */}
+   572→        <div className="max-h-[560px] overflow-auto scrollbar-thin rounded-md border">
+   573→          <Table>
+   574→            <TableHeader className="sticky top-0 bg-card z-10">
+   575→              <TableRow>
+   576→                <TableHead className="w-12 cursor-pointer text-right" onClick={() => toggleSort('index')}>
+   577→                  # {sortKey === 'index' && (sortDir === 'asc' ? '↑' : '↓')}
+   578→                </TableHead>
+   579→                <TableHead className="min-w-[160px] cursor-pointer" onClick={() => toggleSort('name')}>
+   580→                  名稱 {sortKey === 'name' && (sortDir === 'asc' ? '↑' : '↓')}
+   581→                </TableHead>
+   582→                <TableHead className="text-xs">skill_id</TableHead>
+   583→                <TableHead className="min-w-[200px]">效果 / 描述</TableHead>
+   584→                <TableHead className="cursor-pointer text-xs" onClick={() => toggleSort('category')}>
+   585→                  最近分類 {sortKey === 'category' && (sortDir === 'asc' ? '↑' : '↓')}
+   586→                </TableHead>
+   587→                <TableHead className="cursor-pointer text-center" onClick={() => toggleSort('placeholder')}>
+   588→                  類型 {sortKey === 'placeholder' && (sortDir === 'asc' ? '↑' : '↓')}
+   589→                </TableHead>
+   590→                <TableHead className="text-center">狀態</TableHead>
+   591→                <TableHead className="text-right">座標</TableHead>
+   592→              </TableRow>
+   593→            </TableHeader>
+   594→            <TableBody>
+   595→              {rows.map((n) => {
+   596→                const enc = encSkillByPerk.get(n.index)
+   597→                const isUnlocked = unlockedSet.has(n.index)
+   598→                const cat = skillGraph.perk_to_category[n.id]
+   599→                return (
+   600→                  <TableRow key={n.id} data-state={isUnlocked ? 'selected' : undefined}>
+   601→                    <TableCell className="text-right font-mono text-xs text-muted-foreground">{n.index}</TableCell>
+   602→                    <TableCell>
+   603→                      <div className="font-medium text-xs">{nameFor(n)}</div>
+   604→                      {n.name_en && n.name_zhHant && n.name_en !== n.name_zhHant && lang !== 'en' && (
+   605→                        <div className="text-[10px] text-muted-foreground">{n.name_en}</div>
+   606→                      )}
+   607→                    </TableCell>
+   608→                    <TableCell className="font-mono text-[10px] text-muted-foreground">{n.skill_id || '—'}</TableCell>
+   609→                    <TableCell>
+   610→                      <span className="text-xs leading-relaxed text-muted-foreground whitespace-normal">
+   611→                        {n.desc_en || enc?.effect || '—'}
+   612→                      </span>
+   613→                    </TableCell>
+   614→                    <TableCell>
+   615→                      <span className="font-mono text-[10px] text-muted-foreground">
+   616→                        {cat?.category_name ?? '—'}
+   617→                      </span>
+   618→                    </TableCell>
+   619→                    <TableCell className="text-center">
+   620→                      {n.is_placeholder ? (
+   621→                        <Badge variant="outline" className="text-[9px] bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30">
+   622→                          佔位
+   623→                        </Badge>
+   624→                      ) : (
+   625→                        <Badge variant="outline" className="text-[9px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30">
+   626→                          實技能
+   627→                        </Badge>
+   628→                      )}
+   629→                    </TableCell>
+   630→                    <TableCell className="text-center">
+   631→                      {isUnlocked ? (
+   632→                        <Badge variant="outline" className="text-[9px] bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-300 border-fuchsia-500/30">
+   633→                          <Unlock className="mr-1 h-2.5 w-2.5" />已解鎖
+   634→                        </Badge>
+   635→                      ) : (
+   636→                        <span className="text-[10px] text-muted-foreground">—</span>
+   637→                      )}
+   638→                    </TableCell>
+   639→                    <TableCell className="text-right font-mono text-[10px] text-muted-foreground">
+   640→                      ({n.x.toFixed(0)}, {n.y.toFixed(0)})
+   641→                    </TableCell>
+   642→                  </TableRow>
+   643→                )
+   644→              })}
+   645→            </TableBody>
+   646→          </Table>
+   647→        </div>
+   648→
+   649→        {/* Footer summary */}
+   650→        <div className="grid grid-cols-2 gap-3 text-xs sm:grid-cols-4">
+   651→          <div className="rounded-md border bg-card p-2">
+   652→            <div className="text-[10px] text-muted-foreground">總 perk 數</div>
+   653→            <div className="font-mono text-lg font-bold">44</div>
+   654→          </div>
+   655→          <div className="rounded-md border bg-card p-2">
+   656→            <div className="text-[10px] text-muted-foreground">實技能</div>
+   657→            <div className="font-mono text-lg font-bold text-emerald-600 dark:text-emerald-400">
+   658→              {skillGraph.nodes.filter((n) => n.type === 'perk' && !n.is_placeholder).length}
+   659→            </div>
+   660→          </div>
+   661→          <div className="rounded-md border bg-card p-2">
+   662→            <div className="text-[10px] text-muted-foreground">員工佔位</div>
+   663→            <div className="font-mono text-lg font-bold text-amber-600 dark:text-amber-400">
+   664→              {skillGraph.nodes.filter((n) => n.type === 'perk' && n.is_placeholder).length}
+   665→            </div>
+   666→          </div>
+   667→          <div className="rounded-md border bg-card p-2">
+   668→            <div className="text-[10px] text-muted-foreground">總成本（全解鎖）</div>
+   669→            <div className="font-mono text-lg font-bold">44,000 FP</div>
+   670→          </div>
+   671→        </div>
+   672→      </CardContent>
+   673→    </Card>
+   674→  )
+   675→}
+   676→

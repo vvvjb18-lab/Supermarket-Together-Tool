@@ -1,0 +1,1050 @@
+     1→// Pure calculation engine for Supermarket Together Lab.
+     2→// Every function is deterministic and returns a CalcResult with formula + sources + confidence.
+     3→// No UI, no side effects. Importable by any page.
+     4→
+     5→import type {
+     6→  Product,
+     7→  Necessity,
+     8→  CustomerType,
+     9→  Container,
+    10→  Skill,
+    11→  Encyclopedia,
+    12→  LayoutProp,
+    13→  SaveSnapshot,
+    14→  CalcResult,
+    15→  Confidence,
+    16→} from './types'
+    17→import { encyclopedia as ENC } from './data-loader'
+    18→
+    19→// ============================================================
+    20→// Basic product geometry / value
+    21→// ============================================================
+    22→
+    23→export function computeBoxValue(p: Product): CalcResult<number> {
+    24→  const value = p.basePricePerUnit * p.maxItemsPerBox
+    25→  return {
+    26→    value,
+    27→    formula: 'boxValue = basePricePerUnit × maxItemsPerBox',
+    28→    sources: [`products[${p.id}].basePricePerUnit=${p.basePricePerUnit}`, `products[${p.id}].maxItemsPerBox=${p.maxItemsPerBox}`],
+    29→    confidence: 'confirmed',
+    30→  }
+    31→}
+    32→
+    33→export function computeColliderVolume(p: Product): CalcResult<number> {
+    34→  const v = p.colliderSize.x * p.colliderSize.y * p.colliderSize.z
+    35→  return {
+    36→    value: v,
+    37→    formula: 'colliderVolume = colliderSize.x × y × z (unity units³)',
+    38→    sources: [`products[${p.id}].colliderSize=${p.colliderSize.x},${p.colliderSize.y},${p.colliderSize.z}`],
+    39→    confidence: 'confirmed',
+    40→  }
+    41→}
+    42→
+    43→export function computeValueDensity(p: Product): CalcResult<number> {
+    44→  const vol = computeColliderVolume(p).value
+    45→  if (vol <= 0) return { value: 0, formula: 'valueDensity = basePricePerUnit / colliderVolume', sources: [], confidence: 'confirmed', note: 'zero volume' }
+    46→  return {
+    47→    value: p.basePricePerUnit / vol,
+    48→    formula: 'valueDensity = basePricePerUnit / colliderVolume',
+    49→    sources: [`basePricePerUnit=${p.basePricePerUnit}`, `colliderVolume=${vol.toFixed(6)}`],
+    50→    confidence: 'confirmed',
+    51→  }
+    52→}
+    53→
+    54→export function computeBoxValueDensity(p: Product): CalcResult<number> {
+    55→  const vol = computeColliderVolume(p).value
+    56→  const box = computeBoxValue(p).value
+    57→  if (vol <= 0) return { value: 0, formula: 'boxValueDensity = boxValue / colliderVolume', sources: [], confidence: 'confirmed', note: 'zero volume' }
+    58→  return {
+    59→    value: box / vol,
+    60→    formula: 'boxValueDensity = boxValue / colliderVolume',
+    61→    sources: [`boxValue=${box}`, `colliderVolume=${vol.toFixed(6)}`],
+    62→    confidence: 'confirmed',
+    63→  }
+    64→}
+    65→
+    66→// ============================================================
+    67→// Demand proxy
+    68→// ------------------------------------------------------------
+    69→// For every customer type, take necessitiesChances[necessityIndex].
+    70→// For each necessity pool, distribute weight over RAW TOKENS (preserving duplicates).
+    71→// Product demand proxy = Σ (weight / rawPoolLength) for every token hit.
+    72→//
+    73→// This is a PROXY: true customer spawn distribution and runtime product
+    74→// selection method are not fully extracted. We assume:
+    75→//  - equal customer-type spawn (configurable in simulator)
+    76→//  - uniform pick within a necessity's raw token pool
+    77→//  - one purchase per customer (maxProductsCustomersToBuy=5 in tuning, but
+    78→//    for a single-necessity proxy we count one hit per chosen necessity)
+    79→// ============================================================
+    80→
+    81→export interface DemandOptions {
+    82→  customerWeights?: number[] // per-customer-type spawn weight (default: equal = 1)
+    83→  mode?: 'raw' | 'unique' // raw preserves duplicate tokens; unique dedupes
+    84→}
+    85→
+    86→export function computeDemandProxy(
+    87→  productId: number,
+    88→  necessities: Necessity[],
+    89→  customerTypes: CustomerType[],
+    90→  opts: DemandOptions = {},
+    91→): CalcResult<number> {
+    92→  const mode = opts.mode ?? 'raw'
+    93→  const cw = opts.customerWeights
+    94→  let total = 0
+    95→  const hits: string[] = []
+    96→  for (let ci = 0; ci < customerTypes.length; ci++) {
+    97→    const cust = customerTypes[ci]
+    98→    const w = cw ? cw[ci] ?? 0 : 1
+    99→    if (w <= 0) continue
+   100→    const chances = cust.necessitiesChances
+   101→    for (let ni = 0; ni < necessities.length; ni++) {
+   102→      const chance = chances[ni] ?? 0
+   103→      if (chance <= 0) continue
+   104→      const nec = necessities[ni]
+   105→      const tokens = mode === 'unique' ? Array.from(new Set(nec.rawTokens)) : nec.rawTokens
+   106→      if (tokens.length === 0) continue
+   107→      const hitsCount = tokens.filter((t) => t === productId).length
+   108→      if (hitsCount === 0) continue
+   109→      // contribution = customerWeight × necessityChance × (tokenHits / poolSize)
+   110→      const contribution = w * chance * (hitsCount / tokens.length)
+   111→      total += contribution
+   112→      hits.push(`cust[${ci}]×${w} × nec[${ni}]×${chance} × ${hitsCount}/${tokens.length}`)
+   113→    }
+   114→  }
+   115→  // normalize by sum of customer weights so it reads as "expected purchases per customer"
+   116→  const weightSum = cw ? cw.reduce((a, b) => a + b, 0) : customerTypes.length
+   117→  const normalized = weightSum > 0 ? total / weightSum : 0
+   118→  return {
+   119→    value: normalized,
+   120→    formula:
+   121→      mode === 'raw'
+   122→        ? 'demandProxy = Σcust Σnec (custWeight × necChance × tokenHits/rawPoolSize) / ΣcustWeight'
+   123→        : 'demandProxy (unique mode) = Σcust Σnec (custWeight × necChance × 1/uniquePoolSize if product present) / ΣcustWeight',
+   124→    sources: hits.slice(0, 6),
+   125→    confidence: 'proxy',
+   126→    note: 'Assumes equal customer spawn + uniform pick within necessity pool. True runtime selection unverified.',
+   127→  }
+   128→}
+   129→
+   130→export function computeWeightedRevenueProxy(
+   131→  p: Product,
+   132→  demand: number,
+   133→): CalcResult<number> {
+   134→  return {
+   135→    value: demand * p.basePricePerUnit,
+   136→    formula: 'weightedRevenueProxy = demandProxy × basePricePerUnit',
+   137→    sources: [`demandProxy=${demand.toFixed(6)}`, `basePricePerUnit=${p.basePricePerUnit}`],
+   138→    confidence: 'proxy',
+   139→  }
+   140→}
+   141→
+   142→export function computeWeightedBoxProxy(p: Product, demand: number): CalcResult<number> {
+   143→  return {
+   144→    value: demand * computeBoxValue(p).value,
+   145→    formula: 'weightedBoxProxy = demandProxy × boxValue',
+   146→    sources: [`demandProxy=${demand.toFixed(6)}`, `boxValue=${computeBoxValue(p).value.toFixed(2)}`],
+   147→    confidence: 'proxy',
+   148→  }
+   149→}
+   150→
+   151→// ============================================================
+   152→// Salt Monopoly Probe
+   153→// ============================================================
+   154→
+   155→export interface SaltProbeResult {
+   156→  saltProduct: Product
+   157→  saltRoute9: CalcResult<number> // demand via necessity[9]
+   158→  saltRoute10: CalcResult<number> // demand via necessity[10] staple
+   159→  saltTotalDemand: CalcResult<number>
+   160→  saltBoxValue: CalcResult<number>
+   161→  saltVolume: CalcResult<number>
+   162→  saltValueDensity: CalcResult<number>
+   163→  comparison: {
+   164→    product: Product
+   165→    basePrice: number
+   166→    boxValue: number
+   167→    volume: number
+   168→    demandProxy: number
+   169→    shelfEfficiency: number
+   170→  }[]
+   171→  conclusion: string
+   172→  confidence: Confidence
+   173→}
+   174→
+   175→export function computeSaltProbe(): SaltProbeResult {
+   176→  const nec = ENC.necessities
+   177→  const custs = ENC.customerTypes
+   178→  const salt = ENC.products.find((p) => p.id === 4)!
+   179→  const nec9 = nec[9] // Salt single product, rawIds "4-4-4-4-4"
+   180→  const nec10 = nec[10] // Staple Groceries, 62 raw tokens
+   181→
+   182→  // Route via necessity[9]: only customer #47 has weight 0.5
+   183→  let route9 = 0
+   184→  const route9Hits: string[] = []
+   185→  for (let ci = 0; ci < custs.length; ci++) {
+   186→    const w = 1 // equal spawn
+   187→    const chance = custs[ci].necessitiesChances[9] ?? 0
+   188→    if (chance <= 0) continue
+   189→    // raw pool = [4,4,4,4,4], length 5, salt hits 5/5 = 1.0
+   190→    const hits = nec9.rawTokens.filter((t) => t === 4).length
+   191→    const contribution = (w * chance * hits) / nec9.rawTokens.length
+   192→    route9 += contribution
+   193→    route9Hits.push(`cust[${ci}] weight=${w} × nec[9] chance=${chance} × ${hits}/${nec9.rawTokens.length}`)
+   194→  }
+   195→  route9 = route9 / custs.length // normalize by equal-spawn sum
+   196→
+   197→  // Route via necessity[10]: staple, 62 tokens, salt appears once
+   198→  let route10 = 0
+   199→  const route10Hits: string[] = []
+   200→  for (let ci = 0; ci < custs.length; ci++) {
+   201→    const w = 1
+   202→    const chance = custs[ci].necessitiesChances[10] ?? 0
+   203→    if (chance <= 0) continue
+   204→    const hits = nec10.rawTokens.filter((t) => t === 4).length // =1
+   205→    const contribution = (w * chance * hits) / nec10.rawTokens.length
+   206→    route10 += contribution
+   207→    route10Hits.push(`cust[${ci}] × nec[10] chance=${chance} × ${hits}/${nec10.rawTokens.length}`)
+   208→  }
+   209→  route10 = route10 / custs.length
+   210→
+   211→  const total = route9 + route10
+   212→
+   213→  // comparison: pick a sample of early products + premium electronics
+   214→  const compareIds = [0, 1, 2, 3, 4, 5, 9, 11, 48, 54, 108, 173, 175, 287, 296, 299]
+   215→  const comparison = compareIds
+   216→    .map((id) => ENC.products.find((p) => p.id === id))
+   217→    .filter((p): p is Product => !!p)
+   218→    .map((p) => {
+   219→      const demand = computeDemandProxy(p.id, nec, custs).value
+   220→      const vol = computeColliderVolume(p).value
+   221→      const box = computeBoxValue(p).value
+   222→      return {
+   223→        product: p,
+   224→        basePrice: p.basePricePerUnit,
+   225→        boxValue: box,
+   226→        volume: vol,
+   227→        demandProxy: demand,
+   228→        shelfEfficiency: vol > 0 ? (demand * box) / vol : 0,
+   229→      }
+   230→    })
+   231→    .sort((a, b) => b.demandProxy - a.demandProxy)
+   232→
+   233→  return {
+   234→    saltProduct: salt,
+   235→    saltRoute9: {
+   236→      value: route9,
+   237→      formula: 'Σcust (custWeight × nec[9].chance × 5/5) / 58  — only cust#47 has chance=0.5',
+   238→      sources: route9Hits,
+   239→      confidence: 'confirmed',
+   240→      note: 'necessity[9] rawIds="4-4-4-4-4", salt hits 5/5 tokens',
+   241→    },
+   242→    saltRoute10: {
+   243→      value: route10,
+   244→      formula: 'Σcust (custWeight × nec[10].chance × 1/62) / 58  — salt appears once in 62-token staple pool',
+   245→      sources: route10Hits,
+   246→      confidence: 'confirmed',
+   247→      note: 'uniform random assumption → ~1.61% hit per staple-weighted customer',
+   248→    },
+   249→    saltTotalDemand: {
+   250→      value: total,
+   251→      formula: 'saltTotalDemand = route9 + route10',
+   252→      sources: [`route9=${route9.toFixed(6)}`, `route10=${route10.toFixed(6)}`],
+   253→      confidence: 'proxy',
+   254→      note: 'sum of two confirmed routes; proxy because spawn distribution unverified',
+   255→    },
+   256→    saltBoxValue: computeBoxValue(salt),
+   257→    saltVolume: computeColliderVolume(salt),
+   258→    saltValueDensity: computeValueDensity(salt),
+   259→    comparison,
+   260→    conclusion:
+   261→      'Salt 是已確認的特殊機制（necessity[9] 單一商品、rawIds="4-4-4-4-4"），但不是已確認的賺錢 exploit。它有壟斷路徑（route 9），但只有 customer #47 觸發、且單價極低（$0.45）。透過 Staple Groceries 路徑只佔 1/62 ≈ 1.61% 機率。整體 demand proxy 偏低，單位利潤受限。建議實測而非盲信。',
+   262→    confidence: 'exploit',
+   263→  }
+   264→}
+   265→
+   266→// ============================================================
+   267→// Necessity coverage (given a stocked product set)
+   268→// ============================================================
+   269→
+   270→export interface NecessityCoverage {
+   271→  necessityIndex: number
+   272→  necessityName: string
+   273→  totalWeight: number // sum of customer chances for this necessity
+   274→  stockedTokens: number // raw tokens covered by stocked products
+   275→  totalTokens: number
+   276→  coverage: number // 0..1
+   277→  missingProducts: number[]
+   278→}
+   279→
+   280→export function computeNecessityCoverage(
+   281→  stockedProductIds: Set<number>,
+   282→  necessities: Necessity[] = ENC.necessities,
+   283→  customerTypes: CustomerType[] = ENC.customerTypes,
+   284→): CalcResult<NecessityCoverage[]> {
+   285→  const coverage: NecessityCoverage[] = necessities.map((nec) => {
+   286→    const totalWeight = customerTypes.reduce((s, c) => s + (c.necessitiesChances[nec.index] ?? 0), 0)
+   287→    const stockedTokens = nec.rawTokens.filter((t) => t >= 0 && stockedProductIds.has(t)).length
+   288→    const missing = Array.from(new Set(nec.rawTokens.filter((t) => t >= 0 && !stockedProductIds.has(t))))
+   289→    return {
+   290→      necessityIndex: nec.index,
+   291→      necessityName: nec.name.en,
+   292→      totalWeight,
+   293→      stockedTokens,
+   294→      totalTokens: nec.rawTokens.length,
+   295→      coverage: nec.rawTokens.length > 0 ? stockedTokens / nec.rawTokens.length : 0,
+   296→      missingProducts: missing,
+   297→    }
+   298→  })
+   299→  return {
+   300→    value: coverage,
+   301→    formula: 'coverage = stockedRawTokens / totalRawTokens  (per necessity, weighted by Σ customer chances)',
+   302→    sources: [`necessities=${necessities.length}`, `customerTypes=${customerTypes.length}`, `stockedProducts=${stockedProductIds.size}`],
+   303→    confidence: 'proxy',
+   304→    note: 'Raw token mode preserves duplicates (Salt counts 5×).',
+   305→  }
+   306→}
+   307→
+   308→// ============================================================
+   309→// Shelf efficiency (per layout prop)
+   310→// ============================================================
+   311→
+   312→export interface PropEfficiency {
+   313→  propIndex: number
+   314→  buildableId: number
+   315→  totalUnits: number
+   316→  distinctProducts: number
+   317→  shelfValue: number // sum of count × basePrice
+   318→  demandCoverage: number // sum of count × demandProxy (proxy)
+   319→  emptySlots: number // inventory entries with count 0 or product -1
+   320→  negativeAnomalies: number
+   321→  duplicatedProducts: number // products appearing on this prop AND another prop
+   322→  efficiency: number // shelfValue × demandCoverage normalized
+   323→}
+   324→
+   325→export function computeShelfEfficiency(
+   326→  layout: LayoutProp[],
+   327→  products: Product[] = ENC.products,
+   328→  necessities: Necessity[] = ENC.necessities,
+   329→  customerTypes: CustomerType[] = ENC.customerTypes,
+   330→): CalcResult<PropEfficiency[]> {
+   331→  const productById = new Map(products.map((p) => [p.id, p]))
+   332→  // precompute demand proxies
+   333→  const demandCache = new Map<number, number>()
+   334→  for (const p of products) {
+   335→    demandCache.set(p.id, computeDemandProxy(p.id, necessities, customerTypes).value)
+   336→  }
+   337→  // count product appearances across props
+   338→  const propAppearances = new Map<number, number>()
+   339→  for (const prop of layout) {
+   340→    for (const inv of prop.inventory) {
+   341→      if (inv.product < 0) continue
+   342→      propAppearances.set(inv.product, (propAppearances.get(inv.product) ?? 0) + 1)
+   343→    }
+   344→  }
+   345→  const result: PropEfficiency[] = layout.map((prop) => {
+   346→    let totalUnits = 0
+   347→    let shelfValue = 0
+   348→    let demandCoverage = 0
+   349→    let emptySlots = 0
+   350→    let negativeAnomalies = 0
+   351→    let duplicated = 0
+   352→    const seen = new Set<number>()
+   353→    for (const inv of prop.inventory) {
+   354→      if (inv.product < 0 || inv.count === 0) {
+   355→        emptySlots++
+   356→        continue
+   357→      }
+   358→      if (inv.count < 0) {
+   359→        negativeAnomalies++
+   360→        continue
+   361→      }
+   362→      totalUnits += inv.count
+   363→      const p = productById.get(inv.product)
+   364→      if (p) {
+   365→        shelfValue += inv.count * p.basePricePerUnit
+   366→        demandCoverage += inv.count * (demandCache.get(inv.product) ?? 0)
+   367→      }
+   368→      if (seen.has(inv.product)) duplicated++
+   369→      else seen.add(inv.product)
+   370→      if ((propAppearances.get(inv.product) ?? 0) > 1) duplicated++
+   371→    }
+   372→    const efficiency = shelfValue * (1 + demandCoverage * 100)
+   373→    return {
+   374→      propIndex: prop.index,
+   375→      buildableId: prop.buildableId,
+   376→      totalUnits,
+   377→      distinctProducts: seen.size,
+   378→      shelfValue,
+   379→      demandCoverage,
+   380→      emptySlots,
+   381→      negativeAnomalies,
+   382→      duplicatedProducts: duplicated,
+   383→      efficiency,
+   384→    }
+   385→  })
+   386→  return {
+   387→    value: result,
+   388→    formula: 'shelfValue = Σ count×basePrice; demandCoverage = Σ count×demandProxy; efficiency = shelfValue×(1+demandCoverage×100)',
+   389→    sources: [`layout props=${layout.length}`, `products=${products.length}`],
+   390→    confidence: 'proxy',
+   391→  }
+   392→}
+   393→
+   394→// ============================================================
+   395→// Store health / dashboard scores
+   396→// ============================================================
+   397→
+   398→export interface DashboardScores {
+   399→  storeHealth: CalcResult<number> // 0..100
+   400→  demandCoverage: CalcResult<number>
+   401→  stockRisk: CalcResult<number>
+   402→  shelfEfficiency: CalcResult<number>
+   403→  employeeEfficiency: CalcResult<number>
+   404→}
+   405→
+   406→export function computeDashboardScores(snapshot: SaveSnapshot | null): DashboardScores {
+   407→  // demand coverage
+   408→  let demandCov = 0
+   409→  if (snapshot && Object.keys(snapshot.inventoryByProduct).length > 0) {
+   410→    const stocked = new Set(
+   411→      Object.entries(snapshot.inventoryByProduct)
+   412→        .filter(([, c]) => (c as number) > 0)
+   413→        .map(([id]) => Number(id)),
+   414→    )
+   415→    const cov = computeNecessityCoverage(stocked).value
+   416→    const totalWeight = cov.reduce((s, c) => s + c.totalWeight, 0)
+   417→    const coveredWeight = cov.reduce((s, c) => s + c.coverage * c.totalWeight, 0)
+   418→    demandCov = totalWeight > 0 ? (coveredWeight / totalWeight) * 100 : 0
+   419→  } else {
+   420→    // demo: assume all products stocked
+   421→    demandCov = 100
+   422→  }
+   423→
+   424→  // stock risk: % of stocked products with very low units (<5)
+   425→  let stockRisk = 30
+   426→  if (snapshot && Object.keys(snapshot.inventoryByProduct).length > 0) {
+   427→    const entries = Object.entries(snapshot.inventoryByProduct)
+   428→    const low = entries.filter(([, c]) => (c as number) > 0 && (c as number) < 5).length
+   429→    const total = entries.filter(([, c]) => (c as number) > 0).length
+   430→    stockRisk = total > 0 ? (low / total) * 100 : 0
+   431→  }
+   432→
+   433→  // shelf efficiency
+   434→  let shelfEff = 60
+   435→  if (snapshot && snapshot.storeLayout.length > 0) {
+   436→    const eff = computeShelfEfficiency(snapshot.storeLayout).value
+   437→    const emptyTotal = eff.reduce((s, p) => s + p.emptySlots, 0)
+   438→    const slotTotal = eff.reduce((s, p) => s + (p.emptySlots + p.distinctProducts), 0)
+   439→    shelfEff = slotTotal > 0 ? Math.max(0, 100 - (emptyTotal / slotTotal) * 100) : 0
+   440→  }
+   441→
+   442→  // employee efficiency (demo: based on employee count & avg level)
+   443→  let empEff = 50
+   444→  if (snapshot && snapshot.employees.length > 0) {
+   445→    const avgLevel = snapshot.employees.reduce((s, e) => {
+   446→      const levels = Object.values(e.skills).map((sk) => sk.level)
+   447→      return s + (levels.reduce((a, b) => a + b, 0) / (levels.length || 1))
+   448→    }, 0) / snapshot.employees.length
+   449→    empEff = Math.min(100, 30 + avgLevel * 14)
+   450→  }
+   451→
+   452→  const storeHealth = Math.max(0, Math.min(100, demandCov * 0.35 + (100 - stockRisk) * 0.25 + shelfEff * 0.25 + empEff * 0.15))
+   453→
+   454→  return {
+   455→    storeHealth: {
+   456→      value: storeHealth,
+   457→      formula: 'storeHealth = 0.35×demandCov + 0.25×(100-stockRisk) + 0.25×shelfEff + 0.15×empEff',
+   458→      sources: [],
+   459→      confidence: 'proxy',
+   460→    },
+   461→    demandCoverage: { value: demandCov, formula: 'Σ(nec.coverage × nec.totalWeight) / Σ nec.totalWeight × 100', sources: [], confidence: 'proxy' },
+   462→    stockRisk: { value: stockRisk, formula: '(lowStockProducts / totalStockedProducts) × 100, low=<5 units', sources: [], confidence: 'proxy' },
+   463→    shelfEfficiency: { value: shelfEff, formula: '100 − (emptySlots/totalSlots)×100', sources: [], confidence: 'proxy' },
+   464→    employeeEfficiency: { value: empEff, formula: 'min(100, 30 + avgLevel×14)', sources: [], confidence: 'proxy' },
+   465→  }
+   466→}
+   467→
+   468→// ============================================================
+   469→// Restock plan (knapsack-style greedy under budget)
+   470→// ============================================================
+   471→
+   472→export type RestockStrategy =
+   473→  | 'balanced'
+   474→  | 'demand-coverage'
+   475→  | 'high-profit'
+   476→  | 'high-density'
+   477→  | 'premium-push'
+   478→  | 'seasonal-prep'
+   479→  | 'early-game-cheap-fill'
+   480→
+   481→export interface RestockRecommendation {
+   482→  productId: number
+   483→  productName: string
+   484→  buyBoxes: number
+   485→  units: number
+   486→  costEstimate: number
+   487→  revenueProxy: number
+   488→  reason: string
+   489→  priority: number
+   490→}
+   491→
+   492→export function computeRestockPlan(
+   493→  snapshot: SaveSnapshot | null,
+   494→  strategy: RestockStrategy,
+   495→  budget: number,
+   496→  options: { season?: number } = {},
+   497→): CalcResult<RestockRecommendation[]> {
+   498→  const products = ENC.products
+   499→  const necessities = ENC.necessities
+   500→  const custs = ENC.customerTypes
+   501→  const inv = snapshot?.inventoryByProduct ?? {}
+   502→  const unlocked = snapshot?.unlockedProducts ?? products.map((p) => p.id)
+   503→  const unlockedSet = new Set(unlocked)
+   504→
+   505→  // score each product
+   506→  const scored = products
+   507→    .filter((p) => unlockedSet.has(p.id))
+   508→    .map((p) => {
+   509→      const demand = computeDemandProxy(p.id, necessities, custs).value
+   510→      const box = computeBoxValue(p).value
+   511→      const vol = computeColliderVolume(p).value
+   512→      const density = computeValueDensity(p).value
+   513→      const current = (inv[p.id] as number) ?? 0
+   514→      const isPremium = ENC.premiumProducts.includes(p.id)
+   515→      const isSeasonal = options.season != null && ENC.seasons[options.season]?.productIds.includes(p.id)
+   516→      let score = 0
+   517→      let reason = ''
+   518→      switch (strategy) {
+   519→        case 'demand-coverage':
+   520→          score = demand
+   521→          reason = `demand proxy ${demand.toFixed(5)}; current ${current} units`
+   522→          break
+   523→        case 'high-profit':
+   524→          score = demand * box
+   525→          reason = `weighted box proxy ${(demand * box).toFixed(3)}`
+   526→          break
+   527→        case 'high-density':
+   528→          score = density
+   529→          reason = `value density ${density.toFixed(2)} $/unit³`
+   530→          break
+   531→        case 'premium-push':
+   532→          score = (isPremium ? 2 : 0.1) * box
+   533→          reason = isPremium ? 'premium product, high box value' : 'filler'
+   534→          break
+   535→        case 'seasonal-prep':
+   536→          score = (isSeasonal ? 3 : 0.05) * demand * box
+   537→          reason = isSeasonal ? `in-season (${ENC.seasons[options.season!].name.en})` : 'off-season filler'
+   538→          break
+   539→        case 'early-game-cheap-fill':
+   540→          score = p.tier <= 5 ? (1 / (p.basePricePerUnit + 0.1)) * (demand + 0.01) : -1
+   541→          reason = `tier ${p.tier} cheap fill, base $${p.basePricePerUnit}`
+   542→          break
+   543→        case 'balanced':
+   544→        default:
+   545→          score = demand * box * 0.5 + density * 0.2 + (current < 10 ? 5 : 0)
+   546→          reason = `balanced: demand×box ${(demand * box).toFixed(3)}, density ${density.toFixed(1)}, stock ${current}`
+   547→          break
+   548→      }
+   549→      // urgency boost if low stock & has demand
+   550→      if (current < 5 && demand > 0.001) {
+   551→        score *= 1.5
+   552→        reason += '; LOW STOCK urgency ×1.5'
+   553→      }
+   554→      return { p, demand, box, vol, current, score, reason }
+   555→    })
+   556→    .filter((s) => s.score > 0)
+   557→    .sort((a, b) => b.score - a.score)
+   558→
+   559→  // greedy knapsack: take boxes while budget remains
+   560→  const recs: RestockRecommendation[] = []
+   561→  let remaining = budget
+   562→  for (const s of scored) {
+   563→    if (remaining <= 0) break
+   564→    const boxCost = s.box // buying one box costs ≈ boxValue (wholesale ≈ base × units)
+   565→    if (boxCost <= 0) continue
+   566→    const maxBoxesByBudget = Math.floor(remaining / boxCost)
+   567→    const desiredBoxes = Math.max(1, Math.min(maxBoxesByBudget, Math.ceil((50 - s.current) / s.p.maxItemsPerBox)))
+   568→    if (desiredBoxes <= 0) continue
+   569→    const boxes = Math.max(1, Math.min(desiredBoxes, maxBoxesByBudget))
+   570→    if (boxes <= 0) continue
+   571→    const cost = boxes * boxCost
+   572→    const units = boxes * s.p.maxItemsPerBox
+   573→    const revenue = s.demand * units * s.p.basePricePerUnit
+   574→    recs.push({
+   575→      productId: s.p.id,
+   576→      productName: s.p.name.en,
+   577→      buyBoxes: boxes,
+   578→      units,
+   579→      costEstimate: cost,
+   580→      revenueProxy: revenue,
+   581→      reason: s.reason,
+   582→      priority: recs.length + 1,
+   583→    })
+   584→    remaining -= cost
+   585→  }
+   586→  return {
+   587→    value: recs,
+   588→    formula: `greedy knapsack: score by strategy=${strategy}, take boxes while budget≥0; boxCost≈boxValue`,
+   589→    sources: [`budget=${budget}`, `candidates=${scored.length}`, `strategy=${strategy}`],
+   590→    confidence: 'proxy',
+   591→    note: 'boxCost assumes wholesale ≈ base×units; real wholesale price unverified.',
+   592→  }
+   593→}
+   594→
+   595→// ============================================================
+   596→// Exploit classification
+   597→// ============================================================
+   598→
+   599→export type ExploitCategory = 'confirmed-monster' | 'proxy-strong' | 'suspicious' | 'meme-trap'
+   600→
+   601→export interface ExploitCandidate {
+   602→  id: string
+   603→  title: string
+   604→  category: ExploitCategory
+   605→  confidence: Confidence
+   606→  evidence: string[]
+   607→  formula: string
+   608→  recommendation: string
+   609→  risk: string
+   610→  productIds?: number[]
+   611→}
+   612→
+   613→export function classifyExploitCandidates(): ExploitCandidate[] {
+   614→  return [
+   615→    {
+   616→      id: 'usb-1tb-density',
+   617→      title: 'USB Flash Drive (1TB) — 超高價值密度數據怪',
+   618→      category: 'confirmed-monster',
+   619→      confidence: 'confirmed',
+   620→      evidence: [
+   621→        'product id 296, basePrice $73.99, maxItemsPerBox 30 → boxValue $2,219.70',
+   622→        'collider 0.165×0.2×0.03 = 0.00099 unit³ → valueDensity ≈ $74,737/unit³',
+   623→        'premium product (in premiumProducts list)',
+   624→        'necessity[6] Small Electronics pool, 16 unique products',
+   625→      ],
+   626→      formula: 'boxValue=73.99×30; valueDensity=73.99/0.00099',
+   627→      recommendation: '解鎖後優先上高密度貨架（電子類）。單箱利潤極高，適合 late-game 主力。',
+   628→      risk: 'demand proxy 需靠 Small Electronics 客流；解鎖 tier 48 (293-299) 才能進貨。',
+   629→      productIds: [296],
+   630→    },
+   631→    {
+   632→      id: 'gaming-console-box',
+   633→      title: 'Basic Gaming Console — 單箱價值之王',
+   634→      category: 'confirmed-monster',
+   635→      confidence: 'confirmed',
+   636→      evidence: [
+   637→        'product id 299, basePrice $149.99, maxItemsPerBox 12 → boxValue $1,799.88',
+   638→        'premium product',
+   639→        '單箱價值僅次於 USB 1TB，但單價最高',
+   640→      ],
+   641→      formula: 'boxValue=149.99×12',
+   642→      recommendation: '高單價主力；客流量較低時仍可帶來大筆收入。注意貨架空間。',
+   643→      risk: 'demand 來源需確認（Small Electronics necessity）；顧客接受價格未驗證。',
+   644→      productIds: [299],
+   645→    },
+   646→    {
+   647→      id: 'prepaid-phone-density',
+   648→      title: 'Basic Prepaid Phone — 高價值密度',
+   649→      category: 'confirmed-monster',
+   650→      confidence: 'confirmed',
+   651→      evidence: ['product id 287, premium, Small Electronics tier 47', 'collider 小、單價高 → valueDensity 高'],
+   652→      formula: 'valueDensity=basePrice/colliderVolume',
+   653→      recommendation: '中後期高密度填充品；搭配 USB 1TB 共用電子貨架。',
+   654→      risk: 'demand proxy 中等；價格接受度未驗證。',
+   655→      productIds: [287],
+   656→    },
+   657→    {
+   658→      id: 'baby-diaper-cluster',
+   659→      title: '嬰兒/尿布需求群聚 — 高 demand proxy',
+   660→      category: 'proxy-strong',
+   661→      confidence: 'proxy',
+   662→      evidence: [
+   663→        'necessity[7] Baby & Child Care, 13 products (214-226)',
+   664→        '多個 customer type 對 necessity[7] 有高權重（如 #6=1.0, #8=1.0, #46=1.0, #51=1.0）',
+   665→        'demand proxy 計算顯示嬰兒用品群聚需求偏高',
+   666→      ],
+   667→      formula: 'Σcust Σnec (custWeight × nec[7].chance × tokenHits/13) / 58',
+   668→      recommendation: '嬰兒用品群集中陳列；確保 13 個產品都鋪貨以最大化 coverage。',
+   669→      risk: 'true customer spawn 比例未驗證；proxy 假設 equal spawn。',
+   670→      productIds: [214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226],
+   671→    },
+   672→    {
+   673→      id: 'salt-monopoly',
+   674→      title: 'Salt Monopoly Probe — 鹽壟斷機制',
+   675→      category: 'suspicious',
+   676→      confidence: 'exploit',
+   677→      evidence: [
+   678→        'necessity[9] = Salt, rawIds "4-4-4-4-4" (單一商品重複5次)',
+   679→        'only customer #47 has necessity[9] weight 0.5',
+   680→        'Salt (id 4) 同時出現在 necessity[10] Staple Groceries (62 tokens, 1/62≈1.61%)',
+   681→        'basePrice $0.45, maxItemsPerBox 50 → boxValue $22.50',
+   682→      ],
+   683→      formula: 'saltDemand = route9(cust#47×0.5×5/5) + route10(Σcust×nec[10].chance×1/62)',
+   684→      recommendation: '鋪鹽無害（單價低、體積小），但不要把它當主力賺錢策略。建議實測 customer #47 出現頻率。',
+   685→      risk: '壟斷路徑確認但客群極窄；單位利潤極低。分類：Confirmed mechanic, unproven exploit。',
+   686→      productIds: [4],
+   687→    },
+   688→    {
+   689→      id: 'premium-audit',
+   690→      title: 'Premium 商品稽核 (7件)',
+   691→      category: 'proxy-strong',
+   692→      confidence: 'confirmed',
+   693→      evidence: ['premiumProducts = [173, 175, 186, 287, 296, 297, 299]', '涵蓋酒類、藥品、電子三大類'],
+   694→      formula: 'premium list 來自 NPC_Manager reflection',
+   695→      recommendation: '逐一確認 unlock 條件與 demand 來源；USB 1TB / Gaming Console / Prepaid Phone 為電子三寶。',
+   696→      risk: '部分 premium 解鎖條件未完全提取。',
+   697→      productIds: [173, 175, 186, 287, 296, 297, 299],
+   698→    },
+   699→    {
+   700→      id: 'seasonal-stockpile',
+   701→      title: '季節性商品預備',
+   702→      category: 'proxy-strong',
+   703→      confidence: 'confirmed',
+   704→      evidence: ['4 seasons: Spring/Summer/Autumn-Winter, productIds from NPC_Manager.productsPerSeason'],
+   705→      formula: 'seasonPool[idx] from productsPerSeason',
+   706→      recommendation: '換季前 1-2 天預備對應池商品；Autumn/Halloween 池最小（20 items）最易全鋪。',
+   707→      risk: '季節切換時點與持續天數未驗證。',
+   708→    },
+   709→    {
+   710→      id: 'low-value-trap',
+   711→      title: '低價值貨架陷阱',
+   712→      category: 'meme-trap',
+   713→      confidence: 'proxy',
+   714→      evidence: ['部分產品 basePrice < $1 且 colliderVolume 大（如 Potato Bag id 31: $5.99 但體積 0.0366）', '佔貨架空間但利潤密度低'],
+   715→      formula: 'valueDensity = basePrice / colliderVolume；排序末端即陷阱',
+   716→      recommendation: '避免把大體積低單價品放在黃金貨架；移到倉儲或角落貨架。',
+   717→      risk: '某些低密度品可能是 staple 高 demand（如 Salt），需交叉比對 demand proxy。',
+   718→    },
+   719→    {
+   720→      id: 'pallet-efficiency',
+   721→      title: '棧板/容器效率',
+   722→      category: 'proxy-strong',
+   723→      confidence: 'confirmed',
+   724→      evidence: ['42 containers with cost/shelfVolume/energyCost', 'Pallet Display 體積大但無能耗、適合大件'],
+   725→      formula: 'costPerVolume = cost / (length×width×height)',
+   726→      recommendation: '大件低密度品用 Pallet Display；高密度品用 Wall Shelf / Tiered Shelf。',
+   727→      risk: 'employeeHappiness 欄位多為 0，影響未驗證。',
+   728→    },
+   729→    {
+   730→      id: 'employee-speed-stack',
+   731→      title: '員工速度疊加',
+   732→      category: 'confirmed-monster',
+   733→      confidence: 'confirmed',
+   734→      evidence: [
+   735→        'speed = 2.5 × (1 + 0.05×level + extraEmployeeSpeedFactor)',
+   736→        '多個 skill 加 extraEmployeeSpeedFactor += 0.2 (skill1,3,17,18,19)',
+   737→        '最多可疊 5 層 → +1.0 factor ≈ 等於 +20 level',
+   738→      ],
+   739→      formula: 'speed = 2.5 × (1 + 0.05×level + ΣskillBonuses)',
+   740→      recommendation: '優先點滿 5 個 +0.2 speed skill，再升員工等級。',
+   741→      risk: 'level cap=5 (per skill); extraEmployeeSpeedFactor max=1 (maxEmployeeSpeedFactor)。',
+   742→    },
+   743→  ]
+   744→}
+   745→
+   746→// ============================================================
+   747→// Skill ROI
+   748→// ============================================================
+   749→
+   750→export type SkillStrategy =
+   751→  | 'employee-automation'
+   752→  | 'checkout-speed'
+   753→  | 'customer-volume'
+   754→  | 'manufacturing'
+   755→  | 'anti-theft'
+   756→  | 'early-cash'
+   757→  | 'late-scale'
+   758→
+   759→export interface SkillROI {
+   760→  skill: Skill
+   761→  category: string
+   762→  roiProxy: number
+   763→  synergyTags: string[]
+   764→  confidence: Confidence
+   765→  note: string
+   766→}
+   767→
+   768→export function computeSkillRecommendations(strategy: SkillStrategy): CalcResult<SkillROI[]> {
+   769→  const rois: SkillROI[] = ENC.skills.map((s) => {
+   770→    const eff = s.effect.toLowerCase()
+   771→    let category = 'other'
+   772→    if (eff.includes('speed')) category = 'employee-speed'
+   773→    else if (eff.includes('checkout') || eff.includes('selfcheckout') || eff.includes('productcheckout')) category = 'checkout'
+   774→    else if (eff.includes('customer') || eff.includes('extracustomers') || eff.includes('bystander')) category = 'customer-volume'
+   775→    else if (eff.includes('recycle')) category = 'recycling'
+   776→    else if (eff.includes('maxemployees') || eff.includes('employee')) category = 'employee-count'
+   777→    else if (eff.includes('manufacturing') || eff.includes('reroll') || eff.includes('ordering')) category = 'ordering'
+   778→    else if (eff.includes('debt') || eff.includes('electric') || eff.includes('autopay')) category = 'finance'
+   779→
+   780→    let roi = 1
+   781→    const tags: string[] = []
+   782→    if (eff.includes('extraemployeespeedfactor')) {
+   783→      roi = 8
+   784→      tags.push('speed', 'automation')
+   785→    }
+   786→    if (eff.includes('maxemployees')) {
+   787→      const m = eff.match(/maxemployees\s*\+=\s*(\d+)/)
+   788→      roi = m ? 6 + Number(m[1]) * 2 : 5
+   789→      tags.push('headcount')
+   790→    }
+   791→    if (eff.includes('productcheckoutwait') || eff.includes('employeeitemplacewait') || eff.includes('selfcheckoutwait')) {
+   792→      roi = 7
+   793→      tags.push('throughput')
+   794→    }
+   795→    if (eff.includes('allowedSimultaneousSales')) {
+   796→      const m = eff.match(/allowedSimultaneousSales\s*\+=\s*(\d+)/g)
+   797→      roi = m ? 5 + m.length * 1.5 : 5
+   798→      tags.push('sales-cap')
+   799→    }
+   800→    if (eff.includes('extracustomersperk')) roi = Math.max(roi, 6)
+   801→    if (eff.includes('recycle')) {
+   802→      roi = Math.max(roi, 5)
+   803→      tags.push('recycling')
+   804→    }
+   805→    if (eff.includes('electricfactor') || eff.includes('autopay')) {
+   806→      roi = Math.max(roi, 5)
+   807→      tags.push('finance')
+   808→    }
+   809→    if (eff.includes('rerollsperday')) {
+   810→      roi = Math.max(roi, 4)
+   811→      tags.push('ordering')
+   812→    }
+   813→    if (s.description.en === '' && eff === '') roi = 0.5
+   814→
+   815→    // strategy weighting
+   816→    let weight = 1
+   817→    switch (strategy) {
+   818→      case 'employee-automation':
+   819→        weight = tags.includes('speed') ? 3 : tags.includes('headcount') ? 2 : 0.5
+   820→        break
+   821→      case 'checkout-speed':
+   822→        weight = tags.includes('throughput') ? 3 : 0.5
+   823→        break
+   824→      case 'customer-volume':
+   825→        weight = category === 'customer-volume' ? 3 : 0.5
+   826→        break
+   827→      case 'manufacturing':
+   828→        weight = category === 'ordering' ? 2 : 0.7
+   829→        break
+   830→      case 'anti-theft':
+   831→        weight = eff.includes('surveillance') ? 3 : 0.3
+   832→        break
+   833→      case 'early-cash':
+   834→        weight = tags.includes('finance') ? 2.5 : tags.includes('sales-cap') ? 2 : 0.6
+   835→        break
+   836→      case 'late-scale':
+   837→        weight = tags.includes('headcount') ? 2.5 : tags.includes('speed') ? 2 : 0.7
+   838→        break
+   839→    }
+   840→    return {
+   841→      skill: s,
+   842→      category,
+   843→      roiProxy: roi * weight,
+   844→      synergyTags: tags,
+   845→      confidence: s.description.en ? 'proxy' : 'unverified',
+   846→      note: s.effect || '(no effect extracted — possibly reserved slot)',
+   847→    }
+   848→  })
+   849→  rois.sort((a, b) => b.roiProxy - a.roiProxy)
+   850→  return {
+   851→    value: rois,
+   852→    formula: `roiProxy = baseScore × strategyWeight; strategy=${strategy}; all perks cost 1000 FP`,
+   853→    sources: [`skills=${ENC.skills.length}`, `strategy=${strategy}`],
+   854→    confidence: 'proxy',
+   855→    note: 'Exact % values for some skills not fully extracted from IL; effect text shown verbatim.',
+   856→  }
+   857→}
+   858→
+   859→// ============================================================
+   860→// Employee speed / XP
+   861→// ============================================================
+   862→
+   863→export function computeEmployeeSpeed(level: number, extraEmployeeSpeedFactor: number): CalcResult<number> {
+   864→  const speed = 2.5 * (1 + 0.05 * level + extraEmployeeSpeedFactor)
+   865→  return {
+   866→    value: speed,
+   867→    formula: 'speed = 2.5 × (1 + 0.05×level + extraEmployeeSpeedFactor)',
+   868→    sources: [`level=${level}`, `extraEmployeeSpeedFactor=${extraEmployeeSpeedFactor}`, 'IL: UpdateEmployeeStats r4:2.5, r4:0.05'],
+   869→    confidence: 'confirmed',
+   870→    note: 'level cap=5 per skill; extraEmployeeSpeedFactor max=1 (maxEmployeeSpeedFactor)',
+   871→  }
+   872→}
+   873→
+   874→export function computeXpToNextLevel(level: number): CalcResult<number> {
+   875→  return {
+   876→    value: 1000 + 100 * level,
+   877→    formula: 'xpToNextLevel = 1000 + 100×level',
+   878→    sources: [`level=${level}`, 'IL: SetEmployeesLevels i4:1000, i4:100'],
+   879→    confidence: 'confirmed',
+   880→  }
+   881→}
+   882→
+   883→// ============================================================
+   884→// Pricing lab
+   885→// ============================================================
+   886→
+   887→export interface PriceSuggestion {
+   888→  base: number
+   889→  conservative: number
+   890→  balanced: number
+   891→  aggressive: number
+   892→  markupBalanced: number
+   893→  confidence: Confidence
+   894→  note: string
+   895→}
+   896→
+   897→export function computePriceSuggestion(p: Product): CalcResult<PriceSuggestion> {
+   898→  const base = p.basePricePerUnit
+   899→  // No extracted customer price-acceptance formula → proxy only.
+   900→  const conservative = base * 1.0
+   901→  const balanced = base * 1.15
+   902→  const aggressive = base * 1.4
+   903→  return {
+   904→    value: {
+   905→      base,
+   906→      conservative,
+   907→      balanced,
+   908→      aggressive,
+   909→      markupBalanced: 0.15,
+   910→      confidence: 'needs-runtime',
+   911→      note: 'Exact customer price-acceptance formula not extracted; suggestions are heuristic markup tiers. Validate in-game.',
+   912→    },
+   913→    formula: 'conservative=base×1.0; balanced=base×1.15; aggressive=base×1.40 (heuristic, NOT extracted)',
+   914→    sources: [`basePricePerUnit=${base}`],
+   915→    confidence: 'needs-runtime',
+   916→  }
+   917→}
+   918→
+   919→// ============================================================
+   920→// Customer simulator
+   921→// ============================================================
+   922→
+   923→export interface SimulationConfig {
+   924→  n: number
+   925→  customerWeights?: number[]
+   926→  mode: 'raw' | 'unique'
+   927→  stockedProductIds?: Set<number>
+   928→}
+   929→
+   930→export interface SimulationResult {
+   931→  productHits: Map<number, number>
+   932→  missedSales: Map<number, number>
+   933→  totalCustomers: number
+   934→  totalHits: number
+   935→  missedHits: number
+   936→  demandCoverage: number
+   937→  topMissing: { productId: number; name: string; missed: number }[]
+   938→  topOverstockedLowDemand: { productId: number; name: string; units: number; demand: number }[]
+   939→}
+   940→
+   941→export function simulateCustomers(cfg: SimulationConfig): CalcResult<SimulationResult> {
+   942→  const nec = ENC.necessities
+   943→  const custs = ENC.customerTypes
+   944→  const products = ENC.products
+   945→  const productById = new Map(products.map((p) => [p.id, p]))
+   946→  const cw = cfg.customerWeights ?? custs.map(() => 1)
+   947→  const weightSum = cw.reduce((a, b) => a + b, 0)
+   948→  const stocked = cfg.stockedProductIds ?? new Set<number>(products.map((p) => p.id))
+   949→
+   950→  const productHits = new Map<number, number>()
+   951→  const missedSales = new Map<number, number>()
+   952→  let totalHits = 0
+   953→  let missedHits = 0
+   954→
+   955→  for (let i = 0; i < cfg.n; i++) {
+   956→    // pick customer type by weight
+   957→    let r = Math.random() * weightSum
+   958→    let ci = 0
+   959→    for (; ci < custs.length; ci++) {
+   960→      r -= cw[ci]
+   961→      if (r <= 0) break
+   962→    }
+   963→    if (ci >= custs.length) ci = custs.length - 1
+   964→    const cust = custs[ci]
+   965→    // pick necessity by chance (weighted)
+   966→    const chances = cust.necessitiesChances
+   967→    const chanceSum = chances.reduce((a, b) => a + Math.max(0, b), 0)
+   968→    if (chanceSum <= 0) continue
+   969→    let r2 = Math.random() * chanceSum
+   970→    let ni = -1
+   971→    for (let k = 0; k < chances.length; k++) {
+   972→      r2 -= Math.max(0, chances[k])
+   973→      if (r2 <= 0) {
+   974→        ni = k
+   975→        break
+   976→      }
+   977→    }
+   978→    if (ni < 0) ni = chances.length - 1
+   979→    const pool = nec[ni]
+   980→    if (!pool || pool.rawTokens.length === 0) continue
+   981→    const tokens = cfg.mode === 'unique' ? Array.from(new Set(pool.rawTokens)) : pool.rawTokens
+   982→    const chosen = tokens[Math.floor(Math.random() * tokens.length)]
+   983→    if (chosen < 0) continue
+   984→    totalHits++
+   985→    if (stocked.has(chosen)) {
+   986→      productHits.set(chosen, (productHits.get(chosen) ?? 0) + 1)
+   987→    } else {
+   988→      missedSales.set(chosen, (missedSales.get(chosen) ?? 0) + 1)
+   989→      missedHits++
+   990→    }
+   991→  }
+   992→
+   993→  const demandCoverage = totalHits > 0 ? (totalHits - missedHits) / totalHits : 0
+   994→
+   995→  const topMissing = Array.from(missedSales.entries())
+   996→    .map(([pid, missed]) => ({ productId: pid, name: productById.get(pid)?.name.en ?? `#${pid}`, missed }))
+   997→    .sort((a, b) => b.missed - a.missed)
+   998→    .slice(0, 10)
+   999→
+  1000→  // overstocked low demand: products with high inventory but low demand proxy
+  1001→  const topOverstockedLowDemand = products
+  1002→    .map((p) => {
+  1003→      const demand = computeDemandProxy(p.id, nec, custs, { mode: cfg.mode }).value
+  1004→      return { productId: p.id, name: p.name.en, units: 0, demand }
+  1005→    })
+  1006→    .filter((x) => x.demand < 0.0005)
+  1007→    .slice(0, 10)
+  1008→
+  1009→  return {
+  1010→    value: { productHits, missedSales, totalCustomers: cfg.n, totalHits, missedHits, demandCoverage, topMissing, topOverstockedLowDemand },
+  1011→    formula: `Monte Carlo: pick cust by weight, pick necessity by chance, pick product uniform from ${cfg.mode} pool`,
+  1012→    sources: [`n=${cfg.n}`, `mode=${cfg.mode}`, `customerWeights=${cw.length}`],
+  1013→    confidence: 'proxy',
+  1014→    note: 'Random uniform assumptions; true runtime selection unverified. Re-run for variance.',
+  1015→  }
+  1016→}
+  1017→
+  1018→// ============================================================
+  1019→// Export helpers
+  1020→// ============================================================
+  1021→
+  1022→export function exportMarkdownReport(snapshot: SaveSnapshot | null): string {
+  1023→  const scores = computeDashboardScores(snapshot)
+  1024→  const salt = computeSaltProbe()
+  1025→  const exploits = classifyExploitCandidates()
+  1026→  let md = '# Supermarket Together Lab — 報告\n\n'
+  1027→  md += `生成時間: ${new Date().toISOString()}\n\n`
+  1028→  md += '## Dashboard 分數\n\n'
+  1029→  md += `- Store Health: ${scores.storeHealth.value.toFixed(1)} (${scores.storeHealth.confidence})\n`
+  1030→  md += `- Demand Coverage: ${scores.demandCoverage.value.toFixed(1)}%\n`
+  1031→  md += `- Stock Risk: ${scores.stockRisk.value.toFixed(1)}%\n`
+  1032→  md += `- Shelf Efficiency: ${scores.shelfEfficiency.value.toFixed(1)}\n`
+  1033→  md += `- Employee Efficiency: ${scores.employeeEfficiency.value.toFixed(1)}\n\n`
+  1034→  md += '## Salt Monopoly Probe\n\n'
+  1035→  md += `- Route 9 (Salt necessity): ${salt.saltRoute9.value.toFixed(6)}\n`
+  1036→  md += `- Route 10 (Staple): ${salt.saltRoute10.value.toFixed(6)}\n`
+  1037→  md += `- Total demand proxy: ${salt.saltTotalDemand.value.toFixed(6)}\n`
+  1038→  md += `- Box value: $${salt.saltBoxValue.value.toFixed(2)}\n`
+  1039→  md += `- Conclusion: ${salt.conclusion}\n\n`
+  1040→  md += '## Exploit Candidates\n\n'
+  1041→  for (const e of exploits) {
+  1042→    md += `### ${e.title} [${e.category} / ${e.confidence}]\n\n`
+  1043→    md += `**Evidence:**\n${e.evidence.map((x) => `- ${x}`).join('\n')}\n\n`
+  1044→    md += `**Formula:** ${e.formula}\n\n`
+  1045→    md += `**Recommendation:** ${e.recommendation}\n\n`
+  1046→    md += `**Risk:** ${e.risk}\n\n`
+  1047→  }
+  1048→  return md
+  1049→}
+  1050→
