@@ -943,3 +943,43 @@ Stage Summary:
 - Room 頁面已從「本地模式」橘色 banner 切換為「Supabase 已連線」綠色 banner。
 - 跨裝置同步（建立/加入房間、存檔上傳、成員即時更新）現已可用。
 - 注意事項：dev server 在此 sandbox 中需用 setsid daemon 模式啟動；每次新的 bash call 可能需重啟。
+
+---
+Task ID: VERCEL-SUPABASE-FIX
+Agent: orchestrator (main)
+Task: 用戶部署到 Vercel (https://supermarket-together-tool.vercel.app/) 後，即使設了 Supabase env vars，Room 頁面仍顯示「本地模式」。診斷並修復。
+
+Work Log:
+- 從 Vercel 部署的網站抓取所有 JS chunks（13 個初始 + 34 個 lazy-loaded），concat 成 3.5MB bundle 搜尋。
+- 發現關鍵問題：deployed bundle 中 room+supabase chunk (4a989e681d73d8f8.js) 包含 supabase 程式碼（91 次 'supabase' 出現），但：
+  - `vxypyrhrgehkkkwelguz` (project ref): **0 次**（應該要被 inline）
+  - anon key: **0 次**（應該要被 inline）
+  - 程式碼是 `v.default.env.NEXT_PUBLIC_SUPABASE_URL?.trim()||""` — 透過 module 47167 (process polyfill) 讀 env
+  - process polyfill chunk (c31.js) 的 `o.env={}` — 空物件！
+- 根因確認：Next.js 16 Turbopack **不會 inline** 透過 shared module 間接讀取的 `NEXT_PUBLIC_*` env vars。backend-config.ts 是 shared module（無 'use client'），export module-level constants `supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || ''`。Turbopack 把這個保留為 runtime process.env 存取，而 browser 的 process.env polyfill 是 {}，所以部署後永遠是空字串 → isSupabaseConfigured=false → 本地模式。
+- 本地 dev 會動是因為 dev mode 的 process polyfill 有讀到 .env.local；production build 不會。
+
+Fix:
+- `src/lib/backend-config.ts`:
+  - 加 `'use client'` 標記
+  - 改 export getter functions: `getSupabaseUrl()`, `getSupabaseAnonKey()`, `getIsSupabaseConfigured()`
+  - env 存取移到 function body 內（call-time evaluation），Turbopack 會在 client bundle 正確 inline
+- `src/lib/backend-sync.ts`: import 改用 getters，`getSupabase()` 改 call-time 讀 env
+- `src/lib/room-sync.ts`: import 改用 `getIsSupabaseConfigured`，mode 在 render 時 re-evaluate
+
+驗證：
+- `bun run lint` → 0 errors
+- `bunx tsc --noEmit` → 0 errors in changed files（pre-existing errors 在 skills/ 和 SkillsDataTable 不相關）
+- `bun run build` → 成功（19.3s compiled）
+- 檢查 built chunk (05e643ce19fce2eb.js, 287KB):
+  - `vxypyrhrgehkkkwelguz`: 1 次 ✅
+  - anon key 完整 inlined ✅
+  - minified code: `function v(){return"https://vxypyrhrgehkkkwelguz.supabase.co".trim()||""}` ✅
+  - `getSupabaseUrl` / `getIsSupabaseConfigured` function names 已被 inline 消除（0 次）= build-time evaluated ✅
+
+Stage Summary:
+- 根因：Turbopack 不 inline shared module 的 NEXT_PUBLIC env（與 webpack 行為不同）
+- 修復：env 存取移到 'use client' module 的 getter functions 內
+- 本地 production build 已確認 env vars 正確 inline 進 client bundle
+- commit ed1e112 已建立，待 push 到 GitHub → Vercel auto-redeploy → Room 頁面會顯示綠色 banner
+- 用戶下一步：push commit 到 GitHub（需新 PAT，舊的已暴露建議 revoke）
