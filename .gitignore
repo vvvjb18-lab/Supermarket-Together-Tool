@@ -59,4 +59,4 @@ server.log
 /db/*.db-journal
 
 # agent context (internal work logs)
-/agent-ctx/
+/agent-ctx/tool-results/
