@@ -1,0 +1,59 @@
+id	top1_name	top1_weight	top2_name	top2_weight	top3_name	top3_weight	compensated_heavy	compensated_mid	compensated_light	premium_count	top_necessities_summary
+0	Staple Groceries	1	Hygiene & Cleaning	0.25	Pharmacy & Supplements	0.15	1	0	0	0	Staple Groceries×1, Hygiene & Cleaning×0.25, Pharmacy & Supplements×0.15
+1	Gardening	1.5	Drinks, Alcohol & Snacks	1	Small Electronics	0.5	1	0.25	0	0	Gardening×1.5, Drinks, Alcohol & Snacks×1, Small Electronics×0.5
+2	Staple Groceries	1	Drinks, Alcohol & Snacks	0.75	Hygiene & Cleaning	0.5	1	0.5	0	0	Staple Groceries×1, Drinks, Alcohol & Snacks×0.75, Hygiene & Cleaning×0.5
+3	Staple Groceries	1	Baby & Child Care	0.65	Hygiene & Cleaning	0.5	0.9	0.1	0	0	Staple Groceries×1, Baby & Child Care×0.65, Hygiene & Cleaning×0.5
+4	Pharmacy & Supplements	0.6	Hygiene & Cleaning	0.25	Gardening	0.15	1	0.1	0	0	Pharmacy & Supplements×0.6, Hygiene & Cleaning×0.25, Gardening×0.15
+5	Drinks, Alcohol & Snacks	1	Staple Groceries	0.25	Hygiene & Cleaning	0.25	1	0.25	0	0	Drinks, Alcohol & Snacks×1, Staple Groceries×0.25, Hygiene & Cleaning×0.25
+6	Baby & Child Care	1	Hygiene & Cleaning	0.5	Drinks, Alcohol & Snacks	0.5	1	0.15	0.01	0	Baby & Child Care×1, Hygiene & Cleaning×0.5, Drinks, Alcohol & Snacks×0.5
+7	Baby & Child Care	1	Drinks, Alcohol & Snacks	1	Staple Groceries	0.5	1	0.15	0	0	Baby & Child Care×1, Drinks, Alcohol & Snacks×1, Staple Groceries×0.5
+8	Baby & Child Care	1	Hygiene & Cleaning	0.5	Drinks, Alcohol & Snacks	0.5	1	0.2	0	0	Baby & Child Care×1, Hygiene & Cleaning×0.5, Drinks, Alcohol & Snacks×0.5
+9	Baby & Child Care	1	Drinks, Alcohol & Snacks	1	Pharmacy & Supplements	0.25	1	0.15	0	0	Baby & Child Care×1, Drinks, Alcohol & Snacks×1, Pharmacy & Supplements×0.25
+10	Drinks, Alcohol & Snacks	2	Small Electronics	0.5	Frozen Food & Soda	0.5	1	1	0	0	Drinks, Alcohol & Snacks×2, Small Electronics×0.5, Frozen Food & Soda×0.5
+11	Sushi, Tea & Energy Drinks	1	Frozen Food & Soda	0.5	Drinks, Alcohol & Snacks	0.5	1	0.25	0.01	0	Sushi, Tea & Energy Drinks×1, Frozen Food & Soda×0.5, Drinks, Alcohol & Snacks×0.5
+12	Baby & Child Care	1	Hygiene & Cleaning	0.5	Drinks, Alcohol & Snacks	0.5	1	0.15	0	0	Baby & Child Care×1, Hygiene & Cleaning×0.5, Drinks, Alcohol & Snacks×0.5
+13	Staple Groceries	0.5	Hygiene & Cleaning	0.5	Baby & Child Care	0.3	1	0.15	0	0	Staple Groceries×0.5, Hygiene & Cleaning×0.5, Baby & Child Care×0.3
+14	Gardening	1	Pharmacy & Supplements	0.5	Baby & Child Care	0.5	1	0.15	0	0	Gardening×1, Pharmacy & Supplements×0.5, Baby & Child Care×0.5
+15	Baby & Child Care	0.5	Hygiene & Cleaning	0.5	Sushi, Tea & Energy Drinks	0.35	1	0.25	0	0	Baby & Child Care×0.5, Hygiene & Cleaning×0.5, Sushi, Tea & Energy Drinks×0.35
+16	Frozen Food & Soda	1	Drinks, Alcohol & Snacks	1	Hygiene & Cleaning	0.5	1	0.35	0	0	Frozen Food & Soda×1, Drinks, Alcohol & Snacks×1, Hygiene & Cleaning×0.5
+17	Staple Groceries	1	Baby & Child Care	0.6	Hygiene & Cleaning	0.25	1	1	0	0	Staple Groceries×1, Baby & Child Care×0.6, Hygiene & Cleaning×0.25
+18	Sushi, Tea & Energy Drinks	3	Hygiene & Cleaning	0.25	Pharmacy & Supplements	0.15	1	0.25	0.25	0	Sushi, Tea & Energy Drinks×3, Hygiene & Cleaning×0.25, Pharmacy & Supplements×0.15
+19	Drinks, Alcohol & Snacks	2	Small Electronics	0.5	Frozen Food & Soda	0.5	1	0.4	0	0	Drinks, Alcohol & Snacks×2, Small Electronics×0.5, Frozen Food & Soda×0.5
+20	Pharmacy & Supplements	1	Baby & Child Care	1	Staple Groceries	0.5	1	0.3	0	0	Pharmacy & Supplements×1, Baby & Child Care×1, Staple Groceries×0.5
+21	Staple Groceries	1	Hygiene & Cleaning	0.25	Pharmacy & Supplements	0.15	1	0.25	0.01	0	Staple Groceries×1, Hygiene & Cleaning×0.25, Pharmacy & Supplements×0.15
+22	Staple Groceries	1	Pharmacy & Supplements	0.75	Hygiene & Cleaning	0.25	1	0.3	0	0	Staple Groceries×1, Pharmacy & Supplements×0.75, Hygiene & Cleaning×0.25
+23	Baby & Child Care	1.5	Hygiene & Cleaning	0.5	Drinks, Alcohol & Snacks	0.5	1	0.3	0	0	Baby & Child Care×1.5, Hygiene & Cleaning×0.5, Drinks, Alcohol & Snacks×0.5
+24	Drinks, Alcohol & Snacks	2	Gardening	1	Small Electronics	0.5	1	0.2	0	0	Drinks, Alcohol & Snacks×2, Gardening×1, Small Electronics×0.5
+25	Drinks, Alcohol & Snacks	1	Hygiene & Cleaning	0.5	Pharmacy & Supplements	0.15	0.5	0.25	0	0	Drinks, Alcohol & Snacks×1, Hygiene & Cleaning×0.5, Pharmacy & Supplements×0.15
+26	Staple Groceries	1	Baby & Child Care	1	Pharmacy & Supplements	0.15	1	0.35	0	0	Staple Groceries×1, Baby & Child Care×1, Pharmacy & Supplements×0.15
+27	Staple Groceries	1	Hygiene & Cleaning	0.25	Pharmacy & Supplements	0.15	1	0.25	0	0	Staple Groceries×1, Hygiene & Cleaning×0.25, Pharmacy & Supplements×0.15
+28	Drinks, Alcohol & Snacks	1	Hygiene & Cleaning	0.25			1	0.25	0	0	Drinks, Alcohol & Snacks×1, Hygiene & Cleaning×0.25
+29	Drinks, Alcohol & Snacks	0.5	Hygiene & Cleaning	0.25	Pharmacy & Supplements	0.15	1	1	0.01	0	Drinks, Alcohol & Snacks×0.5, Hygiene & Cleaning×0.25, Pharmacy & Supplements×0.15
+30	Staple Groceries	1	Small Electronics	0.25	Hygiene & Cleaning	0.25	1	0.25	0.01	0	Staple Groceries×1, Small Electronics×0.25, Hygiene & Cleaning×0.25
+31	Staple Groceries	1	Small Electronics	0.25	Hygiene & Cleaning	0.25	1	0.25	0.02	0	Staple Groceries×1, Small Electronics×0.25, Hygiene & Cleaning×0.25
+32	Baby & Child Care	1	Drinks, Alcohol & Snacks	1	Pharmacy & Supplements	0.25	1	0.35	0	0	Baby & Child Care×1, Drinks, Alcohol & Snacks×1, Pharmacy & Supplements×0.25
+33	Small Electronics	0.5	Frozen Food & Soda	0.5	Pharmacy & Supplements	0.15	1	0.15	0	0	Small Electronics×0.5, Frozen Food & Soda×0.5, Pharmacy & Supplements×0.15
+34	Frozen Food & Soda	1	Drinks, Alcohol & Snacks	1			1	1	0	0	Frozen Food & Soda×1, Drinks, Alcohol & Snacks×1
+35	Baby & Child Care	2	Staple Groceries	0.5	Hygiene & Cleaning	0.5	1	0.3	0	0	Baby & Child Care×2, Staple Groceries×0.5, Hygiene & Cleaning×0.5
+36	Staple Groceries	1	Pharmacy & Supplements	1	Hygiene & Cleaning	0.5	1	1	0	0	Staple Groceries×1, Pharmacy & Supplements×1, Hygiene & Cleaning×0.5
+37	Staple Groceries	1	Hygiene & Cleaning	0.25	Pharmacy & Supplements	0.15	0.9	0.1	0	0	Staple Groceries×1, Hygiene & Cleaning×0.25, Pharmacy & Supplements×0.15
+38	Frozen Food & Soda	2	Toilet Paper & Towels	0.25	Hygiene & Cleaning	0.25	0.75	0.5	0	0	Frozen Food & Soda×2, Toilet Paper & Towels×0.25, Hygiene & Cleaning×0.25
+39	Baby & Child Care	2	Drinks, Alcohol & Snacks	0.75	Staple Groceries	0.5	1	0.3	0	0	Baby & Child Care×2, Drinks, Alcohol & Snacks×0.75, Staple Groceries×0.5
+40	Sushi, Tea & Energy Drinks	2	Baby & Child Care	1	Hygiene & Cleaning	0.5	1	0.15	0.01	0	Sushi, Tea & Energy Drinks×2, Baby & Child Care×1, Hygiene & Cleaning×0.5
+41	Staple Groceries	1	Pharmacy & Supplements	1	Hygiene & Cleaning	0.5	1	0.5	0	0	Staple Groceries×1, Pharmacy & Supplements×1, Hygiene & Cleaning×0.5
+42	Frozen Food & Soda	1	Sushi, Tea & Energy Drinks	0.5	Hygiene & Cleaning	0.25	1	0.25	0	0	Frozen Food & Soda×1, Sushi, Tea & Energy Drinks×0.5, Hygiene & Cleaning×0.25
+43	Staple Groceries	1	Hygiene & Cleaning	0.25	Pharmacy & Supplements	0.15	1	0	0.02	0	Staple Groceries×1, Hygiene & Cleaning×0.25, Pharmacy & Supplements×0.15
+44	Staple Groceries	1	Hygiene & Cleaning	0.25	Pharmacy & Supplements	0.15	1	0	0.01	0	Staple Groceries×1, Hygiene & Cleaning×0.25, Pharmacy & Supplements×0.15
+45	Drinks, Alcohol & Snacks	0.75	Gardening	0.5	Staple Groceries	0.25	1	0.4	0	0	Drinks, Alcohol & Snacks×0.75, Gardening×0.5, Staple Groceries×0.25
+46	Baby & Child Care	1	Pharmacy & Supplements	0.5	Hygiene & Cleaning	0.5	1	0.15	0	0	Baby & Child Care×1, Pharmacy & Supplements×0.5, Hygiene & Cleaning×0.5
+47	Salt (single product)	0.5	Drinks, Alcohol & Snacks	0.5			1	1	0	0	Salt (single product)×0.5, Drinks, Alcohol & Snacks×0.5
+48	Staple Groceries	1	Hygiene & Cleaning	0.25	Pharmacy & Supplements	0.15	1	0	0.1	0	Staple Groceries×1, Hygiene & Cleaning×0.25, Pharmacy & Supplements×0.15
+49	Staple Groceries	1	Frozen Food & Soda	1	Drinks, Alcohol & Snacks	0.5	1	0.15	0	0	Staple Groceries×1, Frozen Food & Soda×1, Drinks, Alcohol & Snacks×0.5
+50	Staple Groceries	1	Small Electronics	0.25	Hygiene & Cleaning	0.25	1	0.5	0.25	0	Staple Groceries×1, Small Electronics×0.25, Hygiene & Cleaning×0.25
+51	Baby & Child Care	1	Hygiene & Cleaning	0.25	Pharmacy & Supplements	0.15	1	0.4	0	0	Baby & Child Care×1, Hygiene & Cleaning×0.25, Pharmacy & Supplements×0.15
+52	Sushi, Tea & Energy Drinks	0.6	Hygiene & Cleaning	0.5	Gardening	0.15	1	0.25	0	0	Sushi, Tea & Energy Drinks×0.6, Hygiene & Cleaning×0.5, Gardening×0.15
+53	Staple Groceries	1	Pharmacy & Supplements	1	Hygiene & Cleaning	0.25	1	0.15	0	0	Staple Groceries×1, Pharmacy & Supplements×1, Hygiene & Cleaning×0.25
+54	Staple Groceries	1	Pharmacy & Supplements	1	Baby & Child Care	1	1	0.2	0	0	Staple Groceries×1, Pharmacy & Supplements×1, Baby & Child Care×1
+55	Pharmacy & Supplements	1	Baby & Child Care	1	Hygiene & Cleaning	1	1	0.3	0	0	Pharmacy & Supplements×1, Baby & Child Care×1, Hygiene & Cleaning×1
+56	Sushi, Tea & Energy Drinks	1	Staple Groceries	0.5	Hygiene & Cleaning	0.5	1	0.25	0.01	0	Sushi, Tea & Energy Drinks×1, Staple Groceries×0.5, Hygiene & Cleaning×0.5
+57	Staple Groceries	1	Baby & Child Care	1	Gardening	1	1	1	0	0	Staple Groceries×1, Baby & Child Care×1, Gardening×1

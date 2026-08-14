@@ -1,0 +1,340 @@
+id	name_en	name_zhHant	brand	group_en	group_zhHant	basePrice	tier	tierName	category_en	maxItemsPerBox	isStackable	containerClass	boxClass	hasTrueCollider	colX	colY	colZ	trueX	trueY	trueZ
+0	Pasta Penne	通心粉	Panzati	Basic Products	基本產品s	1.35	0	0-5	Basic Products I	30	False	0	0	False	0.16256179	0.2584979	0.11295802	0.1	0.1	0.1
+1	Water Bottle	瓶装水	Montcuq	Basic Products	基本產品s	0.89	0	0-5	Basic Products I	30	False	0	0	False	0.08749385	0.2678936	0.08749385	0.1	0.1	0.1
+2	Honey Cereals	蜂蜜穀物	Honey Bees	Basic Products	基本產品s	2.5	0	0-5	Basic Products I	20	False	0	0	False	0.19197002	0.28061223	0.061069675	0.1	0.1	0.1
+3	Rice	米	Elo	Basic Products	基本產品s	1.45	0	0-5	Basic Products I	30	False	0	0	False	0.13208261	0.19307181	0.08962737	0.1	0.1	0.1
+4	Salt	鹽	Labalaine	Basic Products	基本產品s	0.45	0	0-5	Basic Products I	50	False	0	0	False	0.056200575	0.13749473	0.056175422	0.1	0.1	0.1
+5	Sugar	糖	Daron	Basic Products	基本產品s	1.49	0	0-5	Basic Products I	40	False	0	0	False	0.12559387	0.19698344	0.07262842	0.1	0.1	0.1
+6	Margarine	人造奶油	Etron	Basic Products	基本產品s	2.1	1	6-12	Basic Products II	25	True	1	0	False	0.17507464	0.09588805	0.17506427	0.1	0.1	0.1
+7	Flour	麵粉	Kraftung	Basic Products	基本產品s	0.9	1	6-12	Basic Products II	25	False	0	0	False	0.17893803	0.2435627	0.116426826	0.1	0.1	0.1
+8	Apple Juice	蘋果汁	Bio	Basic Products	基本產品s	1.85	1	6-12	Basic Products II	40	False	0	0	False	0.08712542	0.220872	0.08712542	0.1	0.1	0.1
+9	Olive Oil	橄欖油	Tupiges	Basic Products	基本產品s	7.62	1	6-12	Basic Products II	40	False	0	0	False	0.092923135	0.25313008	0.092923135	0.1	0.1	0.1
+10	Ketchup	番茄醬	Kekette	Basic Products	基本產品s	2.35	1	6-12	Basic Products II	40	False	0	0	False	0.062258895	0.1439076	0.041548163	0.1	0.1	0.1
+11	Sliced Bread	切片麵包	Ron's	Basic Products	基本產品s	1.7	1	6-12	Basic Products II	30	False	0	0	False	0.16669054	0.36	0.16855302	0.1	0.1	0.1
+12	Pepper	胡椒	Alei	Basic Products	基本產品s	1.17	1	6-12	Basic Products II	40	False	0	0	False	0.050279997	0.18863074	0.04901938	0.1	0.1	0.1
+13	Orange Juice	柳橙汁	Bio	Basic Products	基本產品s	2	2	13-19	Basic Products III	40	False	0	0	False	0.08712542	0.220872	0.08712542	0.1	0.1	0.1
+14	Barbacue Sauce	燒烤醬	HotHot	Basic Products	基本產品s	1.99	2	13-19	Basic Products III	40	False	0	0	False	0.062258895	0.1439076	0.041548163	0.1	0.1	0.1
+15	Mustard Sauce	芥末醬	Maptite	Basic Products	基本產品s	2.45	2	13-19	Basic Products III	40	False	0	0	False	0.062258895	0.1439076	0.041548163	0.1	0.1	0.1
+16	Spaghetti Box	義大利麵盒	Elo	Basic Products	基本產品s	1.55	2	13-19	Basic Products III	20	False	0	0	False	0.17680901	0.25845066	0.119977385	0.1	0.1	0.1
+17	Tuna Pate	鮪魚醬	Stark	Basic Products	基本產品s	3.79	2	13-19	Basic Products III	30	True	0	0	False	0.17507464	0.09588805	0.17506427	0.1	0.1	0.1
+18	Fiber Cereals	纖維穀物	Racoon	Basic Products	基本產品s	2.85	2	13-19	Basic Products III	30	False	0	0	False	0.19197002	0.28061223	0.061069675	0.1	0.1	0.1
+19	Supreme Flour	特級麵粉	Aio	Basic Products	基本產品s	1.63	2	13-19	Basic Products III	30	False	0	0	False	0.17893803	0.2435627	0.116426826	0.1	0.1	0.1
+20	Black Coffee	黑咖啡	NarValo	Basic Products	基本產品s	3.35	3	20-25	Basic Products IV	25	False	0	0	False	0.14457385	0.24454005	0.073826	0.1	0.1	0.1
+21	Egg Box	蛋盒	Bio	Basic Products	基本產品s	2.26	3	20-25	Basic Products IV	30	True	0	0	False	0.34615928	0.06992889	0.12146637	0.1	0.1	0.1
+22	Houmous	侯穆斯	Bibi	Basic Products	基本產品s	1.69	3	20-25	Basic Products IV	30	True	0	0	False	0.17507464	0.09588805	0.17506427	0.1	0.1	0.1
+23	White Flour	白麵粉	Sublett	Basic Products	基本產品s	1.79	3	20-25	Basic Products IV	30	False	0	0	False	0.17893803	0.2435627	0.116426826	0.1	0.1	0.1
+24	Cane Sugar Box	蔗糖盒	Daron	Basic Products	基本產品s	1.85	3	20-25	Basic Products IV	25	False	0	0	False	0.2093381	0.30600002	0.066594794	0.1	0.1	0.1
+25	Sugar	糖	Pablo	Basic Products	基本產品s	1.78	3	20-25	Basic Products IV	40	False	0	0	False	0.12559387	0.19698344	0.07262842	0.1	0.1	0.1
+26	Macarroni	馬卡羅尼	Barillo	Basic Products	基本產品s	1.33	4	26-34	Basic Products V	30	False	0	0	False	0.17680901	0.25845066	0.119977385	0.1	0.1	0.1
+27	Ecologic Sugar	生態糖	Daron	Basic Products	基本產品s	1.45	4	26-34	Basic Products V	40	False	0	0	False	0.12559387	0.19698344	0.07262842	0.1	0.1	0.1
+28	Brown Sugar	紅糖	Daron	Basic Products	基本產品s	2.25	4	26-34	Basic Products V	40	False	0	0	False	0.12559387	0.19698344	0.07262842	0.1	0.1	0.1
+29	Sunflower Oil	葵花籽油	Lespieds	Basic Products	基本產品s	9.25	4	26-34	Basic Products V	25	False	0	0	False	0.0803061	0.2596161	0.08030613	0.1	0.1	0.1
+30	Mash Potatoes	馬鈴薯泥	Puray	Basic Products	基本產品s	2	4	26-34	Basic Products V	30	False	0	0	False	0.14767778	0.21586804	0.04697937	0.1	0.1	0.1
+31	Potato Bag	馬鈴薯袋	Miamm	Basic Products	基本產品s	5.99	4	26-34	Basic Products V	10	False	0	0	False	0.3	0.36	0.33938405	0.1	0.1	0.1
+32	Espresso Coffee	濃縮咖啡	NarValo	Basic Products	基本產品s	2.85	4	26-34	Basic Products V	20	False	0	0	False	0.14457385	0.24454005	0.073826	0.1	0.1	0.1
+33	Basmati Rice	印度香米	Lustupacru	Basic Products	基本產品s	2.35	4	26-34	Basic Products V	30	False	0	0	False	0.13208261	0.19307181	0.08962737	0.1	0.1	0.1
+34	Long Grain Rice	長粒米	Uncle Tony's	Basic Products	基本產品s	2.85	4	26-34	Basic Products V	30	False	0	0	False	0.13208261	0.19307181	0.08962737	0.1	0.1	0.1
+35	Coffee	咖啡	NarValo	Basic Products	基本產品s	3.95	5	35-42	Basic Products VI	40	False	0	0	False	0.14457385	0.24454005	0.073826	0.1	0.1	0.1
+36	Supreme Pasta	至尊義大利麵	Lustupacru	Basic Products	基本產品s	2.55	5	35-42	Basic Products VI	30	False	0	0	False	0.17680901	0.25845066	0.119977385	0.1	0.1	0.1
+37	Chocolate Cereals	巧克力穀物	Racoon	Basic Products	基本產品s	3.99	5	35-42	Basic Products VI	25	False	0	0	False	0.19197002	0.28061223	0.061069675	0.1	0.1	0.1
+38	Premium Water	優質水	Fort-lacs	Basic Products	基本產品s	0.95	5	35-42	Basic Products VI	30	False	0	0	False	0.08749385	0.2678936	0.08749385	0.1	0.1	0.1
+39	Spring Water	泉水	Flotte	Basic Products	基本產品s	1.2	5	35-42	Basic Products VI	30	False	0	0	False	0.08749385	0.2678936	0.08749385	0.1	0.1	0.1
+40	Powdered Sugar	玻璃糖	Boully	Basic Products	基本產品s	2.5	5	35-42	Basic Products VI	30	False	0	0	False	0.11906232	0.2323056	0.119062304	0.1	0.1	0.1
+41	Sugar - Big Box	糖 - 大盒	Susu	Basic Products	基本產品s	3.5	5	35-42	Basic Products VI	25	False	0	0	False	0.2093381	0.30600002	0.066594794	0.1	0.1	0.1
+42	Brown Sugar - Big Box	黑糖-大盒	Susu	Basic Products	基本產品s	3.6	5	35-42	Basic Products VI	25	False	0	0	False	0.2093381	0.30600002	0.066594794	0.1	0.1	0.1
+43	Emmental Cheese	艾門塔爾起司	Mimolette	Dairy Products	乳製品	1.83	6	43-48	Dairy Products I	80	True	1	0	True	0.1	0.031108914	0.185	0.185	0.03110891	0.1
+44	Gruyere Cheese	格魯耶爾起司	Mimolette	Dairy Products	乳製品	2.25	6	43-48	Dairy Products I	80	True	1	0	True	0.1	0.031108914	0.185	0.185	0.03110891	0.1
+45	Skimmed Cheese	脫脂乳酪	Comte	Dairy Products	乳製品	2.35	6	43-48	Dairy Products I	80	True	1	0	False	0.1	0.031108914	0.185	0.185	0.03110891	0.1
+46	Fruit Yoghurt	水果優格	Frugen!	Dairy Products	乳製品	2.6	6	43-48	Dairy Products I	25	True	1	0	True	0.125	0.135	0.15	0.19	0.135	0.15
+47	Vanilla Yoghurt	香草優格	Yowp	Dairy Products	乳製品	3.95	6	43-48	Dairy Products I	25	True	1	0	True	0.125	0.135	0.15	0.19	0.135	0.15
+48	Milk Brick	乳磚	Bourlait	Dairy Products	乳製品	0.91	6	43-48	Dairy Products I	30	False	0	0	False	0.08712542	0.220872	0.08712542	0.1	0.1	0.1
+49	Butter	奶油	Paysans	Dairy Products	乳製品	3.65	7	49-53	Dairy Products II	40	True	1	0	True	0.115	0.036086757	0.06989694	0.06989694	0.03608676	0.115
+50	Parmigiano Cheese	帕瑪森起司	Don Bernardo	Dairy Products	乳製品	2.1	7	49-53	Dairy Products II	40	False	1	0	True	0.11917052	0.15868141	0.06	0.06	0.1586814	0.1191705
+51	Reggiano Cheese	雷吉亞諾乳酪	Stereoprice	Dairy Products	乳製品	2.7	7	49-53	Dairy Products II	40	False	1	0	True	0.11917052	0.15868141	0.06	0.06	0.1586814	0.1191705
+52	Mozzarella Cheese	莫札里拉起司	Don Bernardo	Dairy Products	乳製品	2.9	7	49-53	Dairy Products II	40	False	1	0	True	0.1549002	0.16637115	0.04067575	0.04067575	0.1663712	0.1549002
+53	Skimmed Yoghurt	脫脂優格	Madone	Dairy Products	乳製品	3.5	7	49-53	Dairy Products II	25	True	1	0	True	0.125	0.135	0.15	0.19	0.135	0.15
+54	Cola Pack	可樂包	PokaBola	Soda Drinks	汽水	1.8	8	54-60	Soda Drinks I	30	True	0	0	False	0.1466213	0.115	0.195	0.1	0.1	0.1
+55	Soda Pack	汽水包	Zap-Soda	Soda Drinks	汽水	2.1	8	54-60	Soda Drinks I	30	True	0	0	False	0.1466213	0.115	0.195	0.1	0.1	0.1
+56	Decaf Soda Pack	無咖啡因蘇打水包	Soda-Pop	Soda Drinks	汽水	4	8	54-60	Soda Drinks I	30	True	0	0	False	0.1466213	0.115	0.195	0.1	0.1	0.1
+57	Soda Bottle	汽水瓶	Zap-Soda	Soda Drinks	汽水	1.5	8	54-60	Soda Drinks I	20	False	1	0	False	0.107463524	0.3182253	0.106897205	0.1	0.1	0.1
+58	Cola Bottle	可樂瓶	Koujeima	Soda Drinks	汽水	1.8	8	54-60	Soda Drinks I	20	False	1	0	False	0.0976066	0.31751943	0.09634538	0.1	0.1	0.1
+59	Sugar Free Soda Bottle	無糖汽水瓶	Soda-Pop	Soda Drinks	汽水	2.25	8	54-60	Soda Drinks I	20	False	1	0	False	0.0976066	0.31751943	0.09634538	0.1	0.1	0.1
+60	Premium Soda	優質蘇打水	BokaBola	Soda Drinks	汽水	3	8	54-60	Soda Drinks I	20	False	1	0	False	0.097372696	0.31908444	0.09748399	0.1	0.1	0.1
+61	Pizza Barbaque	披薩燒烤	ChezzyPizz	Frozen Foods	冷凍食品	2.41	9	61-67	Frozen Foods I	30	True	2	0	True	0.02	0.30131656	0.3	0.3	0.3013166	0.02
+62	Fondue	火鍋	Prypiat	Frozen Foods	冷凍食品	2.49	9	61-67	Frozen Foods I	20	True	2	0	True	0.07	0.13500002	0.25	0.25	0.135	0.07
+63	Crocanti Ham	克羅坎蒂火腿	Ronpoint	Frozen Foods	冷凍食品	2.87	9	61-67	Frozen Foods I	20	True	2	0	True	0.07	0.13500002	0.25	0.25	0.135	0.07
+64	Ham Cheese Crepe	火腿起司薄餅	Prypiat	Frozen Foods	冷凍食品	3.35	9	61-67	Frozen Foods I	20	True	2	0	True	0.07	0.13500002	0.25	0.25	0.135	0.07
+65	French Fries	薯條	Vandame	Frozen Foods	冷凍食品	4.05	9	61-67	Frozen Foods I	30	True	2	0	True	0.065	0.28923717	0.22	0.22	0.2892372	0.065
+66	Crispy Potato Pops	脆皮馬鈴薯棒	Spok	Frozen Foods	冷凍食品	3.99	9	61-67	Frozen Foods I	30	True	2	0	True	0.065	0.28923717	0.22	0.22	0.2892372	0.065
+67	Green Beans	綠豆	MrBean	Frozen Foods	冷凍食品	4.5	9	61-67	Frozen Foods I	30	True	2	0	True	0.065	0.28923717	0.22	0.22	0.2892372	0.065
+68	Four Cheese Pizza	四芝士披薩	BigTony	Frozen Foods	冷凍食品	2.49	10	68-73	Frozen Foods II	30	True	2	0	True	0.02	0.30131656	0.3	0.3	0.3013166	0.02
+69	Four Seasons Pizza	四個季節披薩	Mafia	Frozen Foods	冷凍食品	3.19	10	68-73	Frozen Foods II	30	True	2	0	True	0.02	0.30131656	0.3	0.3	0.3013166	0.02
+70	Vegetable Mix	蔬菜混合	Brrr	Frozen Foods	冷凍食品	3.99	10	68-73	Frozen Foods II	30	True	2	0	True	0.065	0.28923717	0.22	0.22	0.2892372	0.065
+71	Chicken Mix	雞肉混合料	Brrr	Frozen Foods	冷凍食品	3.79	10	68-73	Frozen Foods II	30	True	2	0	True	0.065	0.28923717	0.22	0.22	0.2892372	0.065
+72	Bolognaise Lasagna	博洛尼亞千層麵	Moussaka	Frozen Foods	冷凍食品	3.67	10	68-73	Frozen Foods II	20	True	2	0	True	0.07	0.13500002	0.25	0.25	0.135	0.07
+73	Vegetable Lasagna	蔬菜烤寬麵條	Moussaka	Frozen Foods	冷凍食品	3.45	10	68-73	Frozen Foods II	20	True	2	0	True	0.07	0.13500002	0.25	0.25	0.135	0.07
+74	Toothpaste	牙膏	Signoulos	Hygiene	衛生	1.99	11	74-79	Hygiene I	100	True	0	0	False	0.20331338	0.044170905	0.0441709	0.1	0.1	0.1
+75	Toilet Paper	衛生紙	Petus	Hygiene	衛生	4.6	11	74-79	Hygiene I	8	True	0	0	False	0.27	0.29635888	0.41	0.1	0.1	0.1
+76	Hand Soap	洗手液	Pur	Hygiene	衛生	0.99	11	74-79	Hygiene I	30	False	0	0	False	0.06860896	0.1453914	0.06860896	0.1	0.1	0.1
+77	Avocado Shampoo	酪梨洗髮精	MaPei	Hygiene	衛生	2.99	11	74-79	Hygiene I	50	False	0	0	False	0.09777045	0.18331493	0.051771507	0.1	0.1	0.1
+78	Egg Shampoo	蛋洗髮精	Dope	Hygiene	衛生	3.49	11	74-79	Hygiene I	50	False	0	0	False	0.084970415	0.18959416	0.03943204	0.1	0.1	0.1
+79	Bath Gel	沐浴液	MaPei	Hygiene	衛生	2.79	11	74-79	Hygiene I	50	False	0	0	False	0.078455344	0.20662864	0.060303345	0.1	0.1	0.1
+80	Toilet Paper	衛生紙	Bidet	Hygiene	衛生	4.6	12	80-84	Hygiene II	8	True	0	0	False	0.27	0.29635888	0.41	0.1	0.1	0.1
+81	Mango Soap	芒果肥皂	Sapu	Hygiene	衛生	1.69	12	80-84	Hygiene II	40	False	0	0	False	0.07655027	0.15353245	0.032986037	0.1	0.1	0.1
+82	Extra Soft Shampoo	超柔洗髮精	MaPei	Hygiene	衛生	2.25	12	80-84	Hygiene II	40	False	0	0	False	0.084970415	0.18959416	0.03943204	0.1	0.1	0.1
+83	Jojoba Honey Shampoo	荷荷巴蜂蜜洗髮精	ImotepBio	Hygiene	衛生	2.59	12	80-84	Hygiene II	40	False	0	0	False	0.084970415	0.18959416	0.03943204	0.1	0.1	0.1
+84	Argan Oil Shampoo	摩洛哥堅果油洗髮精	Koyo	Hygiene	衛生	3.99	12	80-84	Hygiene II	40	False	0	0	False	0.084970415	0.18959416	0.03943204	0.1	0.1	0.1
+85	Paper Towel	紙巾	Compact	Hygiene	衛生	5.2	13	85-89	Hygiene III	8	True	0	0	False	0.27	0.3013564	0.41	0.1	0.1	0.1
+86	Double Side Toilet Paper	雙面衛生紙	Doudou	Hygiene	衛生	2.5	13	85-89	Hygiene III	8	True	0	0	False	0.27	0.29635888	0.41	0.1	0.1	0.1
+87	Lemon Soap	檸檬皂	Mouss	Hygiene	衛生	1.25	13	85-89	Hygiene III	40	False	0	0	False	0.07655027	0.15353245	0.032986037	0.1	0.1	0.1
+88	Premium Bath Gel	優質沐浴露	MaPei	Hygiene	衛生	2.65	13	85-89	Hygiene III	40	False	0	0	False	0.078455344	0.20662864	0.060303345	0.1	0.1	0.1
+89	Shampoo For Babies	嬰兒洗髮精	MaPei	Hygiene	衛生	3.95	13	85-89	Hygiene III	40	False	0	0	False	0.078455344	0.20662864	0.060303345	0.1	0.1	0.1
+90	Detergent	洗滌劑	MaPei	Cleaning Products	清潔產品	3.3	14	90-96	Cleaning Products I	30	False	0	0	False	0.26415324	0.36	0.10694243	0.1	0.1	0.1
+91	Stain Remover	去污r	Wesh	Cleaning Products	清潔產品	1.9	14	90-96	Cleaning Products I	40	False	0	0	False	0.13223046	0.31895348	0.049189754	0.1	0.1	0.1
+92	Glass Cleaner	玻璃清潔劑	Touprop	Cleaning Products	清潔產品	3.6	14	90-96	Cleaning Products I	40	False	0	0	False	0.13223046	0.31895348	0.049189754	0.1	0.1	0.1
+93	Detergent Tablets	洗滌劑表	Cemagik	Cleaning Products	清潔產品	6.7	14	90-96	Cleaning Products I	20	True	0	0	False	0.3083284	0.181	0.18858196	0.1	0.1	0.1
+94	Dishwasher	洗碗機	Cleandish	Cleaning Products	清潔產品	4.6	14	90-96	Cleaning Products I	20	False	0	0	False	0.29312447	0.3186915	0.09029269	0.1	0.1	0.1
+95	Bleach	漂白	JajaVevel	Cleaning Products	清潔產品	1.2	14	90-96	Cleaning Products I	20	False	0	0	False	0.119401395	0.32356763	0.12252432	0.1	0.1	0.1
+96	Bleach - Big Bottle	漂白水 - 大瓶	WCBoeff	Cleaning Products	清潔產品	1.9	14	90-96	Cleaning Products I	18	False	0	0	False	0.2594963	0.38555166	0.13130236	0.1	0.1	0.1
+97	Softener	柔軟精	Souplesse	Cleaning Products	清潔產品	3.99	15	97-103	Cleaning Products II	30	False	0	0	False	0.26415324	0.36	0.10694243	0.1	0.1	0.1
+98	Premium Detergent	優質洗滌劑	Toudou	Cleaning Products	清潔產品	4.5	15	97-103	Cleaning Products II	20	False	0	0	False	0.26415324	0.36	0.10694243	0.1	0.1	0.1
+99	Insecticide	殺蟲劑	Kilemol	Cleaning Products	清潔產品	4.1	15	97-103	Cleaning Products II	20	False	0	0	False	0.13223046	0.31895348	0.049189754	0.1	0.1	0.1
+100	Cleaning Cloths	清潔布	LeTriangle	Cleaning Products	清潔產品	0.9	15	97-103	Cleaning Products II	50	True	0	0	False	0.2587244	0.05	0.12303601	0.1	0.1	0.1
+101	Premium Capsules	高級膠囊	Boum	Cleaning Products	清潔產品	7.8	15	97-103	Cleaning Products II	20	False	0	0	False	0.22573426	0.28775492	0.06262408	0.1	0.1	0.1
+102	Premium Bleach	優質漂白劑	JajaVevel	Cleaning Products	清潔產品	2.5	15	97-103	Cleaning Products II	20	False	0	0	False	0.119401395	0.32356763	0.12252432	0.1	0.1	0.1
+103	Ammonia	氨	JajaVevel	Cleaning Products	清潔產品	3.1	15	97-103	Cleaning Products II	20	False	0	0	False	0.119401395	0.32356763	0.12252432	0.1	0.1	0.1
+104	Cookie Jar	餅乾罐	Delitout	Sweets and Snacks	糖果和零食	3.6	16	104-109	Sweets And Snacks I	50	False	0	0	False	0.09198442	0.13634126	0.091984436	0.1	0.1	0.1
+105	Maxi Cone	最大錐體	Delitout	Sweets and Snacks	糖果和零食	3.9	16	104-109	Sweets And Snacks I	20	True	2	0	True	0.19	0.062373944	0.28	0.28	0.06237394	0.19
+106	Chocolate Spread	巧克力醬	Patatartine	Sweets and Snacks	糖果和零食	1.99	16	104-109	Sweets And Snacks I	50	False	0	0	False	0.09094037	0.13330445	0.061940387	0.1	0.1	0.1
+107	Chocolate Powder	巧克力粉	Boudain	Sweets and Snacks	糖果和零食	2.89	16	104-109	Sweets And Snacks I	20	True	0	0	False	0.16426432	0.14110418	0.057200223	0.1	0.1	0.1
+108	Chips	洋芋片	Vin's	Sweets and Snacks	糖果和零食	1	16	104-109	Sweets And Snacks I	40	False	0	0	False	0.16365314	0.27944976	0.07948242	0.1	0.1	0.1
+109	Sweet Bonbek	甜本貝克	Bonbek	Sweets and Snacks	糖果和零食	1.9	16	104-109	Sweets And Snacks I	50	False	0	0	False	0.16000003	0.20292704	0.041090436	0.1	0.1	0.1
+110	Peach Jam	桃子醬	Delitout	Sweets and Snacks	糖果和零食	2.9	17	110-115	Sweets And Snacks II	50	False	0	0	False	0.0831745	0.14636973	0.08319819	0.1	0.1	0.1
+111	Ice Cream Box	冰淇淋盒	Delitout	Sweets and Snacks	糖果和零食	4.5	17	110-115	Sweets And Snacks II	20	True	2	0	True	0.19	0.062373944	0.28	0.28	0.06237394	0.19
+112	Chocolate Box	巧克力盒	Chocotte	Sweets and Snacks	糖果和零食	10.9	17	110-115	Sweets And Snacks II	20	False	0	0	False	0.20843019	0.2084302	0.02072959	0.1	0.1	0.1
+113	Chocolate Biscuit	巧克力餅乾	Marbre	Sweets and Snacks	糖果和零食	4.8	17	110-115	Sweets And Snacks II	40	True	0	0	False	0.21906777	0.10877223	0.062002227	0.1	0.1	0.1
+114	Vanilate Biscuit	香草餅乾	Prairie	Sweets and Snacks	糖果和零食	5.5	17	110-115	Sweets And Snacks II	40	True	0	0	False	0.21906777	0.10877223	0.062002227	0.1	0.1	0.1
+115	Madeleine	瑪德琳	StMichmich	Sweets and Snacks	糖果和零食	2.7	17	110-115	Sweets And Snacks II	40	False	0	0	False	0.13090234	0.18	0.050973862	0.1	0.1	0.1
+116	Strawberry Jam	草莓醬	Delitout	Sweets and Snacks	糖果和零食	3.9	18	116-121	Sweets And Snacks III	50	False	0	0	False	0.07750994	0.11463593	0.067125596	0.1	0.1	0.1
+117	Peanut Butter	花生醬	Delitout	Sweets and Snacks	糖果和零食	3.6	18	116-121	Sweets And Snacks III	50	False	0	0	False	0.09094037	0.13330445	0.061940387	0.1	0.1	0.1
+118	Chipos	奇波斯	MacChipos	Sweets and Snacks	糖果和零食	1.99	18	116-121	Sweets And Snacks III	40	False	0	0	False	0.15741535	0.2722036	0.071668245	0.1	0.1	0.1
+119	Marshmallow	棉花糖	Bonbek	Sweets and Snacks	糖果和零食	2.99	18	116-121	Sweets And Snacks III	50	False	0	0	False	0.16000003	0.20292704	0.041090436	0.1	0.1	0.1
+120	Lemon Biscuit	檸檬餅乾	Gerbe	Sweets and Snacks	糖果和零食	2.45	18	116-121	Sweets And Snacks III	50	False	0	0	False	0.13090234	0.19	0.050973862	0.1	0.1	0.1
+121	Hazelnut Biscuit	榛果餅乾	BonPapa	Sweets and Snacks	糖果和零食	2.55	18	116-121	Sweets And Snacks III	50	False	0	0	False	0.13090234	0.19	0.050973862	0.1	0.1	0.1
+122	Premium Ice Cream	優質冰淇淋	Extra	Sweets and Snacks	糖果和零食	5.99	19	122-126	Sweets And Snacks IV	20	True	2	0	True	0.19	0.062373944	0.28	0.28	0.06237394	0.19
+123	Honey	蜂蜜	Delitout	Sweets and Snacks	糖果和零食	3.99	19	122-126	Sweets And Snacks IV	40	False	0	0	False	0.09094037	0.13330445	0.061940387	0.1	0.1	0.1
+124	Premium Chocolate Box	優質巧克力盒	Delitout	Sweets and Snacks	糖果和零食	18.5	19	122-126	Sweets And Snacks IV	20	False	0	0	False	0.20843019	0.2084302	0.02072959	0.1	0.1	0.1
+125	Foditos	福迪托斯	Covidos	Sweets and Snacks	糖果和零食	4	19	122-126	Sweets And Snacks IV	45	False	0	0	False	0.15741535	0.2722036	0.071668245	0.1	0.1	0.1
+126	Premium Cake	高級蛋糕	Pepites	Sweets and Snacks	糖果和零食	3.8	19	122-126	Sweets And Snacks IV	40	True	0	0	False	0.21906777	0.10877223	0.062002227	0.1	0.1	0.1
+127	Chopped Beef	切碎的牛肉	HaveSomeBeef	Meat	肉	3.39	20	127-133	Meat I	20	True	1	0	True	0.19	0.032	0.14857729	0.1485773	0.03200173	0.19
+128	Pure Beef	純牛肉	HaveSomeBeef	Meat	肉	4.89	20	127-133	Meat I	20	True	1	0	True	0.19	0.02	0.15	0.15	0.01917384	0.21
+129	Veal	小牛肉	HaveSomeBeef	Meat	肉	5.9	20	127-133	Meat I	20	True	1	0	True	0.21	0.02	0.17	0.17	0.02	0.21
+130	Chicken Wings	雞翅	HaveSomeBeef	Meat	肉	3.99	20	127-133	Meat I	20	True	1	0	True	0.2287544	0.034	0.16295215	0.1629522	0.03473556	0.2287544
+131	Chicken	雞	HaveSomeBeef	Meat	肉	8.99	20	127-133	Meat I	12	False	1	0	True	0.21	0.16769023	0.24302834	0.2430283	0.1676902	0.36
+132	Parma Ham	帕瑪火腿	HaveSomeBeef	Meat	肉	3.5	20	127-133	Meat I	20	True	1	0	True	0.23	0.014	0.23	0.27	0.014	0.23
+133	Sliced Ham	火腿片	HaveSomeBeef	Meat	肉	2.5	20	127-133	Meat I	20	True	1	0	True	0.19	0.014	0.23	0.27	0.014	0.23
+134	Peas - Big	豌豆 - 大	Bio	Preserves	果醬	2.99	21	134-139	Preserves I	40	True	0	0	False	0.12127772	0.115312256	0.119435236	0.1	0.1	0.1
+135	Tuna - Big	鮪魚 - 大	Captain Quintus	Preserves	果醬	3.95	21	134-139	Preserves I	40	True	0	0	False	0.12127772	0.115312256	0.119435236	0.1	0.1	0.1
+136	Red Beans	雷豆	Bio	Preserves	果醬	1.92	21	134-139	Preserves I	40	True	0	0	False	0.10645921	0.058583263	0.10484186	0.1	0.1	0.1
+137	Cat Food	貓食	Purr Purr	Preserves	果醬	5.49	21	134-139	Preserves I	20	False	0	0	False	0.30188286	0.30188286	0.0922603	0.1	0.1	0.1
+138	Cat Food	貓食	PatPat	Preserves	果醬	8.1	21	134-139	Preserves I	20	False	0	0	False	0.30188286	0.30188286	0.0922603	0.1	0.1	0.1
+139	Dog Food	狗糧	PatPat	Preserves	果醬	7.6	21	134-139	Preserves I	20	False	0	0	False	0.26275566	0.3	0.14307383	0.1	0.1	0.1
+140	Green Tea	綠茶	Bio	Infusions	點滴	2.99	22	140-145	Infusions I	40	False	0	0	False	0.09499193	0.1086277	0.079992235	0.1	0.1	0.1
+141	Lemon Tea	檸檬茶	Bio	Infusions	點滴	3.49	22	140-145	Infusions I	40	False	0	0	False	0.07500003	0.11000001	0.07500002	0.1	0.1	0.1
+142	Black Tea	紅茶	Bio	Infusions	點滴	3.89	22	140-145	Infusions I	40	False	0	0	False	0.073000595	0.10000003	0.073000595	0.1	0.1	0.1
+143	Peppermint	薄荷	Bio	Infusions	點滴	1.99	22	140-145	Infusions I	30	False	0	0	False	0.17893806	0.24332128	0.09509331	0.1	0.1	0.1
+144	Mint	薄荷	Bio	Infusions	點滴	2.19	22	140-145	Infusions I	30	False	0	0	False	0.17893806	0.24332128	0.09509331	0.1	0.1	0.1
+145	Valerian	纈草	Bio	Infusions	點滴	1.89	22	140-145	Infusions I	30	False	0	0	False	0.17893806	0.24332128	0.09509331	0.1	0.1	0.1
+146	Big Sushi	纈草	Sushinet	Seafood	海鮮	19.99	23	146-149	Seafood I	20	True	1	0	False	0.40415335	0.06908515	0.3616063	0.1	0.1	0.1
+147	Small Sushi	小壽司	Sushinet	Seafood	海鮮	13.99	23	146-149	Seafood I	30	True	1	0	False	0.23	0.048778713	0.21	0.1	0.1	0.1
+148	Smoked Salmon	煙燻鮭魚n	Norway	Seafood	海鮮	9.99	23	146-149	Seafood I	40	True	1	0	True	0.215	0.015	0.22774097	0.227741	0.01358879	0.28
+149	Crab Sticks	蟹棒	Sushinet	Seafood	海鮮	4.79	23	146-149	Seafood I	40	True	1	0	True	0.1	0.023534518	0.17	0.17	0.02353452	0.1
+150	Book - Electromagnetic	書 - 電磁	Bookapop	Books	圖書	9.99	24	150-155	Books Pack I	30	False	0	0	False	0.205	0.29999998	0.02700021	0.1	0.1	0.1
+151	Book - Surprise	書 - 驚喜	Bookapop	Books	圖書	6.99	24	150-155	Books Pack I	30	False	0	0	False	0.205	0.29999998	0.02700021	0.1	0.1	0.1
+152	Book - ABC	書 - ABC	Bookapop	Books	圖書	7.99	24	150-155	Books Pack I	30	False	0	0	False	0.205	0.29999998	0.02700021	0.1	0.1	0.1
+153	Book - Mother And Child	書 - 母親和孩子	Bookapop	Books	圖書	9.99	24	150-155	Books Pack I	30	False	0	0	False	0.205	0.29999998	0.02700021	0.1	0.1	0.1
+154	Book - Colors	書 - 顏色	Bookapop	Books	圖書	9.99	24	150-155	Books Pack I	30	False	0	0	False	0.205	0.29999998	0.02700021	0.1	0.1	0.1
+155	Book - Piticha	書 - Piticha	Bookapop	Books	圖書	7.99	24	150-155	Books Pack I	30	False	0	0	False	0.205	0.29999998	0.02700021	0.1	0.1	0.1
+156	Book - OnceUpon	書 - 曾經	Bookapop	Books	圖書	7.99	25	156-161	Books Pack II	30	False	0	0	False	0.205	0.29999998	0.02700021	0.1	0.1	0.1
+157	Book - Krok	書 - 克洛克	Bookapop	Books	圖書	9.99	25	156-161	Books Pack II	30	False	0	0	False	0.205	0.29999998	0.02700021	0.1	0.1	0.1
+158	Book - Adventures	書 - 冒險	Bookapop	Books	圖書	9.99	25	156-161	Books Pack II	30	False	0	0	False	0.205	0.29999998	0.02700021	0.1	0.1	0.1
+159	Book - Donnine	書 - 唐寧	Bookapop	Books	圖書	9.99	25	156-161	Books Pack II	30	False	0	0	False	0.205	0.29999998	0.02700021	0.1	0.1	0.1
+160	Book - Vintage	書 - 復古	Bookapop	Books	圖書	7.99	25	156-161	Books Pack II	30	False	0	0	False	0.205	0.29999998	0.02700021	0.1	0.1	0.1
+161	Book - I Wont Share	書 - 我不會分享	Bookapop	Books	圖書	9.99	25	156-161	Books Pack II	30	False	0	0	False	0.205	0.29999998	0.02700021	0.1	0.1	0.1
+162	Beer Pack	啤酒包	BK	Alcoholic Drinks	酒精飲料	7.97	26	162-166	Alcoholic Drinks I	20	True	0	0	False	0.1514342	0.15500003	0.09404306	0.1	0.1	0.1
+163	Beer Pack	啤酒包	Teochew	Alcoholic Drinks	酒精飲料	9.97	26	162-166	Alcoholic Drinks I	20	True	0	0	False	0.1514342	0.15500003	0.09404306	0.1	0.1	0.1
+164	Beer Pack	啤酒包	Fess	Alcoholic Drinks	酒精飲料	12.79	26	162-166	Alcoholic Drinks I	20	True	0	0	False	0.1514342	0.15500003	0.09404306	0.1	0.1	0.1
+165	Beer Barrel	啤酒桶	DEGL	Alcoholic Drinks	酒精飲料	15.5	26	162-166	Alcoholic Drinks I	20	True	0	0	False	0.21678163	0.3821784	0.21678162	0.1	0.1	0.1
+166	Beer Barrel	啤酒桶	Fess	Alcoholic Drinks	酒精飲料	18.4	26	162-166	Alcoholic Drinks I	20	True	0	0	False	0.21678163	0.3821784	0.21678162	0.1	0.1	0.1
+167	Vodka	伏特加酒	Magnat	Alcoholic Drinks	酒精飲料	14.5	27	167-171	Alcoholic Drinks II	20	False	0	0	False	0.09978589	0.37525332	0.10596552	0.1	0.1	0.1
+168	Red Wine	紅葡萄酒	Heng Heng	Alcoholic Drinks	酒精飲料	13.5	27	167-171	Alcoholic Drinks II	20	False	0	0	False	0.094375536	0.3226456	0.093902364	0.1	0.1	0.1
+169	Rose Wine	桃紅葡萄酒	Chebon	Alcoholic Drinks	酒精飲料	19.8	27	167-171	Alcoholic Drinks II	20	False	0	0	False	0.094375536	0.3226456	0.093902364	0.1	0.1	0.1
+170	White Wine	白酒	Chebon	Alcoholic Drinks	酒精飲料	25.2	27	167-171	Alcoholic Drinks II	20	False	0	0	False	0.094375536	0.3226456	0.093902364	0.1	0.1	0.1
+171	Beer Barrel	潮州話	Teochew	Alcoholic Drinks	酒精飲料	22.1	27	167-171	Alcoholic Drinks II	20	True	0	0	False	0.21678163	0.3821784	0.21678162	0.1	0.1	0.1
+172	Premium Vodka	優質伏特加	Eay	Alcoholic Drinks	酒精飲料	23.4	28	172-175	Alcoholic Drinks III	20	False	0	0	False	0.09978585	0.37525332	0.10596548	0.1	0.1	0.1
+173	Japanese Whisky	日本威士忌	TeiaoChen	Alcoholic Drinks	酒精飲料	25.6	28	172-175	Alcoholic Drinks III	20	False	0	0	False	0.08561319	0.2495505	0.08611319	0.1	0.1	0.1
+174	Premium Whisky	優質威士忌	Grand Marnier	Alcoholic Drinks	酒精飲料	21.5	28	172-175	Alcoholic Drinks III	20	False	0	0	False	0.1148284	0.24218944	0.11546091	0.1	0.1	0.1
+175	Premium Whisky	優質威士忌	Jack Sublett	Alcoholic Drinks	酒精飲料	29.99	28	172-175	Alcoholic Drinks III	20	False	0	0	False	0.11621457	0.32509616	0.11621459	0.1	0.1	0.1
+176	Hydrogen Peroxide	過氧化氫	Farmanautics	Pharmacy	藥局	2.7	29	176-182	Pharmacy I	40	False	0	0	False	0.063536875	0.14238699	0.06342687	0.1	0.1	0.1
+177	Disinfectant	消毒劑	Farmanautics	Pharmacy	藥局	3.5	29	176-182	Pharmacy I	50	False	0	0	False	0.05578789	0.1575514	0.0503838	0.1	0.1	0.1
+178	Ibuprofen	布洛芬	Farmanautics	Pharmacy	藥局	7.6	29	176-182	Pharmacy I	60	False	0	0	False	0.054944396	0.09485517	0.054725364	0.1	0.1	0.1
+179	Paracetamol	撲熱息痛	Farmanautics	Pharmacy	藥局	5.6	29	176-182	Pharmacy I	60	True	0	0	False	0.15975007	0.06945658	0.029171778	0.1	0.1	0.1
+180	Adhesive Bandages	OK繃	Farmanautics	Pharmacy	藥局	4.2	29	176-182	Pharmacy I	60	False	0	0	False	0.100800015	0.12600002	0.020160023	0.1	0.1	0.1
+181	Laxative	瀉藥	Farmanautics	Pharmacy	藥局	8	29	176-182	Pharmacy I	50	True	0	0	False	0.15975007	0.06945658	0.029171778	0.1	0.1	0.1
+182	Antihistamine	抗組織胺藥	Farmanautics	Pharmacy	藥局	9.5	29	176-182	Pharmacy I	80	True	0	0	False	0.15040727	0.065394476	0.045776144	0.1	0.1	0.1
+183	Zinc Supplement	補鋅	Naturreach	Pharmacy	藥局	8.99	30	183-190	Pharmacy II	40	False	0	0	False	0.09869716	0.17352809	0.09830371	0.1	0.1	0.1
+184	Antioxidant	抗氧化劑	Naturreach	Pharmacy	藥局	11.49	30	183-190	Pharmacy II	60	False	0	0	False	0.07044153	0.12166182	0.070160724	0.1	0.1	0.1
+185	Fish Oil	魚油	Naturreach	Pharmacy	藥局	12.99	30	183-190	Pharmacy II	40	False	0	0	False	0.089814425	0.1580073	0.08945639	0.1	0.1	0.1
+186	Algae Pills	海藻丸	Naturreach	Pharmacy	藥局	18.99	30	183-190	Pharmacy II	40	False	0	0	False	0.089814425	0.15843579	0.08945639	0.1	0.1	0.1
+187	Vitamins	維生素	Naturreach	Pharmacy	藥局	13.49	30	183-190	Pharmacy II	50	True	0	0	False	0.18341565	0.11974598	0.055822182	0.1	0.1	0.1
+188	Melatonin	褪黑素	Naturreach	Pharmacy	藥局	8.99	30	183-190	Pharmacy II	60	True	0	0	False	0.15975007	0.06945658	0.029171778	0.1	0.1	0.1
+189	Sunscreen	防曬乳	Farmanautics	Pharmacy	藥局	8.95	30	183-190	Pharmacy II	40	False	0	0	False	0.12105456	0.23330848	0.06998201	0.1	0.1	0.1
+190	Stretch Cream	彈性霜	Farmanautics	Pharmacy	藥局	13.99	30	183-190	Pharmacy II	40	False	0	0	False	0.071053885	0.2038938	0.047369275	0.1	0.1	0.1
+191	Red Apple Tray	紅蘋果托盤	VegeBiz	Produce	農產品	4.05	31	191-196	Produce I	24	True	3	0	False	0.19	0.12	0.29	0.1	0.1	0.1
+192	Green Apple Tray	青蘋果托盤	VegeBiz	Produce	農產品	2.85	31	191-196	Produce I	24	True	3	0	False	0.19	0.12	0.29	0.1	0.1	0.1
+193	Clementine Tray	克萊門汀托盤	VegeBiz	Produce	農產品	2.79	31	191-196	Produce I	24	True	3	0	False	0.19	0.12	0.29	0.1	0.1	0.1
+194	Orange Tray	橘色托盤	VegeBiz	Produce	農產品	3.19	31	191-196	Produce I	24	True	3	0	False	0.19	0.12	0.29	0.1	0.1	0.1
+195	Pear Tray	梨托盤	VegeBiz	Produce	農產品	2.99	31	191-196	Produce I	24	True	3	0	False	0.19	0.12	0.29	0.1	0.1	0.1
+196	Lemon Tray	檸檬托盤	VegeBiz	Produce	農產品	2.13	31	191-196	Produce I	24	True	3	0	False	0.19	0.12	0.29	0.1	0.1	0.1
+197	Mango Tray	芒果托盤	VegeBiz	Produce	農產品	6.79	32	197-202	Produce II	24	True	3	0	False	0.19	0.12	0.29	0.1	0.1	0.1
+198	Avocado Tray	酪梨托盤	VegeBiz	Produce	農產品	5.49	32	197-202	Produce II	24	True	3	0	False	0.19	0.12	0.29	0.1	0.1	0.1
+199	Kiwi Tray	奇異果托盤	VegeBiz	Produce	農產品	4.89	32	197-202	Produce II	24	True	3	0	False	0.19	0.12	0.29	0.1	0.1	0.1
+200	Papaya Tray	木瓜托盤	VegeBiz	Produce	農產品	8.9	32	197-202	Produce II	24	True	3	0	False	0.19	0.12	0.29	0.1	0.1	0.1
+201	Strawberry Tray	草莓托盤	VegeBiz	Produce	農產品	5.65	32	197-202	Produce II	24	True	3	0	False	0.19	0.12	0.29	0.1	0.1	0.1
+202	Cherry Tray	櫻桃托盤	VegeBiz	Produce	農產品	6.25	32	197-202	Produce II	24	True	3	0	False	0.19	0.12	0.29	0.1	0.1	0.1
+203	Artichoke Tray	朝鮮薊托盤	VegeBiz	Produce	農產品	6.99	33	203-208	Produce III	24	False	3	0	False	0.19	0.22040342	0.29	0.1	0.1	0.1
+204	Zucchini Tray	西葫蘆托盤	VegeBiz	Produce	農產品	6.85	33	203-208	Produce III	24	True	3	0	False	0.19	0.12	0.29	0.1	0.1	0.1
+205	Carrot Tray	胡蘿蔔盤	VegeBiz	Produce	農產品	2.45	33	203-208	Produce III	24	True	3	0	False	0.19	0.12	0.29	0.1	0.1	0.1
+206	Tomato Tray	番茄托盤	VegeBiz	Produce	農產品	2.89	33	203-208	Produce III	24	True	3	0	False	0.19	0.12	0.29	0.1	0.1	0.1
+207	Potato Tray	馬鈴薯盤	VegeBiz	Produce	農產品	2.65	33	203-208	Produce III	24	True	3	0	False	0.19	0.12	0.29	0.1	0.1	0.1
+208	Onion Tray	洋蔥盤	VegeBiz	Produce	農產品	1.89	33	203-208	Produce III	24	True	3	0	False	0.19	0.12	0.29	0.1	0.1	0.1
+209	Banana Pack	香蕉包	VegeBiz	Produce	農產品	2.99	34	209-213	Produce IV	18	False	3	0	False	0.19	0.15	0.19	0.1	0.1	0.1
+210	Melon	瓜	VegeBiz	Produce	農產品	3.49	34	209-213	Produce IV	18	False	3	0	False	0.19	0.18	0.19	0.1	0.1	0.1
+211	Pineapple	鳳梨	VegeBiz	Produce	農產品	3.98	34	209-213	Produce IV	18	False	3	0	False	0.19	0.27	0.19	0.1	0.1	0.1
+212	Pumpkin	南瓜	VegeBiz	Produce	農產品	3.5	34	209-213	Produce IV	18	False	3	0	False	0.19	0.22179998	0.19	0.1	0.1	0.1
+213	Watermelon	西瓜	VegeBiz	Produce	農產品	4.7	34	209-213	Produce IV	18	False	3	0	False	0.19	0.21	0.19	0.1	0.1	0.1
+214	Baby Food: Vegetables	嬰兒食品：蔬菜	CaringTender	Child Care	兒童保育	3.69	35	214-219	Child Care I	40	False	0	0	False	0.12596005	0.16199404	0.12766477	0.1	0.1	0.1
+215	Baby Food: Fish	嬰兒食品：魚	CaringTender	Child Care	兒童保育	3.69	35	214-219	Child Care I	40	False	0	0	False	0.111843884	0.15459643	0.11313499	0.1	0.1	0.1
+216	Baby Food: Fruits	嬰兒食品：水果	CaringTender	Child Care	兒童保育	2.89	35	214-219	Child Care I	40	False	0	0	False	0.10349676	0.1318106	0.104402795	0.1	0.1	0.1
+217	Baby Food: Meat	嬰兒食品：肉類	CaringTender	Child Care	兒童保育	4.49	35	214-219	Child Care I	50	True	0	0	False	0.13006108	0.11435518	0.13006108	0.1	0.1	0.1
+218	Nutritive Milk Mix	營養混合乳	CaringTender	Child Care	兒童保育	4.45	35	214-219	Child Care I	80	False	0	0	False	0.10607374	0.18702142	0.049760252	0.1	0.1	0.1
+219	Nutritive Milk Powder	營養奶粉	CaringTender	Child Care	兒童保育	15.99	35	214-219	Child Care I	25	True	0	0	False	0.19	0.181	0.19	0.1	0.1	0.1
+220	Ecologic Diapers	生態尿布	CaringTender	Child Care	兒童保育	14.99	36	220-226	Child Care II	8	True	0	0	False	0.275	0.29	0.41	0.1	0.1	0.1
+221	Basic Diapers	基本款尿布	CaringTender	Child Care	兒童保育	16.99	36	220-226	Child Care II	8	True	0	0	False	0.275	0.29	0.41	0.1	0.1	0.1
+222	Toddler Diapers	幼兒尿布	CaringTender	Child Care	兒童保育	18.99	36	220-226	Child Care II	8	True	0	0	False	0.275	0.29	0.41	0.1	0.1	0.1
+223	Premium Diapers	優質尿布	CaringTender	Child Care	兒童保育	23.99	36	220-226	Child Care II	8	True	0	0	False	0.275	0.29	0.41	0.1	0.1	0.1
+224	Aloe Baby Wipes 	蘆薈嬰兒濕紙巾	CaringTender	Child Care	兒童保育	3.99	36	220-226	Child Care II	80	True	0	0	False	0.20664325	0.035919473	0.16989818	0.1	0.1	0.1
+225	Basic Baby Wipes	基本嬰兒濕紙巾	CaringTender	Child Care	兒童保育	3.19	36	220-226	Child Care II	80	True	0	0	False	0.22356538	0.038106613	0.16470829	0.1	0.1	0.1
+226	Baby Powder	嬰兒爽身粉	CaringTender	Child Care	兒童保育	3.99	36	220-226	Child Care II	30	True	0	0	False	0.14	0.181	0.14	0.1	0.1	0.1
+227	Orange Soda	橙汽水	Pulp	Soda Drinks	汽水	2.25	37	227-233	Soda Drinks II	20	False	1	0	False	0.09707737	0.31689295	0.09648949	0.1	0.1	0.1
+228	Pineapple Soda	鳳梨汽水	Jus Tsistu	Soda Drinks	汽水	2.45	37	227-233	Soda Drinks II	20	False	1	0	False	0.09707737	0.31689295	0.09648949	0.1	0.1	0.1
+229	Tropical Soda	熱帶蘇打水	Ropico	Soda Drinks	汽水	3.25	37	227-233	Soda Drinks II	20	False	1	0	False	0.09707737	0.31689295	0.09648949	0.1	0.1	0.1
+230	Green Tea Drink	绿茶饮料	EastZensations	Soda Drinks	汽水	2.95	37	227-233	Soda Drinks II	40	False	1	0	False	0.08496235	0.24721341	0.08496236	0.1	0.1	0.1
+231	Red Tea Drink	红茶饮料	EastZensations	Soda Drinks	汽水	2.45	37	227-233	Soda Drinks II	50	False	1	0	False	0.053336628	0.20638965	0.053336628	0.1	0.1	0.1
+232	Lemon Tea Drink	柠檬茶饮料	EastZensations	Soda Drinks	汽水	1.85	37	227-233	Soda Drinks II	60	False	1	0	False	0.07077126	0.14966491	0.07077126	0.1	0.1	0.1
+233	Cold Brew Coffee	冷萃咖啡	EastZensations	Soda Drinks	汽水	2.95	37	227-233	Soda Drinks II	60	False	1	0	False	0.061149817	0.1496344	0.061149813	0.1	0.1	0.1
+234	Blueberry Energy Drink	藍莓能量飲料	Alien	Soda Drinks	汽水	1.95	38	234-240	Soda Drinks III	40	False	1	0	False	0.09098902	0.2026877	0.09098902	0.1	0.1	0.1
+235	Guava Energy Drink	番石榴能量飲料	Alien	Soda Drinks	汽水	1.95	38	234-240	Soda Drinks III	40	False	1	0	False	0.09098902	0.2026877	0.09098902	0.1	0.1	0.1
+236	Lima Energy Drink	利馬能量飲料	Alive	Soda Drinks	汽水	2.65	38	234-240	Soda Drinks III	40	False	1	0	False	0.09098902	0.2026877	0.09098902	0.1	0.1	0.1
+237	Fruit Punch Energy Drink	果汁賓治能量飲料	ApeX	Soda Drinks	汽水	2.65	38	234-240	Soda Drinks III	40	False	1	0	False	0.09098902	0.2026877	0.09098902	0.1	0.1	0.1
+238	Mango Energy Drink	芒果能量飲料	Lagoon Thunder	Soda Drinks	汽水	2.65	38	234-240	Soda Drinks III	40	False	1	0	False	0.09098902	0.2026877	0.09098902	0.1	0.1	0.1
+239	Cola Energy Drink	可樂能量飲料	Wonder Cola	Soda Drinks	汽水	2.35	38	234-240	Soda Drinks III	40	False	1	0	False	0.09098902	0.2026877	0.09098902	0.1	0.1	0.1
+240	Sugar Free Energy Drink	無糖能量飲料	X-Treme	Soda Drinks	汽水	2.95	38	234-240	Soda Drinks III	40	False	1	0	False	0.09098902	0.2026877	0.09098902	0.1	0.1	0.1
+241	Basic Strawberry Ice Cream	基本草莓冰淇淋	DelicaCold	Sweets and Snacks	糖果和零食	3.95	39	241-246	Sweets And Snacks V	35	True	2	0	True	0.12	0.06	0.19	0.19	0.06	0.12
+242	Lemon Ice Cream	檸檬冰淇淋	DelicaCold	Sweets and Snacks	糖果和零食	3.95	39	241-246	Sweets And Snacks V	35	True	2	0	True	0.12	0.06	0.19	0.19	0.06	0.12
+243	Coffee Ice Cream	咖啡冰淇淋	DelicaCold	Sweets and Snacks	糖果和零食	3.95	39	241-246	Sweets And Snacks V	35	True	2	0	True	0.12	0.06	0.19	0.19	0.06	0.12
+244	Stracciatella Ice Cream	斯特拉西亞特拉冰淇淋	DelicaCold	Sweets and Snacks	糖果和零食	4.95	39	241-246	Sweets And Snacks V	35	True	2	0	True	0.12	0.06	0.19	0.19	0.06	0.12
+245	Strawberry Meringue Ice Cream	草莓酥皮冰淇淋	DelicaCold	Sweets and Snacks	糖果和零食	4.95	39	241-246	Sweets And Snacks V	35	True	2	0	True	0.12	0.06	0.19	0.19	0.06	0.12
+246	Caramel Ice Cream	焦糖冰淇淋	DelicaCold	Sweets and Snacks	糖果和零食	4.95	39	241-246	Sweets And Snacks V	35	True	2	0	True	0.12	0.06	0.19	0.19	0.06	0.12
+247	Premium Strawberry Ice Cream	優質草莓冰淇淋	DelicaCold	Sweets and Snacks	糖果和零食	7.45	40	247-251	Sweets And Snacks VI	30	True	2	0	False	0.13	0.14	0.13	0.1	0.1	0.1
+248	Strawberry Cheesecake Ice Cream	草莓起司蛋糕冰淇淋	DelicaCold	Sweets and Snacks	糖果和零食	7.45	40	247-251	Sweets And Snacks VI	30	True	2	0	False	0.13	0.14	0.13	0.1	0.1	0.1
+249	Premium Caramel Ice Cream	優質焦糖冰淇淋	DelicaCold	Sweets and Snacks	糖果和零食	9.95	40	247-251	Sweets And Snacks VI	30	True	2	0	False	0.13	0.14	0.13	0.1	0.1	0.1
+250	Pink Strawberry Ice Cream	粉紅草莓冰淇淋	DelicaCold	Sweets and Snacks	糖果和零食	9.95	40	247-251	Sweets And Snacks VI	30	True	2	0	False	0.13	0.14	0.13	0.1	0.1	0.1
+251	Alcoholic Ice Cream	酒精冰淇淋	DelicaCold	Sweets and Snacks	糖果和零食	14.95	40	247-251	Sweets And Snacks VI	30	True	2	0	False	0.13	0.14	0.13	0.1	0.1	0.1
+252	Chickpeas	鷹嘴豆	BrandiWhite	Preserves	果醬	1.9	41	252-257	Preserves II	50	True	0	0	False	0.1177321	0.12038987	0.119548306	0.1	0.1	0.1
+253	Meatballs	肉丸	BrandiWhite	Preserves	果醬	2.2	41	252-257	Preserves II	50	True	0	0	False	0.11773209	0.1204489	0.119548306	0.1	0.1	0.1
+254	Lentils	扁豆	BrandiWhite	Preserves	果醬	1.95	41	252-257	Preserves II	50	True	0	0	False	0.11773211	0.119453855	0.119548306	0.1	0.1	0.1
+255	Tomato Soup	番茄湯	BrandiWhite	Preserves	果醬	2.35	41	252-257	Preserves II	50	True	0	0	False	0.13026173	0.14690782	0.13227122	0.1	0.1	0.1
+256	Canned Corn	玉米罐頭	BrandiWhite	Preserves	果醬	1.8	41	252-257	Preserves II	60	True	0	0	False	0.102442205	0.09044232	0.10244219	0.1	0.1	0.1
+257	Canned Peas	豌豆罐頭	BrandiWhite	Preserves	果醬	1.75	41	252-257	Preserves II	80	True	0	0	False	0.0849473	0.109363586	0.084947295	0.1	0.1	0.1
+258	Strawberry Seeds	草莓種子	Quak	Gardening	园艺	2.99	42	258-262	Gardening I	40	False	4	0	True	0.165	0.2	0.04	0.14	0.2	0.04
+259	Raspberry Seeds	覆盆子種子	Quak	Gardening	园艺	2.49	42	258-262	Gardening I	40	False	4	0	True	0.165	0.2	0.04	0.14	0.2	0.04
+260	Blueberry Seeds	藍莓種子	Quak	Gardening	园艺	2.49	42	258-262	Gardening I	40	False	4	0	True	0.165	0.2	0.04	0.14	0.2	0.04
+261	Pineapple Seeds	鳳梨種子	Quak	Gardening	园艺	2.99	42	258-262	Gardening I	40	False	4	0	True	0.165	0.2	0.04	0.14	0.2	0.04
+262	Meyer Lemon Seeds	邁耶檸檬種子	Quak	Gardening	园艺	2.49	42	258-262	Gardening I	40	False	4	0	True	0.165	0.2	0.04	0.14	0.2	0.04
+263	Tomato Seeds	番茄種子	Quak	Gardening	园艺	2.99	43	263-267	Gardening II	40	False	4	0	True	0.165	0.2	0.04	0.14	0.2	0.04
+264	Pepper Seeds	辣椒種子	Quak	Gardening	园艺	2.49	43	263-267	Gardening II	40	False	4	0	True	0.165	0.2	0.04	0.14	0.2	0.04
+265	Cucumber Seeds	黃瓜種子	Quak	Gardening	园艺	2.99	43	263-267	Gardening II	40	False	4	0	True	0.165	0.2	0.04	0.14	0.2	0.04
+266	Radish Seeds	蘿蔔種子	Quak	Gardening	园艺	2.49	43	263-267	Gardening II	40	False	4	0	True	0.165	0.2	0.04	0.14	0.2	0.04
+267	Carrots Seeds	胡蘿蔔種子	Quak	Gardening	园艺	2.49	43	263-267	Gardening II	40	False	4	0	True	0.165	0.2	0.04	0.14	0.2	0.04
+268	Lawn Seeds	草坪種子	Quak	Gardening	园艺	1.99	44	268-272	Gardening III	40	False	4	0	True	0.165	0.2	0.04	0.14	0.2	0.04
+269	Poppy Seeds	罂粟种子	Quak	Gardening	园艺	3.49	44	268-272	Gardening III	40	False	4	0	True	0.165	0.2	0.04	0.14	0.2	0.04
+270	Tulip Seeds	鬱金香種子	Quak	Gardening	园艺	3.49	44	268-272	Gardening III	40	False	4	0	True	0.165	0.2	0.04	0.14	0.2	0.04
+271	Sunflower Seeds	葵花籽	Quak	Gardening	园艺	3.49	44	268-272	Gardening III	40	False	4	0	True	0.165	0.2	0.04	0.14	0.2	0.04
+272	Petunia Seeds	矮牽牛種子	Quak	Gardening	园艺	3.49	44	268-272	Gardening III	40	False	4	0	True	0.165	0.2	0.04	0.14	0.2	0.04
+273	Hand Rake (A)	手耙 (A)	Quak	Gardening	园艺	4.99	45	273-280	Gardening IV	20	False	4	0	True	0.165	0.21073872	0.04	0.08	0.2107387	0.04
+274	Hand Rake (B)	手耙 (B)	Quak	Gardening	园艺	5.49	45	273-280	Gardening IV	20	False	4	0	True	0.165	0.2117505	0.022551088	0.08	0.2117505	0.02255109
+275	Hand Shovel	手鏟	Quak	Gardening	园艺	4.99	45	273-280	Gardening IV	20	False	4	0	True	0.165	0.21099003	0.028609749	0.07	0.21099	0.02860975
+276	Hand Cultivator	手動耕耘機	Quak	Gardening	园艺	4.99	45	273-280	Gardening IV	20	False	4	0	True	0.165	0.21077354	0.03	0.05	0.2107735	0.03
+277	Potting Soil	盆栽土	Quak	Gardening	园艺	9.99	45	273-280	Gardening IV	16	True	0	0	False	0.811814	0.09022301	0.43944657	0.1	0.1	0.1
+278	Fertilizer	肥料	Quak	Gardening	园艺	8.99	45	273-280	Gardening IV	30	False	0	0	False	0.20334363	0.3500887	0.07597635	0.1	0.1	0.1
+279	Plant Pot Dish	花盆盤	Quak	Gardening	园艺	2.99	45	273-280	Gardening IV	30	True	0	0	False	0.41	0.03	0.44915706	0.1	0.1	0.1
+280	Plant Pot	花盆	Quak	Gardening	园艺	6.99	45	273-280	Gardening IV	8	True	0	0	False	0.4079126	0.3390182	0.4079126	0.1	0.1	0.1
+281	AA Batteries	AA 電池	GreenLeaf	Small Electronics	小型電子產品	4.99	46	281-286	Small Electronics I	50	False	4	0	True	0.165	0.2	0.03	0.14	0.2	0.03
+282	AAA Batteries	AAA 電池	Permanent	Small Electronics	小型電子產品	4.99	46	281-286	Small Electronics I	50	False	4	0	True	0.165	0.2	0.03	0.14	0.2	0.03
+283	C Batteries	C 電池	Robustor	Small Electronics	小型電子產品	5.99	46	281-286	Small Electronics I	50	False	4	0	True	0.165	0.2	0.03	0.14	0.2	0.03
+284	9V Batteries	9V 電池	EnergestiX	Small Electronics	小型電子產品	5.99	46	281-286	Small Electronics I	50	False	4	0	True	0.165	0.2	0.03	0.14	0.2	0.03
+285	Universal TV Remote	通用電視遙控器	UniverWare	Small Electronics	小型電子產品	8.99	46	281-286	Small Electronics I	30	False	4	0	True	0.165	0.20446678	0.025	0.04	0.2044668	0.025
+286	Universal Phone Charger	通用手機充電器	UniverWare	Small Electronics	小型電子產品	9.99	46	281-286	Small Electronics I	25	False	4	0	True	0.165	0.2	0.05032146	0.13	0.2	0.05032146
+287	Basic Prepaid Phone	基本预付费电话	UniverWare	Small Electronics	小型電子產品	49.9	47	287-292	Small Electronics II	20	False	4	0	True	0.165	0.2	0.050321463	0.13	0.2	0.05032146
+288	Basic Mouse	基本鼠标	UniverWare	Small Electronics	小型電子產品	9.99	47	287-292	Small Electronics II	20	False	4	0	True	0.165	0.2	0.07350291	0.13	0.2	0.07350291
+289	Wifi Dongle	Wifi 适配器	UniverWare	Small Electronics	小型電子產品	8.99	47	287-292	Small Electronics II	20	False	4	0	True	0.165	0.2	0.07350291	0.13	0.2	0.07350291
+290	Basic Earbuds	基本耳塞	UniverWare	Small Electronics	小型電子產品	12.99	47	287-292	Small Electronics II	20	False	4	0	True	0.165	0.2	0.07350291	0.13	0.2	0.07350291
+291	Basic Keyboard	基本键盘	UniverWare	Small Electronics	小型電子產品	14.99	47	287-292	Small Electronics II	12	True	0	0	False	0.55	0.18	0.06281094	0.1	0.1	0.1
+292	Basic Gamepad	基本游戏手柄	UniverWare	Small Electronics	小型電子產品	16.99	47	287-292	Small Electronics II	20	True	0	0	False	0.19497186	0.098011106	0.15686533	0.1	0.1	0.1
+293	USB Flash Drive (128GB)	USB 闪存盘 (128GB)	WK	Small Electronics	小型電子產品	13.99	48	293-299	Small Electronics III	30	False	4	0	True	0.165	0.2	0.03	0.15	0.2	0.03
+294	USB Flash Drive (256GB)	USB 闪存盘 (256GB)	WK	Small Electronics	小型電子產品	17.99	48	293-299	Small Electronics III	30	False	4	0	True	0.165	0.2	0.03	0.15	0.2	0.03
+295	USB Flash Drive (512GB)	USB 闪存盘 (512GB)	WK	Small Electronics	小型電子產品	35.99	48	293-299	Small Electronics III	30	False	4	0	True	0.165	0.2	0.03	0.15	0.2	0.03
+296	USB Flash Drive (1TB)	USB 闪存盘 (1TB)	WK	Small Electronics	小型電子產品	73.99	48	293-299	Small Electronics III	30	False	4	0	True	0.165	0.2	0.03	0.15	0.2	0.03
+297	Basic Speaker	基本扬声器	BlueNoise	Small Electronics	小型電子產品	44.99	48	293-299	Small Electronics III	15	False	0	0	False	0.32727137	0.21375425	0.102877624	0.1	0.1	0.1
+298	Basic Headphones	基本耳机	BlueNoise	Small Electronics	小型電子產品	35.99	48	293-299	Small Electronics III	15	False	0	0	False	0.32727134	0.21375424	0.10287762	0.1	0.1	0.1
+299	Basic Gaming Console	基本游戏机	UniverWare	Small Electronics	小型電子產品	149.99	48	293-299	Small Electronics III	12	True	0	0	False	0.35951388	0.3633349	0.12201078	0.1	0.1	0.1
+300	Garlic Tray	蒜蓉拼盘	VegeBiz	Produce	農產品	2.75	49	300-305	Produce V	24	True	3	0	False	0.19	0.11682395	0.29	0.1	0.1	0.1
+301	Mushroom Tray	蘑菇拼盘	VegeBiz	Produce	農產品	3.75	49	300-305	Produce V	24	True	3	0	False	0.19	0.11682395	0.29	0.1	0.1	0.1
+302	Bell Pepper Tray	甜椒拼盘	VegeBiz	Produce	農產品	4.5	49	300-305	Produce V	24	True	3	0	False	0.19	0.12287551	0.29	0.1	0.1	0.1
+303	Lettuce Tray	生菜拼盘	VegeBiz	Produce	農產品	3.25	49	300-305	Produce V	24	True	3	0	False	0.19	0.11682395	0.29	0.1	0.1	0.1
+304	Coconut	椰子	VegeBiz	Produce	農產品	4	49	300-305	Produce V	21	False	3	0	False	0.16	0.16	0.19	0.1	0.1	0.1
+305	Cauliflower	花椰菜	VegeBiz	Produce	農產品	3	49	300-305	Produce V	18	False	3	0	False	0.19	0.16	0.19	0.1	0.1	0.1
+306	Peanuts	花生	Flexnuts	Sweets and Snacks	糖果和零食	1.99	50	306-313	Sweets And Snacks VII	50	False	0	0	False	0.15	0.22090116	0.07367562	0.1	0.1	0.1
+307	Almonds	杏仁	Flexnuts	Sweets and Snacks	糖果和零食	2.99	50	306-313	Sweets And Snacks VII	50	False	0	0	False	0.15	0.22090116	0.07367562	0.1	0.1	0.1
+308	Hazelnuts	榛子	Flexnuts	Sweets and Snacks	糖果和零食	2.99	50	306-313	Sweets And Snacks VII	50	False	0	0	False	0.15	0.22090116	0.07367562	0.1	0.1	0.1
+309	Pistachios	开心果	Flexnuts	Sweets and Snacks	糖果和零食	3.55	50	306-313	Sweets And Snacks VII	50	False	0	0	False	0.15	0.22090116	0.07367562	0.1	0.1	0.1
+310	Raisins	葡萄干	Flexnuts	Sweets and Snacks	糖果和零食	1.99	50	306-313	Sweets And Snacks VII	50	False	0	0	False	0.15	0.22090116	0.07367562	0.1	0.1	0.1
+311	Cashew Nuts	腰果	Flexnuts	Sweets and Snacks	糖果和零食	2.79	50	306-313	Sweets And Snacks VII	50	False	0	0	False	0.15	0.22090116	0.07367562	0.1	0.1	0.1
+312	Shelled Walnuts	去壳核桃	Flexnuts	Sweets and Snacks	糖果和零食	2.99	50	306-313	Sweets And Snacks VII	50	False	0	0	False	0.15	0.22090116	0.07367562	0.1	0.1	0.1
+313	Coconut Chips	椰子片	Flexnuts	Sweets and Snacks	糖果和零食	2.49	50	306-313	Sweets And Snacks VII	50	False	0	0	False	0.15	0.22090116	0.07367562	0.1	0.1	0.1
+314	Baking Powder	泡打粉	MasterCooker	Basic Products	基本產品s	8.99	51	314-321	Basic Products VII	30	False	0	0	False	0.122368105	0.17875935	0.08588551	0.1	0.1	0.1
+315	Baking Soda	小苏打	MasterCooker	Basic Products	基本產品s	7.49	51	314-321	Basic Products VII	40	False	0	0	False	0.11668141	0.17013368	0.041935734	0.1	0.1	0.1
+316	Cake Mix	蛋糕粉	MasterCooker	Basic Products	基本產品s	6.89	51	314-321	Basic Products VII	40	False	0	0	False	0.114142254	0.1616992	0.037945695	0.1	0.1	0.1
+317	Cocoa Powder	可可粉	MasterCooker	Basic Products	基本產品s	3.49	51	314-321	Basic Products VII	40	False	0	0	False	0.10244921	0.14850388	0.10244923	0.1	0.1	0.1
+318	Cornstarch	玉米淀粉	MasterCooker	Basic Products	基本產品s	3.49	51	314-321	Basic Products VII	50	False	0	0	False	0.08392666	0.13829207	0.08392668	0.1	0.1	0.1
+319	Icing Tube	糖霜管	MasterCooker	Basic Products	基本產品s	4.99	51	314-321	Basic Products VII	70	False	0	0	False	0.036094185	0.12988973	0.036094185	0.1	0.1	0.1
+320	Candy Sprinkles	糖粉	MasterCooker	Basic Products	基本產品s	2.99	51	314-321	Basic Products VII	50	True	0	0	False	0.10022812	0.12561865	0.100228116	0.1	0.1	0.1
+321	Vanilla Extract	香草精	MasterCooker	Basic Products	基本產品s	9.99	51	314-321	Basic Products VII	40	False	0	0	False	0.056587942	0.13280514	0.05565752	0.1	0.1	0.1
+322	Candy Bucket: Pumpkin	糖果桶：南瓜	SpookyCraft	Seasonal	季節性	9.99	52	322-326	Halloween I	30	False	0	0	False	0.19	0.3020751	0.19	0.1	0.1	0.1
+323	Candy Bucket: Ghost	糖果桶：幽靈	SpookyCraft	Seasonal	季節性	9.99	52	322-326	Halloween I	30	False	0	0	False	0.19	0.3020751	0.19	0.1	0.1	0.1
+324	Candy Bucket: Mummy	糖果桶：木乃伊	SpookyCraft	Seasonal	季節性	9.99	52	322-326	Halloween I	30	False	0	0	False	0.19	0.3020751	0.19	0.1	0.1	0.1
+325	Candy Bucket: Skull	糖果桶：骷髏	SpookyCraft	Seasonal	季節性	9.99	52	322-326	Halloween I	30	False	0	0	False	0.19	0.3020751	0.19	0.1	0.1	0.1
+326	Candy Bucket: Zombie	糖果桶：殭屍	SpookyCraft	Seasonal	季節性	9.99	52	322-326	Halloween I	30	False	0	0	False	0.19	0.3020751	0.19	0.1	0.1	0.1
+327	Eggnog	蛋奶酒	Craftmas Industries	Seasonal	季節性	9.99	53	327-332	Christmas I	25	False	0	0	False	0.13031778	0.3188722	0.09065285	0.1	0.1	0.1
+328	Mulled Wine	熱紅酒	Craftmas Industries	Seasonal	季節性	9.99	53	327-332	Christmas I	25	False	0	0	False	0.1326314	0.2933588	0.092262276	0.1	0.1	0.1
+329	Santa Chocolate Jar	聖誕老人巧克力罐	Craftmas Industries	Seasonal	季節性	6.99	53	327-332	Christmas I	30	False	0	0	False	0.14436771	0.27013624	0.15322655	0.1	0.1	0.1
+330	Snowman Chocolate Jar	雪人巧克力罐	Craftmas Industries	Seasonal	季節性	6.99	53	327-332	Christmas I	30	False	0	0	False	0.14433064	0.25995362	0.1496881	0.1	0.1	0.1
+331	Gingerbread Cookies	薑餅	Craftmas Industries	Seasonal	季節性	3.49	53	327-332	Christmas I	50	True	0	0	False	0.12535967	0.15138113	0.08720385	0.1	0.1	0.1
+332	Gingerbread House	薑餅屋	Craftmas Industries	Seasonal	季節性	18.99	53	327-332	Christmas I	10	False	0	0	False	0.3055992	0.3460197	0.22799537	0.1	0.1	0.1
+333	Manufacturing Bag A	生產袋 A	Manufactured	Seasonal	季節性	9.99	54	333-338	None	1	False	0	0	False	0.16000004	0.2716789	0.09000003	0.1	0.1	0.1
+334	Manufacturing Bag B	生產袋 B	Manufactured	Seasonal	季節性	9.99	54	333-338	None	1	False	0	0	False	0.13134047	0.18936999	0.0803614	0.1	0.1	0.1
+335	Manufacturing Bag C	生產袋 C	Manufactured	Seasonal	季節性	9.99	54	333-338	None	1	False	0	0	False	0.101132005	0.14964515	0.0599957	0.1	0.1	0.1
+336	Manufacturing Bag D	生產袋 D	Manufactured	Seasonal	季節性	9.99	54	333-338	None	1	False	0	0	False	0.16000004	0.2716789	0.09000003	0.1	0.1	0.1
+337	Manufacturing Bag E	生產袋 E	Manufactured	Seasonal	季節性	9.99	54	333-338	None	1	False	0	0	False	0.13134047	0.18936999	0.0803614	0.1	0.1	0.1
+338	Manufacturing Bag F	生產袋 F	Manufactured	Seasonal	季節性	9.99	54	333-338	None	1	False	0	0	False	0.101132005	0.14964515	0.0599957	0.1	0.1	0.1

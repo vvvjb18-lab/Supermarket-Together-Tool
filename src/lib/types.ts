@@ -1,0 +1,295 @@
+// Core domain types for Supermarket Together Lab.
+// All shapes mirror the generated encyclopedia.json + demo-save.json.
+
+export interface LocalizedName {
+  en: string
+  zhHans: string
+  zhHant: string
+}
+
+export interface Vec3 {
+  x: number
+  y: number
+  z: number
+}
+
+export interface RGBA {
+  r: number
+  g: number
+  b: number
+  a: number
+}
+
+export interface Product {
+  id: number
+  name: LocalizedName
+  brand: string
+  group: number | null
+  groupName: { en: string; zhHant: string }
+  basePricePerUnit: number
+  playerPrice: number
+  tier: number
+  tierName: string
+  category: { en: string; zhHant: string }
+  maxItemsPerBox: number
+  isStackable: boolean
+  containerClass: number
+  boxClass: number
+  hasTrueCollider: boolean
+  colliderSize: Vec3
+  colliderCenter: Vec3
+  trueColliderSize: Vec3 | null
+}
+
+export interface Tier {
+  id: number
+  name: string
+  category: LocalizedName
+  inflation: number
+  group: number
+}
+
+export interface ProductGroup {
+  id: number
+  name: LocalizedName
+  color: RGBA
+}
+
+export interface Necessity {
+  index: number
+  name: { en: string; zhHant: string }
+  rawIds: string
+  rawTokens: number[] // preserves duplicates (e.g. Salt = [4,4,4,4,4])
+  productIds: number[] // unique
+  groups: Record<string, number>
+}
+
+export interface Season {
+  index: number
+  name: { en: string; zhHant: string }
+  productIds: number[]
+}
+
+export interface CustomerType {
+  index: number
+  compensatedChances: number[] // length 3
+  necessitiesChances: number[] // length 11
+  premiumIndexes: number[]
+  topSummary: string
+}
+
+export interface Container {
+  containerClass: number
+  containerID: number
+  cost: number
+  shelfLength: number
+  shelfWidth: number
+  shelfHeight: number
+  energyCost: number
+  energyWorkingHours: number
+  employeeHappiness: number
+  isVolumeRestricted: boolean
+  productVolumeLimit: number
+  buildableName: string
+}
+
+export interface Skill {
+  id: string
+  name: LocalizedName
+  description: LocalizedName
+  effect: string
+  il: string
+  perk: number | null
+}
+
+export interface Buildable {
+  id: number
+  name: LocalizedName
+}
+
+export interface Achievement {
+  steamId: string
+  name: string
+  globalPercent: number
+}
+
+export interface AchievementStat {
+  index: number
+  description: string
+}
+
+export interface EmployeeTask {
+  id: number
+  key: string
+  name: LocalizedName
+  color: string
+}
+
+export interface ManufacturingProduct {
+  id: number
+  name: LocalizedName
+  linkedProductID: number
+  itemsPerBox: number
+  isStackable: boolean
+  size: Vec3
+}
+
+export interface LayoutProp {
+  index: number
+  buildableId: number
+  posX: number
+  posZ: number
+  rotation: number
+  angle: number
+  inventory: { product: number; count: number }[]
+}
+
+export interface Encyclopedia {
+  meta: {
+    game: string
+    steamAppId: number
+    unityVersion: string
+    source: string
+    counts: Record<string, number>
+  }
+  products: Product[]
+  tiers: Tier[]
+  productGroups: ProductGroup[]
+  necessities: Necessity[]
+  seasons: Season[]
+  customerTypes: CustomerType[]
+  containers: Container[]
+  skills: Skill[]
+  buildables: Buildable[]
+  manufacturingBuildables: Buildable[]
+  achievements: Achievement[]
+  achievementStats: AchievementStat[]
+  employeeTasks: EmployeeTask[]
+  manufacturingProducts: ManufacturingProduct[]
+  premiumProducts: number[]
+  config: Record<string, Record<string, string>>
+  storeLayout: LayoutProp[]
+  layoutMeta: { totalProps: number; totalInventoryUnits: number }
+}
+
+// ---------- save snapshot ----------
+export type Confidence = 'confirmed' | 'proxy' | 'unverified' | 'exploit' | 'demo' | 'needs-save' | 'needs-runtime'
+
+export interface SaveSnapshot {
+  source: string
+  parseStatus: 'ok' | 'demo' | 'partial' | 'failed' | 'empty'
+  confidence: Confidence
+  detectedFields: string[]
+  unknownFields: string[]
+  money: number
+  franchisePoints: number
+  day: number
+  unlockedProductTiers: number[]
+  unlockedProducts: number[]
+  productPlayerPricing: Record<number, number>
+  perks: string[]
+  extraUpgrades: string[]
+  employees: EmployeeRecord[]
+  storeLayout: LayoutProp[]
+  inventoryByProduct: Record<number, number>
+  storageInventory: Record<number, number>
+  weather: string
+  temperature: number[]
+  roomId: string | null
+  playerSlots: number
+  parsedAt: string
+}
+
+export interface EmployeeRecord {
+  id: string
+  name: string
+  salary: number
+  skills: Record<string, { level: number; xp: number }>
+  task: number // employeeTasks id
+}
+
+// ---------- calculation result wrapper ----------
+export interface CalcResult<T> {
+  value: T
+  formula: string
+  sources: string[]
+  confidence: Confidence
+  note?: string
+}
+
+// ---------- room sync ----------
+export type RoomRole = 'host' | 'member'
+
+export interface RoomMember {
+  id: string
+  name: string
+  role: RoomRole
+  color: string
+  cursor?: { x: number; y: number; view?: string } | null
+  lastSeen: number
+}
+
+export interface TaskAssignment {
+  id: string
+  playerId: string
+  category: 'buy' | 'restock' | 'manufacturing' | 'checkout' | 'security' | 'other'
+  label: string
+  done: boolean
+  assignedTo?: string
+  productId?: number
+  quantity?: number
+}
+
+export interface ChecklistItem {
+  id: string
+  label: string
+  done: boolean
+  assignedTo?: string
+}
+
+export interface PriceExperiment {
+  id: string
+  productId: number
+  oldPrice: number
+  newPrice: number
+  observedSales: string
+  observedComplaints: string
+  conclusion: string
+  updatedAt: number
+  updatedBy: string
+}
+
+export interface Room {
+  id: string
+  code: string
+  name: string
+  createdAt: number
+  members: RoomMember[]
+  snapshot: SaveSnapshot | null
+  checklist: ChecklistItem[]
+  tasks: TaskAssignment[]
+  pricePlan: PriceExperiment[]
+  restockPlan: RestockItem[]
+  shelfAssignments: Record<string, string> // propIndex -> playerId
+  skillVotes: Record<string, string[]> // skillId -> playerIds
+  events: RoomEvent[]
+}
+
+export interface RestockItem {
+  id: string
+  productId: number
+  boxes: number
+  units: number
+  costEstimate: number
+  revenueProxy: number
+  reason: string
+  assignedTo?: string
+}
+
+export interface RoomEvent {
+  id: string
+  ts: number
+  playerId: string
+  type: string
+  payload: Record<string, unknown>
+}

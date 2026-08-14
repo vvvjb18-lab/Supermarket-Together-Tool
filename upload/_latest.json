@@ -1,0 +1,2327 @@
+{
+	"Difficulty" : {
+		"__type" : "int",
+		"value" : 5
+	},
+	"PlayersAddFunds" : {
+		"__type" : "int",
+		"value" : 5
+	},
+	"Layout" : {
+		"__type" : "int",
+		"value" : 0
+	},
+	"StoreName" : {
+		"__type" : "string",
+		"value" : "兒子進"
+	},
+	"Day" : {
+		"__type" : "int",
+		"value" : 28
+	},
+	"FranchiseExperience" : {
+		"__type" : "int",
+		"value" : 41776
+	},
+	"FranchisePoints" : {
+		"__type" : "int",
+		"value" : 0
+	},
+	"Funds" : {
+		"__type" : "float",
+		"value" : 5981.51
+	},
+	"LastAwardedLevel" : {
+		"__type" : "int",
+		"value" : 29
+	},
+	"SupermarketName" : {
+		"__type" : "string",
+		"value" : "XVIDEO"
+	},
+	"SupermarketColor" : {
+		"__type" : "Color",
+		"value" : {
+		"r" : 1,
+		"g" : 0,
+		"b" : 0,
+		"a" : 1
+	}
+	},
+	"hasGeneratedOrganizers" : {
+		"__type" : "bool",
+		"value" : true
+	},
+	"SpaceBought" : {
+		"__type" : "int",
+		"value" : 0
+	},
+	"StorageBought" : {
+		"__type" : "int",
+		"value" : 0
+	},
+	"AddonsBought" : {
+		"__type" : "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+		"value" : {
+		"objs" : null,
+		"arrays" : null,
+		"obj" : null,
+		"array" : [
+			{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			}
+		]
+	}
+	},
+	"ExtraUpgrades" : {
+		"__type" : "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+		"value" : {
+		"objs" : null,
+		"arrays" : null,
+		"obj" : null,
+		"array" : [
+			{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			}
+		]
+	}
+	},
+	"StoreSpaceUpgrades" : {
+		"__type" : "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+		"value" : {
+		"objs" : null,
+		"arrays" : null,
+		"obj" : null,
+		"array" : [
+			{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			}
+		]
+	}
+	},
+	"StorageSpaceUpgrades" : {
+		"__type" : "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+		"value" : {
+		"objs" : null,
+		"arrays" : null,
+		"obj" : null,
+		"array" : [
+			{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			}
+		]
+	}
+	},
+	"ProductPlayerPricing" : {
+		"__type" : "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+		"value" : {
+		"objs" : null,
+		"arrays" : null,
+		"obj" : null,
+		"array" : [
+			{
+				"__type" : "float"3.26
+			},{
+				"__type" : "float"2.49999976
+			},{
+				"__type" : "float"6.13003731
+			},{
+				"__type" : "float"3.64
+			},{
+				"__type" : "float"1.2
+			},{
+				"__type" : "float"3.67
+			},{
+				"__type" : "float"5.180004
+			},{
+				"__type" : "float"2.35
+			},{
+				"__type" : "float"3.91
+			},{
+				"__type" : "float"18.01007
+			},{
+				"__type" : "float"6.05000639
+			},{
+				"__type" : "float"4.1900034
+			},{
+				"__type" : "float"3.00999975
+			},{
+				"__type" : "float"4.04999876
+			},{
+				"__type" : "float"5.070009
+			},{
+				"__type" : "float"4.67000055
+			},{
+				"__type" : "float"2.91
+			},{
+				"__type" : "float"10.960001
+			},{
+				"__type" : "float"7.140003
+			},{
+				"__type" : "float"4.30000639
+			},{
+				"__type" : "float"5.24
+			},{
+				"__type" : "float"5.16000128
+			},{
+				"__type" : "float"4.130002
+			},{
+				"__type" : "float"4.230005
+			},{
+				"__type" : "float"4.15000248
+			},{
+				"__type" : "float"3.05
+			},{
+				"__type" : "float"3.19
+			},{
+				"__type" : "float"3.28999949
+			},{
+				"__type" : "float"5.35000134
+			},{
+				"__type" : "float"21.0200233
+			},{
+				"__type" : "float"4.65000248
+			},{
+				"__type" : "float"13.170001
+			},{
+				"__type" : "float"6.410006
+			},{
+				"__type" : "float"5.02002335
+			},{
+				"__type" : "float"6.06004572
+			},{
+				"__type" : "float"9.000039
+			},{
+				"__type" : "float"2.55
+			},{
+				"__type" : "float"3.99
+			},{
+				"__type" : "float"0.95
+			},{
+				"__type" : "float"2.299999
+			},{
+				"__type" : "float"2.5
+			},{
+				"__type" : "float"9.009987
+			},{
+				"__type" : "float"11.5201607
+			},{
+				"__type" : "float"3.98999953
+			},{
+				"__type" : "float"4.990012
+			},{
+				"__type" : "float"5.749995
+			},{
+				"__type" : "float"5.55001926
+			},{
+				"__type" : "float"8.710005
+			},{
+				"__type" : "float"1.90000081
+			},{
+				"__type" : "float"3.65
+			},{
+				"__type" : "float"2.1
+			},{
+				"__type" : "float"2.7
+			},{
+				"__type" : "float"2.9
+			},{
+				"__type" : "float"3.5
+			},{
+				"__type" : "float"3.44999981
+			},{
+				"__type" : "float"4.590001
+			},{
+				"__type" : "float"12.0000448
+			},{
+				"__type" : "float"3.30999947
+			},{
+				"__type" : "float"3.88999987
+			},{
+				"__type" : "float"3.44999957
+			},{
+				"__type" : "float"5.67001438
+			},{
+				"__type" : "float"5.030023
+			},{
+				"__type" : "float"4.5
+			},{
+				"__type" : "float"2.87
+			},{
+				"__type" : "float"5.300029
+			},{
+				"__type" : "float"4.05
+			},{
+				"__type" : "float"3.99
+			},{
+				"__type" : "float"4.5
+			},{
+				"__type" : "float"2.49
+			},{
+				"__type" : "float"3.19
+			},{
+				"__type" : "float"3.99
+			},{
+				"__type" : "float"3.79
+			},{
+				"__type" : "float"3.67
+			},{
+				"__type" : "float"3.45
+			},{
+				"__type" : "float"3.84999919
+			},{
+				"__type" : "float"6.75001669
+			},{
+				"__type" : "float"1.91000009
+			},{
+				"__type" : "float"5
+			},{
+				"__type" : "float"5.350006
+			},{
+				"__type" : "float"4.05000067
+			},{
+				"__type" : "float"4.6
+			},{
+				"__type" : "float"1.69
+			},{
+				"__type" : "float"2.25
+			},{
+				"__type" : "float"2.59
+			},{
+				"__type" : "float"3.99
+			},{
+				"__type" : "float"5.2
+			},{
+				"__type" : "float"2.5
+			},{
+				"__type" : "float"1.25
+			},{
+				"__type" : "float"2.65
+			},{
+				"__type" : "float"3.95
+			},{
+				"__type" : "float"3.3
+			},{
+				"__type" : "float"1.9
+			},{
+				"__type" : "float"3.6
+			},{
+				"__type" : "float"6.7
+			},{
+				"__type" : "float"4.6
+			},{
+				"__type" : "float"1.2
+			},{
+				"__type" : "float"1.9
+			},{
+				"__type" : "float"3.99
+			},{
+				"__type" : "float"4.5
+			},{
+				"__type" : "float"4.1
+			},{
+				"__type" : "float"0.9
+			},{
+				"__type" : "float"7.8
+			},{
+				"__type" : "float"2.5
+			},{
+				"__type" : "float"3.1
+			},{
+				"__type" : "float"6.37000275
+			},{
+				"__type" : "float"6.990012
+			},{
+				"__type" : "float"3.249999
+			},{
+				"__type" : "float"4.45001
+			},{
+				"__type" : "float"1.91
+			},{
+				"__type" : "float"3.64999938
+			},{
+				"__type" : "float"2.9
+			},{
+				"__type" : "float"4.5
+			},{
+				"__type" : "float"10.9
+			},{
+				"__type" : "float"4.8
+			},{
+				"__type" : "float"5.5
+			},{
+				"__type" : "float"2.7
+			},{
+				"__type" : "float"3.9
+			},{
+				"__type" : "float"3.6
+			},{
+				"__type" : "float"1.99
+			},{
+				"__type" : "float"2.99
+			},{
+				"__type" : "float"2.45
+			},{
+				"__type" : "float"2.55
+			},{
+				"__type" : "float"5.99
+			},{
+				"__type" : "float"3.99
+			},{
+				"__type" : "float"18.5
+			},{
+				"__type" : "float"4
+			},{
+				"__type" : "float"3.8
+			},{
+				"__type" : "float"6.02001524
+			},{
+				"__type" : "float"9.000003
+			},{
+				"__type" : "float"10.0800257
+			},{
+				"__type" : "float"7.380026
+			},{
+				"__type" : "float"17.520052
+			},{
+				"__type" : "float"6.45000458
+			},{
+				"__type" : "float"4.65001154
+			},{
+				"__type" : "float"7.10005569
+			},{
+				"__type" : "float"6.669999
+			},{
+				"__type" : "float"3.66999936
+			},{
+				"__type" : "float"9.000002
+			},{
+				"__type" : "float"19.2000732
+			},{
+				"__type" : "float"12.7800007
+			},{
+				"__type" : "float"5.450018
+			},{
+				"__type" : "float"6.56003
+			},{
+				"__type" : "float"7.500019
+			},{
+				"__type" : "float"3.83
+			},{
+				"__type" : "float"3.87999988
+			},{
+				"__type" : "float"4.20000458
+			},{
+				"__type" : "float"19.99
+			},{
+				"__type" : "float"13.99
+			},{
+				"__type" : "float"12.99
+			},{
+				"__type" : "float"4.79
+			},{
+				"__type" : "float"9.99
+			},{
+				"__type" : "float"7.99
+			},{
+				"__type" : "float"7.99
+			},{
+				"__type" : "float"9.99
+			},{
+				"__type" : "float"9.99
+			},{
+				"__type" : "float"7.99
+			},{
+				"__type" : "float"7.99
+			},{
+				"__type" : "float"9.99
+			},{
+				"__type" : "float"9.99
+			},{
+				"__type" : "float"9.99
+			},{
+				"__type" : "float"7.99
+			},{
+				"__type" : "float"9.99
+			},{
+				"__type" : "float"7.97
+			},{
+				"__type" : "float"9.97
+			},{
+				"__type" : "float"12.79
+			},{
+				"__type" : "float"15.5
+			},{
+				"__type" : "float"18.4
+			},{
+				"__type" : "float"14.5
+			},{
+				"__type" : "float"13.5
+			},{
+				"__type" : "float"19.8
+			},{
+				"__type" : "float"25.2
+			},{
+				"__type" : "float"22.1
+			},{
+				"__type" : "float"23.4
+			},{
+				"__type" : "float"25.6
+			},{
+				"__type" : "float"21.5
+			},{
+				"__type" : "float"29.99
+			},{
+				"__type" : "float"2.7
+			},{
+				"__type" : "float"3.5
+			},{
+				"__type" : "float"7.6
+			},{
+				"__type" : "float"5.6
+			},{
+				"__type" : "float"4.2
+			},{
+				"__type" : "float"8
+			},{
+				"__type" : "float"9.5
+			},{
+				"__type" : "float"8.99
+			},{
+				"__type" : "float"11.49
+			},{
+				"__type" : "float"12.99
+			},{
+				"__type" : "float"18.99
+			},{
+				"__type" : "float"13.49
+			},{
+				"__type" : "float"8.99
+			},{
+				"__type" : "float"8.95
+			},{
+				"__type" : "float"13.99
+			},{
+				"__type" : "float"4.05
+			},{
+				"__type" : "float"2.85
+			},{
+				"__type" : "float"2.79
+			},{
+				"__type" : "float"3.19
+			},{
+				"__type" : "float"2.99
+			},{
+				"__type" : "float"2.13
+			},{
+				"__type" : "float"6.79
+			},{
+				"__type" : "float"5.49
+			},{
+				"__type" : "float"4.89
+			},{
+				"__type" : "float"8.9
+			},{
+				"__type" : "float"5.65
+			},{
+				"__type" : "float"6.25
+			},{
+				"__type" : "float"6.99
+			},{
+				"__type" : "float"6.85
+			},{
+				"__type" : "float"2.45
+			},{
+				"__type" : "float"2.89
+			},{
+				"__type" : "float"2.65
+			},{
+				"__type" : "float"1.89
+			},{
+				"__type" : "float"2.99
+			},{
+				"__type" : "float"3.49
+			},{
+				"__type" : "float"3.98
+			},{
+				"__type" : "float"3.5
+			},{
+				"__type" : "float"4.7
+			},{
+				"__type" : "float"3.69
+			},{
+				"__type" : "float"3.69
+			},{
+				"__type" : "float"2.89
+			},{
+				"__type" : "float"4.49
+			},{
+				"__type" : "float"4.45
+			},{
+				"__type" : "float"15.99
+			},{
+				"__type" : "float"14.99
+			},{
+				"__type" : "float"16.99
+			},{
+				"__type" : "float"18.99
+			},{
+				"__type" : "float"23.99
+			},{
+				"__type" : "float"3.99
+			},{
+				"__type" : "float"3.19
+			},{
+				"__type" : "float"3.99
+			},{
+				"__type" : "float"4.260005
+			},{
+				"__type" : "float"3.75
+			},{
+				"__type" : "float"5.50003338
+			},{
+				"__type" : "float"5.480001
+			},{
+				"__type" : "float"4.71001053
+			},{
+				"__type" : "float"3.53
+			},{
+				"__type" : "float"5.64002228
+			},{
+				"__type" : "float"1.95
+			},{
+				"__type" : "float"2.999999
+			},{
+				"__type" : "float"5.000023
+			},{
+				"__type" : "float"2.65
+			},{
+				"__type" : "float"2.65
+			},{
+				"__type" : "float"4.200004
+			},{
+				"__type" : "float"5.780006
+			},{
+				"__type" : "float"3.95
+			},{
+				"__type" : "float"3.95
+			},{
+				"__type" : "float"3.95
+			},{
+				"__type" : "float"4.95
+			},{
+				"__type" : "float"4.95
+			},{
+				"__type" : "float"4.95
+			},{
+				"__type" : "float"7.45
+			},{
+				"__type" : "float"7.45
+			},{
+				"__type" : "float"9.95
+			},{
+				"__type" : "float"9.95
+			},{
+				"__type" : "float"14.95
+			},{
+				"__type" : "float"1.9
+			},{
+				"__type" : "float"4.8
+			},{
+				"__type" : "float"4.68001366
+			},{
+				"__type" : "float"5.64001465
+			},{
+				"__type" : "float"1.8
+			},{
+				"__type" : "float"1.75
+			},{
+				"__type" : "float"2.99
+			},{
+				"__type" : "float"2.49
+			},{
+				"__type" : "float"2.49
+			},{
+				"__type" : "float"2.99
+			},{
+				"__type" : "float"2.49
+			},{
+				"__type" : "float"2.99
+			},{
+				"__type" : "float"2.49
+			},{
+				"__type" : "float"2.99
+			},{
+				"__type" : "float"2.49
+			},{
+				"__type" : "float"2.49
+			},{
+				"__type" : "float"1.99
+			},{
+				"__type" : "float"3.49
+			},{
+				"__type" : "float"3.49
+			},{
+				"__type" : "float"3.49
+			},{
+				"__type" : "float"3.49
+			},{
+				"__type" : "float"4.99
+			},{
+				"__type" : "float"5.49
+			},{
+				"__type" : "float"4.99
+			},{
+				"__type" : "float"4.99
+			},{
+				"__type" : "float"9.99
+			},{
+				"__type" : "float"8.99
+			},{
+				"__type" : "float"2.99
+			},{
+				"__type" : "float"6.99
+			},{
+				"__type" : "float"4.99
+			},{
+				"__type" : "float"4.99
+			},{
+				"__type" : "float"5.99
+			},{
+				"__type" : "float"5.99
+			},{
+				"__type" : "float"8.99
+			},{
+				"__type" : "float"9.99
+			},{
+				"__type" : "float"49.9
+			},{
+				"__type" : "float"9.99
+			},{
+				"__type" : "float"8.99
+			},{
+				"__type" : "float"12.99
+			},{
+				"__type" : "float"14.99
+			},{
+				"__type" : "float"16.99
+			},{
+				"__type" : "float"13.99
+			},{
+				"__type" : "float"17.99
+			},{
+				"__type" : "float"35.99
+			},{
+				"__type" : "float"73.99
+			},{
+				"__type" : "float"44.99
+			},{
+				"__type" : "float"35.99
+			},{
+				"__type" : "float"99.99
+			},{
+				"__type" : "float"2.75
+			},{
+				"__type" : "float"3.75
+			},{
+				"__type" : "float"4.5
+			},{
+				"__type" : "float"3.25
+			},{
+				"__type" : "float"4
+			},{
+				"__type" : "float"3
+			},{
+				"__type" : "float"1.99
+			},{
+				"__type" : "float"2.99
+			},{
+				"__type" : "float"2.99
+			},{
+				"__type" : "float"3.55
+			},{
+				"__type" : "float"1.99
+			},{
+				"__type" : "float"2.79
+			},{
+				"__type" : "float"2.99
+			},{
+				"__type" : "float"2.49
+			},{
+				"__type" : "float"8.99
+			},{
+				"__type" : "float"7.49
+			},{
+				"__type" : "float"6.89
+			},{
+				"__type" : "float"3.49
+			},{
+				"__type" : "float"3.49
+			},{
+				"__type" : "float"4.99
+			},{
+				"__type" : "float"2.99
+			},{
+				"__type" : "float"9.99
+			},{
+				"__type" : "float"9.99
+			},{
+				"__type" : "float"9.99
+			},{
+				"__type" : "float"9.99
+			},{
+				"__type" : "float"9.99
+			},{
+				"__type" : "float"9.99
+			},{
+				"__type" : "float"9.99
+			},{
+				"__type" : "float"9.99
+			},{
+				"__type" : "float"6.99
+			},{
+				"__type" : "float"6.99
+			},{
+				"__type" : "float"3.49
+			},{
+				"__type" : "float"18.99
+			},{
+				"__type" : "float"9.99
+			},{
+				"__type" : "float"9.99
+			},{
+				"__type" : "float"9.99
+			},{
+				"__type" : "float"9.99
+			},{
+				"__type" : "float"9.99
+			},{
+				"__type" : "float"9.99
+			}
+		]
+	}
+	},
+	"TierInflation" : {
+		"__type" : "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+		"value" : {
+		"objs" : null,
+		"arrays" : null,
+		"obj" : null,
+		"array" : [
+			{
+				"__type" : "float"1.4
+			},{
+				"__type" : "float"1.41
+			},{
+				"__type" : "float"1.48
+			},{
+				"__type" : "float"1.4
+			},{
+				"__type" : "float"1.39
+			},{
+				"__type" : "float"1.34
+			},{
+				"__type" : "float"1.26
+			},{
+				"__type" : "float"1.3
+			},{
+				"__type" : "float"1.28
+			},{
+				"__type" : "float"1.32
+			},{
+				"__type" : "float"1.12
+			},{
+				"__type" : "float"1.14
+			},{
+				"__type" : "float"1.17
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			},{
+				"__type" : "float"1
+			}
+		]
+	}
+	},
+	"UnlockedProductTiers" : {
+		"__type" : "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+		"value" : {
+		"objs" : null,
+		"arrays" : null,
+		"obj" : null,
+		"array" : [
+			{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"true
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			}
+		]
+	}
+	},
+	"PaintableValues" : {
+		"__type" : "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+		"value" : {
+		"objs" : null,
+		"arrays" : null,
+		"obj" : null,
+		"array" : [
+			{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			}
+		]
+	}
+	},
+	"DoorStates" : {
+		"__type" : "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+		"value" : {
+		"objs" : null,
+		"arrays" : null,
+		"obj" : null,
+		"array" : [
+			{
+				"__type" : "int"2
+			},{
+				"__type" : "int"0
+			},{
+				"__type" : "int"1
+			},{
+				"__type" : "int"1
+			}
+		]
+	}
+	},
+	"HiredEmployeesData" : {
+		"__type" : "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+		"value" : {
+		"objs" : null,
+		"arrays" : null,
+		"obj" : null,
+		"array" : [
+			{
+				"__type" : "string""5|83|6|10|7|8|10|8|10|big sb|0|5780|16900|1070|1086|1000|1000|1000"
+			},{
+				"__type" : "string""1|71|10|7|4|6|5|7|4|small sb|0|56728|1560|1012|1000|1000|1000|1000"
+			},{
+				"__type" : "string""3|52|9|8|1|6|2|7|10|medium sb|0|5000|1016|1000|1060|1000|1000|1000"
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			}
+		]
+	}
+	},
+	"HiredRerollTimes" : {
+		"__type" : "int",
+		"value" : 0
+	},
+	"HiredHasRerolled" : {
+		"__type" : "bool",
+		"value" : true
+	},
+	"DemolishableValues" : {
+		"__type" : "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+		"value" : {
+		"objs" : null,
+		"arrays" : null,
+		"obj" : null,
+		"array" : [
+			{
+				"__type" : "string"""
+			},{
+				"__type" : "string""00000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000"
+			}
+		]
+	}
+	},
+	"CurrentInvoicesArray" : {
+		"__type" : "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+		"value" : {
+		"objs" : null,
+		"arrays" : null,
+		"obj" : null,
+		"array" : [
+			{
+				"__type" : "string""0|850|27|28|0_0_0_0_0"
+			},{
+				"__type" : "string""1|29,61962|27|30|0_0_0_0_0"
+			},{
+				"__type" : "string""2|206|27|29|0_0_0_0_0"
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			},{
+				"__type" : "string"""
+			}
+		]
+	}
+	},
+	"LoanAmount" : {
+		"__type" : "int",
+		"value" : 10200
+	},
+	"LoanPaymentPerDay" : {
+		"__type" : "int",
+		"value" : 850
+	},
+	"ManufacUnlockedRecipes" : {
+		"__type" : "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+		"value" : {
+		"objs" : null,
+		"arrays" : null,
+		"obj" : null,
+		"array" : [
+			{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			},{
+				"__type" : "bool"false
+			}
+		]
+	}
+	},
+	"ManufacPlayerRecipes" : {
+		"__type" : "ES3PlayMaker.PMDataWrapper,Assembly-CSharp-firstpass",
+		"value" : {
+		"objs" : null,
+		"arrays" : null,
+		"obj" : null,
+		"array" : [
+			
+		]
+	}
+	},
+	"propdata0" : {
+		"__type" : "string",
+		"value" : "0|1|-1,430456|0|4,553804|89,99998"
+	},
+	"propinfoproduct0" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		12,0,2,0,143,3,145,5
+	]
+	},
+	"propdata1" : {
+		"__type" : "string",
+		"value" : "0|1|-1,452198|0|5,171756|270"
+	},
+	"propinfoproduct1" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		1,0,20,0,108,3,8,0
+	]
+	},
+	"propdata2" : {
+		"__type" : "string",
+		"value" : "0|1|-1,466413|0|6,980976|90"
+	},
+	"propinfoproduct2" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		27,14,32,0,31,0,1,0
+	]
+	},
+	"propdata3" : {
+		"__type" : "string",
+		"value" : "0|1|-1,4746|0|7,583482|270"
+	},
+	"propinfoproduct3" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		4,0,22,0,48,0,21,0
+	]
+	},
+	"propdata4" : {
+		"__type" : "string",
+		"value" : "0|1|-1,473432|0|9,402566|90"
+	},
+	"propinfoproduct4" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		74,19,4,1,55,0,33,0
+	]
+	},
+	"propdata5" : {
+		"__type" : "string",
+		"value" : "0|1|-1,499935|0|10,01281|270"
+	},
+	"propinfoproduct5" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		29,9,5,0,55,0,10,34
+	]
+	},
+	"propdata6" : {
+		"__type" : "string",
+		"value" : "0|2|2,995147|0|11,19236|180"
+	},
+	"propinfoproduct6" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		233,3,46,0,43,15,131,2,44,29
+	]
+	},
+	"propdata7" : {
+		"__type" : "string",
+		"value" : "0|3|4,098191|0|11,30953|180"
+	},
+	"propinfoproduct7" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		6,0,47,0,57,0,230,30,239,29
+	]
+	},
+	"propdata8" : {
+		"__type" : "string",
+		"value" : "0|19|6,870909|0|-0,8388495|270"
+	},
+	"propinfoproduct8" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		7,0,141,10,140,16,142,26,35,0,19,18,41,30,3,0
+	]
+	},
+	"propdata9" : {
+		"__type" : "string",
+		"value" : "0|3|5,301726|0|11,31301|180"
+	},
+	"propinfoproduct9" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		227,0,239,0,232,47,45,68,240,0
+	]
+	},
+	"propinfoproduct10" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		0,0,21,13,74,72,54,0
+	]
+	},
+	"decopropdata10" : {
+		"__type" : "string",
+		"value" : "7|46|28,529|0|5,903549|45"
+	},
+	"decopropdata11" : {
+		"__type" : "string",
+		"value" : "7|47|28,43803|0|4,693981|0"
+	},
+	"decopropdata12" : {
+		"__type" : "string",
+		"value" : "7|47|28,51471|0|7,215776|180"
+	},
+	"decopropdata13" : {
+		"__type" : "string",
+		"value" : "7|1|-5,976328|4,5|6,182517|3,814697E-06"
+	},
+	"decopropdata14" : {
+		"__type" : "string",
+		"value" : "7|1|-6,016253|4,5|9,439137|3,814697E-06"
+	},
+	"decopropdata15" : {
+		"__type" : "string",
+		"value" : "7|1|0,02457094|4,5|9,477169|3,814697E-06"
+	},
+	"decopaintabledata5" : {
+		"__type" : "string",
+		"value" : "2|0"
+	},
+	"decopropdata16" : {
+		"__type" : "string",
+		"value" : "7|1|-0,0008836389|4,5|5,599559|3,814697E-06"
+	},
+	"decopaintabledata9" : {
+		"__type" : "string",
+		"value" : "2|0"
+	},
+	"propdata10" : {
+		"__type" : "string",
+		"value" : "0|1|-5,120822|0|10,061|270"
+	},
+	"propdata11" : {
+		"__type" : "string",
+		"value" : "0|1|-5,123463|0|9,457439|90"
+	},
+	"propinfoproduct11" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		2,0,39,0,15,17,137,0
+	]
+	},
+	"propdata12" : {
+		"__type" : "string",
+		"value" : "0|1|-5,109685|0|7,65447|270"
+	},
+	"propinfoproduct12" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		13,0,16,0,16,0,25,2
+	]
+	},
+	"propdata13" : {
+		"__type" : "string",
+		"value" : "0|1|-5,112623|0|7,052875|90"
+	},
+	"propinfoproduct13" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		11,0,17,0,144,21,12,0
+	]
+	},
+	"propdata14" : {
+		"__type" : "string",
+		"value" : "0|1|-5,115074|0|5,194025|270"
+	},
+	"propinfoproduct14" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		9,0,18,0,17,0,23,0
+	]
+	},
+	"propdata15" : {
+		"__type" : "string",
+		"value" : "0|1|-5,115986|0|4,580928|89,99998"
+	},
+	"propinfoproduct15" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		0,0,28,0,32,1,14,0
+	]
+	},
+	"propdata16" : {
+		"__type" : "string",
+		"value" : "0|14|0,0696041|0|4,558083|180"
+	},
+	"propinfoproduct16" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		20,3,8,7,3,14,16,0
+	]
+	},
+	"propdata17" : {
+		"__type" : "string",
+		"value" : "0|14|0,0474894|0|5,160679|1,001791E-05"
+	},
+	"propinfoproduct17" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		0,9,19,12,5,24,24,0
+	]
+	},
+	"propdata18" : {
+		"__type" : "string",
+		"value" : "0|3|1,894917|0|11,68792|180"
+	},
+	"propinfoproduct18" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		129,0,128,1,133,0,132,0,127,0
+	]
+	},
+	"propdata19" : {
+		"__type" : "string",
+		"value" : "0|4|6,610368|0|11,50947|180"
+	},
+	"propinfoproduct19" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		105,0,61,0
+	]
+	},
+	"propdata20" : {
+		"__type" : "string",
+		"value" : "0|1|-8,689192|0|10,50922|3,814697E-06"
+	},
+	"propinfoproduct20" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		135,5,136,2,11,0,22,0
+	]
+	},
+	"propdata21" : {
+		"__type" : "string",
+		"value" : "0|1|-8,697045|0|8,503302|0"
+	},
+	"propinfoproduct21" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		18,5,30,0,23,9,34,0
+	]
+	},
+	"propdata22" : {
+		"__type" : "string",
+		"value" : "0|1|-8,68414|0|6,46854|0"
+	},
+	"propinfoproduct22" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		33,8,34,11,24,0,30,0
+	]
+	},
+	"propdata23" : {
+		"__type" : "string",
+		"value" : "0|14|-8,664839|0|4,957341|90"
+	},
+	"propinfoproduct23" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		26,0,26,0,26,0,104,23
+	]
+	},
+	"propdata24" : {
+		"__type" : "string",
+		"value" : "0|1|1,917563|0|6,90984|90"
+	},
+	"propinfoproduct24" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		109,39,134,35,56,17,138,0
+	]
+	},
+	"propdata25" : {
+		"__type" : "string",
+		"value" : "0|1|1,928683|0,00423193|7,52678|270"
+	},
+	"propinfoproduct25" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		-1,0,-1,0,-1,0,-1,0
+	]
+	},
+	"decopropdata17" : {
+		"__type" : "string",
+		"value" : "7|1|-6,002169|4,5|-0,09389755|3,814697E-06"
+	},
+	"decopropdata18" : {
+		"__type" : "string",
+		"value" : "7|1|-0,05630958|4,5|-0,04657972|1,001791E-05"
+	},
+	"decopropdata19" : {
+		"__type" : "string",
+		"value" : "7|1|5,96191|4,5|-0,001728415|1,001791E-05"
+	},
+	"propdata26" : {
+		"__type" : "string",
+		"value" : "0|1|3,939364|0|6,921697|90,00001"
+	},
+	"propinfoproduct26" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		254,45,253,40,42,38,255,34
+	]
+	},
+	"decopropdata9" : {
+		"__type" : "string",
+		"value" : "7|45|9,741719|0|3,222206|180"
+	},
+	"decopropdata8" : {
+		"__type" : "string",
+		"value" : "7|43|-9|3,493871|3,61578|89,99998"
+	},
+	"decopropdata7" : {
+		"__type" : "string",
+		"value" : "7|43|8,75|3,557054|11,24795|270"
+	},
+	"propdata27" : {
+		"__type" : "string",
+		"value" : "0|1|3,984909|0|7,539964|270"
+	},
+	"propinfoproduct27" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		-1,0,-1,0,-1,0,-1,0
+	]
+	},
+	"propdata28" : {
+		"__type" : "string",
+		"value" : "1|5|14,04674|0|11,13524|270"
+	},
+	"propinfoproduct28" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		127,-1,129,-1,130,-1,135,-1,131,-1,133,-1,132,-1,128,-1,130,-1,1,-1
+	]
+	},
+	"propdata29" : {
+		"__type" : "string",
+		"value" : "1|10|14,04485|0|9,707703|270"
+	},
+	"propinfoproduct29" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		252,50,139,20,63,20,62,20,-1,-1,-1,-1,-1,-1,106,50,-1,-1,65,30
+	]
+	},
+	"propdata30" : {
+		"__type" : "string",
+		"value" : "1|10|14,04627|0|8,247019|270"
+	},
+	"propinfoproduct30" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		79,50,235,40,107,20,36,30,37,25,38,30,-1,-1,40,30,-1,-1,-1,-1
+	]
+	},
+	"propdata31" : {
+		"__type" : "string",
+		"value" : "1|10|14,05673|0|6,832743|270"
+	},
+	"propinfoproduct31" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		229,20,-1,-1,59,20,-1,-1,228,20,-1,-1,238,40,234,40,237,40,60,20
+	]
+	},
+	"propdata32" : {
+		"__type" : "string",
+		"value" : "1|5|11,97617|0|11,2572|270"
+	},
+	"propinfoproduct32" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		75,8,256,60,19,3,38,30,42,-1,136,-1,4,-1,143,-1,20,-1,27,-1
+	]
+	},
+	"propdata33" : {
+		"__type" : "string",
+		"value" : "1|5|11,98696|0|9,801881|270"
+	},
+	"propinfoproduct33" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		40,30,78,50,131,10,144,-1,137,-1,37,25,66,-1,64,-1,-1,0,-1,0
+	]
+	},
+	"propdata34" : {
+		"__type" : "string",
+		"value" : "1|5|12,01798|0|8,344|270"
+	},
+	"propinfoproduct34" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		31,-1,38,30,253,-1,257,80,36,30,109,-1,134,-1,255,-1,46,-1,77,50
+	]
+	},
+	"decopropdata6" : {
+		"__type" : "string",
+		"value" : "7|199|14,53891|0|4,061032|270"
+	},
+	"decopropdata5" : {
+		"__type" : "string",
+		"value" : "7|168|8,340563|0|-0,8692557|90"
+	},
+	"decopropdata4" : {
+		"__type" : "string",
+		"value" : "7|203|10,038|0|2,425|180"
+	},
+	"decopropdata3" : {
+		"__type" : "string",
+		"value" : "7|202|14,072|0|-2,497|0"
+	},
+	"decopropdata2" : {
+		"__type" : "string",
+		"value" : "7|201|11,76131|0|2,55|180"
+	},
+	"decopicturedata33" : {
+		"__type" : "string",
+		"value" : "0|1|1|"
+	},
+	"decopropdata1" : {
+		"__type" : "string",
+		"value" : "7|200|16,351|0|3,155|180"
+	},
+	"decopicturedata34" : {
+		"__type" : "string",
+		"value" : "0|1|1|"
+	},
+	"decopropdata0" : {
+		"__type" : "string",
+		"value" : "7|198|10,96|0|2,55|180"
+	},
+	"decopicturedata35" : {
+		"__type" : "string",
+		"value" : "0|1|1|"
+	},
+	"decopicturedata36" : {
+		"__type" : "string",
+		"value" : "0|1|1|"
+	},
+	"decopicturedata37" : {
+		"__type" : "string",
+		"value" : "0|1|1|"
+	},
+	"decopicturedata26" : {
+		"__type" : "string",
+		"value" : "0|1|1|"
+	},
+	"decopicturedata27" : {
+		"__type" : "string",
+		"value" : "0|1|1|"
+	},
+	"decopaintabledata30" : {
+		"__type" : "string",
+		"value" : "2|0"
+	},
+	"decopaintabledata31" : {
+		"__type" : "string",
+		"value" : "2|0"
+	},
+	"decopaintabledata32" : {
+		"__type" : "string",
+		"value" : "2|0"
+	},
+	"decopropdata20" : {
+		"__type" : "string",
+		"value" : "7|1|6,028525|4,5|9,492283|1,001791E-05"
+	},
+	"decopropdata21" : {
+		"__type" : "string",
+		"value" : "7|1|5,997515|4,5|5,486378|1,001791E-05"
+	},
+	"decopropdata22" : {
+		"__type" : "string",
+		"value" : "7|33|13,00014|4,5|10,35998|3,814697E-06"
+	},
+	"decopropdata23" : {
+		"__type" : "string",
+		"value" : "7|33|13,01966|4,5|4,592769|3,814697E-06"
+	},
+	"decopropdata24" : {
+		"__type" : "string",
+		"value" : "7|33|11,0007|4,5|4,586427|3,814697E-06"
+	},
+	"decopropdata25" : {
+		"__type" : "string",
+		"value" : "7|33|10,9891|4,5|10,37628|3,814697E-06"
+	},
+	"decopropdata26" : {
+		"__type" : "string",
+		"value" : "7|191|3,038833|0,008569114|-4,063536|7,629395E-06"
+	},
+	"decopropdata27" : {
+		"__type" : "string",
+		"value" : "7|194|-2,991361|0,008569114|-4,040588|180"
+	},
+	"decopropdata28" : {
+		"__type" : "string",
+		"value" : "7|20|-15,07565|0,008569114|-4,334916|180"
+	},
+	"decopropdata29" : {
+		"__type" : "string",
+		"value" : "7|170|-13,14027|0,008569114|-5,536774|270"
+	},
+	"decopaintabledata29" : {
+		"__type" : "string",
+		"value" : "2|0"
+	},
+	"decopropdata30" : {
+		"__type" : "string",
+		"value" : "7|170|-11,02828|0,008569114|-7,661572|180"
+	},
+	"decopaintabledata44" : {
+		"__type" : "string",
+		"value" : "2|0"
+	},
+	"decopropdata31" : {
+		"__type" : "string",
+		"value" : "7|170|-7,024993|0,008569114|-7,679849|180"
+	},
+	"decopaintabledata45" : {
+		"__type" : "string",
+		"value" : "2|0"
+	},
+	"decopropdata32" : {
+		"__type" : "string",
+		"value" : "7|204|10,64162|0|3,31728|0"
+	},
+	"decopaintabledata46" : {
+		"__type" : "string",
+		"value" : "2|0"
+	},
+	"decopropdata33" : {
+		"__type" : "string",
+		"value" : "7|256|11,35082|0,008569114|-3,979822|0"
+	},
+	"decopaintabledata47" : {
+		"__type" : "string",
+		"value" : "2|0"
+	},
+	"decopropdata34" : {
+		"__type" : "string",
+		"value" : "7|238|3,263158|1,312171|-7,907562|3,814697E-06"
+	},
+	"decopaintabledata48" : {
+		"__type" : "string",
+		"value" : "2|0"
+	},
+	"decopropdata35" : {
+		"__type" : "string",
+		"value" : "7|247|4,502822|4,5|7,493479|0"
+	},
+	"decopropdata36" : {
+		"__type" : "string",
+		"value" : "7|247|0,1611869|4,5|7,515364|0"
+	},
+	"decopropdata37" : {
+		"__type" : "string",
+		"value" : "7|216|7,699838|2,934149|-3,25|180"
+	},
+	"propdata35" : {
+		"__type" : "string",
+		"value" : "1|5|12,04826|0|6,929419|270"
+	},
+	"propinfoproduct35" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		7,-1,41,-1,42,6,41,-1,104,-1,64,20,66,30,67,30,76,30,133,-1
+	]
+	},
+	"propdata36" : {
+		"__type" : "string",
+		"value" : "2|7|-13,2604|0|0,5294299|3,814697E-06"
+	},
+	"propinfoproduct36" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		-1,0
+	]
+	},
+	"decopropdata38" : {
+		"__type" : "string",
+		"value" : "7|49|36,66704|0|-0,05063057|270"
+	},
+	"propdata37" : {
+		"__type" : "string",
+		"value" : "3|12|2,926705|0|2,088367|90,00001"
+	},
+	"propinfoproduct37" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		-1,0
+	]
+	},
+	"propdata38" : {
+		"__type" : "string",
+		"value" : "3|12|-3,057232|0|2,145337|90"
+	},
+	"propinfoproduct38" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		-1,0
+	]
+	},
+	"propdata39" : {
+		"__type" : "string",
+		"value" : "3|12|4,073385|0|2,808761|90,00001"
+	},
+	"propinfoproduct39" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		-1,0
+	]
+	},
+	"propdata40" : {
+		"__type" : "string",
+		"value" : "3|12|-4,11529|0|2,677881|90"
+	},
+	"propinfoproduct40" : {
+		"__type" : "System.Int32[],mscorlib",
+		"value" : [
+		-1,0
+	]
+	},
+	"decopropdata39" : {
+		"__type" : "string",
+		"value" : "7|246|-9|3,627508|6,59472|90"
+	},
+	"decopropdata40" : {
+		"__type" : "string",
+		"value" : "7|246|6,044961|4,138631|-2,75|1,001791E-05"
+	},
+	"decopropdata41" : {
+		"__type" : "string",
+		"value" : "7|246|0,04012084|4,188474|-2,7|1,001791E-05"
+	},
+	"decopropdata42" : {
+		"__type" : "string",
+		"value" : "7|247|-11,5233|4,5|-0,4870971|0"
+	}
+}

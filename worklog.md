@@ -1,0 +1,164 @@
+# Supermarket Together Lab — Worklog
+
+## Project: Supermarket Together Lab
+A full-feature co-op operations dashboard + wiki for the game Supermarket Together.
+Built with Next.js 16 + TypeScript + Tailwind + shadcn/ui + Zustand + socket.io.
+
+## Data sources (provided)
+- `/home/z/my-project/upload/game_encyclopedia.md` — human-readable encyclopedia (primary source for tiers, groups, customer full 11-weight arrays, seasons, containers, skills, buildables, achievements, manufacturing, employee config, game tuning, layout)
+- `/home/z/my-project/upload/products.tsv` — 339 products with collider/box/price fields
+- `/home/z/my-project/upload/necessities.json` — 11 necessity pools with rawIds (preserves duplicate tokens, e.g. Salt "4-4-4-4-4")
+- `/home/z/my-project/upload/customers.tsv` — 58 customer types (top-3 summary; full 11-weight array parsed from md)
+- `/home/z/my-project/upload/_latest.json` — partial EasySave3 export (malformed JSON, used as demo save reference)
+
+## Rigor policy
+Every analytical output is labeled: Confirmed / Proxy / Unverified / Exploit Candidate.
+Salt mechanic = "Confirmed special-case mechanic, unproven exploit".
+
+---
+Task ID: 0
+Agent: orchestrator (main)
+Task: Project kickoff — analyze data, plan architecture, bootstrap foundation.
+
+Work Log:
+- Inspected all 5 uploaded data files; confirmed structure & counts (339 products, 58 customers, 11 necessities, 55 tiers, 19 groups, 4 seasons, 42 containers, 44 skills, 43 buildables, 51 achievements, 30 manufacturing products, 41 layout props).
+- Confirmed Salt mechanic: necessity[9] rawIds="4-4-4-4-4", unique=[4], also in necessity[10] (62-token staple pool), only customer #47 has weight 0.5 for necessity[9].
+- Verified _latest.json is malformed (EasySave3 bool serialization bug); will treat as demo save and build a tolerant mock parser + adapter interface.
+- Confirmed Next.js 16 project scaffolded, shadcn/ui components present, Prisma+SQLite available, dev server runs on :3000, socket.io NOT yet installed.
+- Planned 22-feature build with parallel subagent delegation after foundation is complete.
+
+Stage Summary:
+- Architecture decided: single-page app shell with tab/route-based view switching inside src/app/page.tsx (user can only see / route). State via Zustand (encyclopedia store, save-snapshot store, room store). Real-time room sync via socket.io mini-service on :3003 + BroadcastChannel fallback.
+- Next: generate clean TS data module from uploads, build calculation engine, app shell, then delegate pages to subagents.
+
+---
+Task ID: 5a
+Agent: full-stack-developer
+Task: Build Wiki + Profit + Salt + Containers pages
+
+Work Log:
+- Read worklog.md and all contract files (types.ts, engine.ts, data-loader.ts, store.ts, primitives.tsx, dashboard.tsx) to understand patterns, types, and engine API surface.
+- Inspected encyclopedia.json structure (339 products, 11 necessities, 4 seasons, 42 containers, 19 groups, 55 tiers, 7 premium ids, 30 manufacturing products, 41 layout props).
+- Confirmed shadcn/ui component availability (card, table, sheet, tabs, select, switch, input, badge, button, tooltip) and that recharts + @tanstack/react-table are installed.
+- Built Wiki (`src/components/lab/wiki.tsx`): StatCard row (5), dense filter bar (text + 4 selects + 8 toggle chips), sticky-header sortable table (14 cols, 7 sortable), Sheet right-drawer product detail with 7 sections (identity, pricing, geometry, demand, manufacturing link, snapshot state, role), recommended role classifier with ConfidenceBadge 'proxy'. Selected product synced via UI store (no local open state to avoid setState-in-effect lint error).
+- Built Profit (`src/components/lab/profit.tsx`): proxy-disclaimer callout card, 5-card stat row, recharts ScatterChart (X=demandProxy, Y=valueDensity log-scale, bubble size=boxValue, color by group, notable IDs 296/299/287/4 highlighted red with name labels), 9 leaderboard tabs each top-15 (單箱價值 / 價值密度 / 需求 / 加權 / 早期 / 後期 / Premium / 季節 / 陷阱), each row clickable → setSelectedProduct + setView('wiki').
+- Built Salt (`src/components/lab/salt.tsx`): mechanic-explanation card with 6 raw-data cards (all 'confirmed'), 3 route StatCards (route9/route10 confirmed, total proxy), 5 salt-product StatCards, comparison table for 16 ids with salt row highlighted, exploit-confidence callout with engine's conclusion string, 3-mode Monte Carlo simulator (normal / salt-heavy / salt-only, n=2000, runAll button), per-mode result view (4 StatCards + Top5 hits + Top5 missing), cross-mode comparison table with salt-hit %.
+- Built Containers (`src/components/lab/containers.tsx`): 5-card summary row (total / cheapest / highest cap / best $/u³ / energy-free count), "Best of" section with 5 mini-cards (cheap-energy-free, high-capacity, best-energy-free, high-density, top-3 traps), recharts BarChart of costPerVolume across all 42 containers (emerald = energy-free, amber = has-energy), full sortable 12-column comparison table (8 sortable).
+- Verified all 4 export names match `app-shell.tsx` lazy imports (`m.Wiki`, `m.Profit`, `m.Salt`, `m.Containers`).
+- Ran `bun run lint` — initially one error in wiki.tsx (react-hooks/set-state-in-effect from a useEffect syncing selectedProductId). Refactored to derive `openId` directly from `selectedProductId` store selector, eliminating the effect entirely. Re-ran lint → clean (0 errors, 0 warnings).
+
+Stage Summary:
+- Files created: `src/components/lab/wiki.tsx`, `src/components/lab/profit.tsx`, `src/components/lab/salt.tsx`, `src/components/lab/containers.tsx`.
+- Key features: 339-product wiki with Sheet detail + role classifier; Profit scatter + 9 leaderboard tabs; Salt probe with 3-mode Monte Carlo simulator + cross-mode comparison; 42-container comparison table + bar chart + best-of cards. All engine functions reused exclusively (computeBoxValue, computeColliderVolume, computeValueDensity, computeBoxValueDensity, computeDemandProxy, computeWeightedRevenueProxy, computeWeightedBoxProxy, computeSaltProbe, simulateCustomers).
+- Every analytical output carries a ConfidenceBadge with formula + sources; raw encyclopedia fields labeled 'confirmed', derived metrics 'proxy', salt conclusion 'exploit'. UI labels in zhHant. Mobile-first responsive throughout. Sticky headers + scrollbar-thin on long lists.
+- No files outside the 4 owned files modified. No test files created. Dev server untouched on port 3000.
+- Lint: clean.
+
+---
+Task ID: 5c
+Agent: full-stack-developer
+Task: Build Employees + Skills + Manufacturing + Seasons pages
+
+Work Log:
+- Read worklog.md + all contract files (types.ts, engine.ts, data-loader.ts, store.ts, primitives.tsx, dashboard.tsx pattern).
+- Inspected encyclopedia.json to verify counts: 44 skills, 30 manufacturing, 4 seasons, 8 employeeTasks; parsed config sections (employeeConfig, perkSystem, employeeSpeedFormula, manufacturing, gameTuning).
+- Built skills.tsx (476 lines): strategy ToggleGroup (7 strategies) → computeSkillRecommendations → top-15 horizontal BarChart + 44 skill cards (id, name zhHant+en, description, monospace effect with tooltip, category badge, synergy tag chips, roiProxy MiniBar, ConfidenceBadge). Top 5 highlighted. Perk cost 1000 FP confirmed callout. Caution box. Room integration: vote/unvote buttons, voter avatars, team consensus banner.
+- Built employees.tsx (665 lines): speed calculator (level 0-5 slider + factor 0-1 slider, live formula breakdown, 3-line LineChart speed-vs-level for factor=0/0.5/1.0); level/XP/speed table 0-5; perk↔level equivalent calculator (1 perk = 4 levels); role assignment grid (7 skill roles + 8 employee tasks with colors, Select for room member assignment); daily staff checklist (room-synced or static); collapsible employeeConfig reference table; caution on caps.
+- Built manufacturing.tsx (646 lines): 30-product table with volume+density; production queue planner (add/remove/qty, total time = Σ(qty×30s), throughput proxy with machine count); density ranking leaderboard (top 12) + top-15 BarChart; required input products grid (linkedProductID with tooltip); room manufacturing task assignment (Select); honesty callout; full product table with all fields (sticky header, sortable columns via MiniBar).
+- Built seasons.tsx (699 lines): 4 all-seasons overview cards (pool size, avg boxValue, premium count, click to switch); season Tabs selector; season pool table (sortable by demand/boxValue/name/group, all fields incl. isAlsoInOtherSeasons); top-10 pre-season recommendations (demandProxy×boxValue); seasonal-only exclusive list; overlap ScatterChart (demandProxy vs boxValue, color-coded: above-median/exclusive/premium/normal) with median callout; room checklist sync + "add season items" button; static fallback checklist; confirmed-on-pool / proxy-on-demand ConfidenceBadges.
+- Fixed TypeScript errors: TaskAssignment uses `playerId` not `assignedTo`; StatCard has no `sources` prop; `productById.get()` cast `as Product`; re-added `productZhName` import.
+- Cleaned unused imports (Package, Clock, productName, Crown, linkedId placeholder).
+- Verification: `bunx eslint` on 4 files PASS; `bunx tsc --noEmit` on 4 files PASS (0 errors); `bun run lint` full project PASS (exit 0).
+
+Stage Summary:
+- Files: src/components/lab/{skills,employees,manufacturing,seasons}.tsx (all 'use client', named exports, 2486 lines total).
+- Features: 4 complete operations-dashboard pages with engine integration, recharts visualizations, room sync, ConfidenceBadge rigor (confirmed/proxy/unverified), responsive layouts, Traditional Chinese UI.
+- No files outside the 4 owned were modified. No test files written.
+- Dev server running on :3000 (Turbopack); components lazy-load via app-shell.tsx on navigation.
+- Agent-ctx record: /home/z/my-project/agent-ctx/5c-full-stack-developer.md
+
+---
+Task ID: 5b
+Agent: full-stack-developer
+Task: Build Simulator + Restock + Exploits + RawData pages
+
+Work Log:
+- Read worklog.md, types.ts, engine.ts, data-loader.ts, store.ts, primitives.tsx, dashboard.tsx (pattern example) to understand contracts.
+- Inspected encyclopedia.json + demo-save.json shapes (products, tiers, customerTypes[58], necessities[11], seasons[4], storeLayout, config keys).
+- File 1 (simulator.tsx, 707 lines): Customer Simulator with 58-type explorer (scrollable, mini 11-cell necessity bar grid per row), 11×58 necessity×customer heatmap (CSS grid, emerald alpha by weight, clickable cells), selected-customer top-necessity list with MiniBar, simulation controls (N slider 100-10000, raw/unique Switch, equal/custom spawn textarea with validation fallback, all/from-save/none stocked tabs, Run button), output panel with 4 StatCards (proxy) + Top-20 hits/missed tables + missed-by-group + topOverstockedLowDemand, all ConfidenceBadge 'proxy' with engine formula.
+- File 2 (restock.tsx, 670 lines): Restock Planner. Snapshot status bar (load demo if missing), detection panel with 4 expandable StatCards (low stock / negative inventory / unlocked-never-stocked / high-demand-absent) each with top-10 list, strategy ToggleGroup (7 strategies), season Select when seasonal-prep, budget Input, Compute button, totals row (4 StatCards: cost/units/revenue/ROI proxy), sticky-header shopping list table with per-row player Select (room mode), Markdown/JSON export via Blob, "同步到房間" via setRestockPlan + sonner toast. Shows engine formula + note prominently.
+- File 3 (exploits.tsx, 335 lines): Featured callout (USB 1TB + Gaming Console + Salt Monopoly headline cards), "為什麼標籤很重要" info card (Confirmed/Proxy/Unverified/Exploit 4-quadrant), Tabs filter (All + 4 categories), expandable candidate cards (Collapsible) with category badge (emerald/amber/fuchsia/zinc), ConfidenceBadge, evidence bullets, monospace formula, recommendation highlighted, risk callout, clickable product chips → setSelectedProduct + setView('wiki').
+- File 4 (raw-data.tsx, 357 lines): 14 Tabs (Products/Tiers/Groups/Necessities/Seasons/CustomerTypes/Containers/Skills/Buildables/Achievements/EmployeeTasks/ManufacturingProducts/StoreLayout/Config). Sticky export bar (Markdown via exportMarkdownReport, JSON of current table, TSV with escaping, copy share link as base64 URL hash via navigator.clipboard + toast). Dense table (max-h-[70vh], scrollbar-thin, sticky header), record+column count, ConfidenceBadge 'confirmed'. StoreLayout tab gets summary card (totalProps/units/slots/distinctProducts + top-20 inventory-by-product breakdown).
+- Fixed TS errors: cast productById.get() to `Product | undefined` (data-loader Map inferred as Map<{},{}>), reordered buildMarkdown signature (snapshotLabel before optional note), guarded divide-by-zero in simulator hitPct.
+- Verified: `bun run lint` exit=0 (clean, including pre-existing wiki.tsx error resolved). `npx tsc --noEmit` clean for all 4 owned files.
+
+Stage Summary:
+- Files created/overwritten (all stubs replaced):
+  - src/components/lab/simulator.tsx (707 lines)
+  - src/components/lab/restock.tsx (670 lines)
+  - src/components/lab/exploits.tsx (335 lines)
+  - src/components/lab/raw-data.tsx (357 lines)
+- Features delivered:
+  - Simulator: 58-customer explorer + 11×58 heatmap + Monte Carlo simulation with 4 control knobs + 4 output tables, all proxy-labeled.
+  - Restock: 4 detection categories + 7 strategies + knapsack output + 3 export formats + room sync.
+  - Exploits: featured 3 monsters + label-education card + filter tabs + expandable candidate cards with product chips.
+  - RawData: 14 source tabs + 4 export actions (md/json/tsv/share-link) + StoreLayout summary.
+- Rigor: every analytical output carries ConfidenceBadge with engine formula + note; proxy never presented as confirmed.
+- UI/UX: Traditional Chinese labels, mobile-first responsive (grid-cols-1 → lg:grid-cols-2/3/4), scrollbar-thin scrollable regions, sticky headers, sonner toasts for actions.
+- Issues: dev server appears stopped in sandbox (process not in ps); did not restart per instructions. Lint + tsc pass clean for owned files. No tests written (per policy).
+
+---
+Task ID: 5d
+Agent: full-stack-developer
+Task: Build Pricing + Store Layout + Achievements pages
+
+Work Log:
+- Read worklog, types.ts, engine.ts, data-loader.ts, store.ts, primitives.tsx, dashboard.tsx (PATTERN), and existing stub files for pricing/store-layout/achievements.
+- Inspected encyclopedia.json data: 51 achievements (globalPercent 0..41.7), 24 achievementStats, 41 storeLayout props (buildableIds 0-3 only), 339 products, 19 groups. Confirmed layout coord range posX -13.26..14.06 / posZ -0.84..11.69, angles {0,90,180,270}.
+- Wrote `src/components/lab/pricing.tsx` — Pricing Lab with: honesty callout ('needs-runtime'), product selector (search + dropdown), selected product card (zhHant name + brand + tier + box value + demand proxy), 5 StatCards for price suggestion tiers, BIG 'needs-runtime' callout, player price editor (keyed by product.id to avoid setState-in-effect lint error), room vote panel (per-member approve/reject + tally + "加入實驗" action), bulk pricing top-30 table with "套用 balanced" buttons, experiment tracker (room.pricePlan or local state, editable observed fields).
+- Wrote `src/components/lab/store-layout.tsx` — Store Layout Analyzer with: top-down SVG map (viewBox from data bounds, each prop translated + rotated, colored by buildableId, inventory count label), 8 highlight modes (ToggleGroup: none/empty/low/high-value/low-value/duplicated/missing-demand/negative-blink), click-to-select detail card (posX/posZ/angle + 6 StatCards + inventory list with product names + demand + room assignment), layout report (6 summary StatCards + Top 20 products + by-group breakdown + recommended swaps), sortable efficiency leaderboard (6 SortKey columns), room shelf zone assignment (Select + per-prop buttons + colored ring on map), hint card when no room.
+- Wrote `src/components/lab/achievements.tsx` — Achievements with: tiny zustand persist store (stl-ach-progress) for local mode, all 51 achievements in dense sortable table (name/globalPercent, asc=rarest first), rarity badge (4 tiers: 極稀有/稀有/普通/常見), Rarest Top 10 card + Easiest Top 10 card (with checkboxes), progress bar (X/51), room mode sync to room.checklist using steamId as id (toggleChecklist + updateRoom fallback), search filter, guide notes for Millionaire/EnigmaCube/HiddenCatPlaza (marked 'unverified'), collapsible stats reference (24 entries via Accordion, 'confirmed').
+- Discovered pre-existing typo in `src/lib/data-loader.ts` (`import from '../types'` should be `'./types'`) causing `productById`/`buildableById` to be inferred as `Map<unknown, unknown>`. Did NOT modify that file (out of scope). Worked around it in my files by casting the imported maps to their proper typed form: `const productById = _productById as unknown as Map<number, Product>`. Same pattern applied to buildableById.
+- Fixed `set-state-in-effect` lint error in pricing.tsx PlayerPriceEditor by using `key={product?.id}` on the component (remount resets draft state).
+- Fixed SortableTh type issue in store-layout.tsx by extracting `type SortKey = 'efficiency' | 'shelfValue' | ...` and using it consistently in both parent state and SortableTh props.
+- Bumped SVG label font sizes (0.18→0.28 for inventory count, 0.10→0.13 for prop index) for better legibility on mobile.
+- Removed unused imports (DataRow, SectionHeader, Tooltip*, productZhName, X) from pricing.tsx.
+- Verified: `bun run lint` → 0 errors in my 3 files. `bunx tsc --noEmit --project tsconfig.json` → 0 errors in my 3 files. Pre-existing errors in data-loader.ts/engine.ts/salt.tsx/skills/ are not mine.
+- Wrote agent work record at `/home/z/my-project/agent-ctx/5d-full-stack-developer.md`.
+
+Stage Summary:
+- Files: 3 page components written (`pricing.tsx` ~920 lines, `store-layout.tsx` ~870 lines, `achievements.tsx` ~480 lines). All `'use client'` with named exports matching app-shell.tsx lazy imports.
+- Features delivered:
+  - Pricing: search/select, suggestion tiers, player price editor, room vote, bulk pricing, experiment tracker.
+  - Store Layout: SVG map, 8 highlight modes, detail card, layout report, sortable leaderboard, room shelf assignment.
+  - Achievements: sortable table, rarity badges, Top-10 cards, progress tracker (local persist + room sync), search, guide notes, collapsible stats reference.
+- Honesty: every analytical surface has a ConfidenceBadge. Pricing = 'needs-runtime' (formula not extracted); efficiency = 'proxy'; achievement data = 'confirmed'; guide notes = 'unverified'.
+- Issues:
+  - Pre-existing `data-loader.ts` typo (`'../types'`) breaks Map typing — worked around with cast at module load. Recommend orchestrator fix this 1-character typo in a foundation pass.
+  - Dev server was not running during my work session; verified via lint + tsc instead. Runtime behavior should be fine since Turbopack transpiles without strict typecheck.
+  - Salt.tsx (5b agent) and engine.ts/data-loader.ts have pre-existing type errors unrelated to my work.
+
+---
+Task ID: FINAL
+Agent: orchestrator (main)
+Task: Final integration, bug fixes, self-verification, cron setup
+
+Work Log:
+- Fixed path bug in data-loader.ts ('../types' → './types') and added explicit generic types to Maps.
+- Built Upload page (tolerant JSON/.es3 parser adapter, parse status UI, field documentation, missing-data declaration).
+- Built Room page (create/join by code, members, shared snapshot, checklist, task assignment w/ categories, chat, skill voting, plan links, MD/JSON export) + room-sync.ts client hook (socket.io with BroadcastChannel fallback).
+- Installed socket.io + socket.io-client; created room-service mini-service on port 3003 (socket.io, path '/', room:create/join/patch/event/cursor/chat, 5-min empty-room cleanup).
+- Fixed hydration mismatch in TopBar (next-themes theme toggle) and Sidebar (persisted view/collapsed) via mounted-guard pattern with SSR-safe defaults.
+- Added PageErrorBoundary so a single page crash doesn't kill the whole SPA (graceful error UI with retry).
+- Fixed 3 TypeScript errors: added `assignedTo?` to TaskAssignment type; salt.tsx `note`→`hint` on StatCard; room-sync.ts null check on buildSocket.
+- Added allowedDevOrigins to next.config.ts for preview domain.
+- Ran agent-browser self-verification: Dashboard (scores + next-actions render), Wiki (Salt row + all columns), Profit (leaderboard tabs), Salt (full probe with route 9/10/total demand, confidence badges) all confirmed rendering real content.
+
+Stage Summary:
+- 18 page components + room-service mini-service + calculation engine + data pipeline all complete.
+- `bun run lint` → 0 errors. `bunx tsc --noEmit` → 0 errors (excluding pre-existing skills/ folder).
+- Dev server stable on :3000 when kept warm (heartbeat confirms 5/5 HTTP 200). Note: sandbox reaps the idle dev server after ~30s; the 15-min cron reviewer will restart as needed.
+- room-service running on :3003.
+- Verified pages: Dashboard, Wiki, Profit, Salt render real game data with correct confidence labels (Confirmed/Proxy/Unverified/Exploit).
+- Salt Monopoly Probe verified: route9=0.008621, route10=0.006952, total=0.015573, rawTokens preserved (5/5 + 1/62).
+- Remaining risk: exhaustive multi-page browser test limited by dev-server idle-reaping in sandbox; error boundary ensures graceful degradation. Cron reviewer will continue QA.
