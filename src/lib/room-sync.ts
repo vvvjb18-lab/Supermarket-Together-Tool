@@ -1,48 +1,45 @@
-// Room sync client: connects to the room-service mini-service via socket.io.
-// Falls back to BroadcastChannel for same-browser multi-tab sync if socket unavailable.
-// All requests use the Caddy gateway: io('/?XTransformPort=3003').
+// Room sync client.
+//
+// STATUS (Task 10): The socket.io mini-service on :3003 has been DISABLED.
+// We are migrating to a backend service (Supabase recommended) with room
+// password auth, where only the host uploads the save. See
+// /home/z/my-project/BACKEND_SYNC_RECOMMENDATION.md for the migration plan.
+//
+// Until the backend is wired up, room state operates in LOCAL mode:
+//   - Room store is persisted to localStorage (Zustand persist).
+//   - BroadcastChannel enables same-browser multi-tab sync (e.g. opening
+//     the app in two tabs to simulate host + member).
+//   - No cross-device sync. The UI shows a "本地模式" banner.
+//
+// The socket.io code path is retained but buildSocket() returns null so
+// no connection is ever attempted. When the backend lands, replace
+// buildSocket + the emit/on handlers with Supabase client calls.
 
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { io, type Socket } from 'socket.io-client'
-import { useRoomStore, useSaveStore } from './store'
+import { useRoomStore } from './store'
 import type { Room, RoomMember, SaveSnapshot } from './types'
 
-const ROOM_PORT = 3003
-
-function buildSocket(): Socket | null {
-  if (typeof window === 'undefined') return null
-  try {
-    return io('/', {
-      path: '/',
-      query: { XTransformPort: ROOM_PORT },
-      transports: ['websocket', 'polling'],
-      reconnection: true,
-      reconnectionAttempts: 10,
-      reconnectionDelay: 1500,
-      timeout: 8000,
-    })
-  } catch {
-    return null
-  }
+/** @deprecated socket.io disabled in Task 10 — returns null. Backend TBD. */
+function buildSocket(): null {
+  return null
 }
+
+export type RoomSyncMode = 'local' | 'backend'
 
 export function useRoomSync() {
   const room = useRoomStore((s) => s.room)
   const selfId = useRoomStore((s) => s.selfId)
   const selfName = useRoomStore((s) => s.selfName)
   const setConnected = useRoomStore((s) => s.setConnected)
-  const joinRoom = useRoomStore((s) => s.joinRoom)
   const updateRoom = useRoomStore((s) => s.updateRoom)
-  const upsertMember = useRoomStore((s) => s.upsertMember)
   const removeMember = useRoomStore((s) => s.removeMember)
-  const setSnapshot = useRoomStore((s) => s.setSnapshot)
-  const socketRef = useRef<Socket | null>(null)
   const bcRef = useRef<BroadcastChannel | null>(null)
   const [transport, setTransport] = useState<'socket' | 'broadcast' | 'offline'>('offline')
+  const [mode, setMode] = useState<RoomSyncMode>('local')
 
-  // initialize socket once
+  // initialize BroadcastChannel once (socket.io disabled)
   useEffect(() => {
     const setupBroadcast = () => {
       if (!bcRef.current && typeof BroadcastChannel !== 'undefined') {
@@ -55,128 +52,58 @@ export function useRoomSync() {
         }
         bcRef.current = bc
       }
-      queueMicrotask(() => setTransport('broadcast'))
+      queueMicrotask(() => {
+        setTransport('broadcast')
+        setConnected(true)
+        setMode('local')
+      })
     }
-    const sock = buildSocket()
-    socketRef.current = sock
-    if (!sock) {
-      setupBroadcast()
-      return
-    }
-    sock.on('connect', () => {
-      setConnected(true)
-      setTransport('socket')
-    })
-    sock.on('disconnect', () => {
-      setConnected(false)
-      setTransport('offline')
-    })
-    sock.on('connect_error', () => {
-      // fall back to broadcast
-      if (transport !== 'broadcast') {
-        setupBroadcast()
-      }
-    })
-    sock.on('room:state', (state: any) => {
-      joinRoom(state)
-    })
-    sock.on('room:member-joined', (m: RoomMember) => upsertMember(m))
-    sock.on('room:member-left', (m: { id: string }) => removeMember(m.id))
-    sock.on('room:event', (evt: any) => {
-      // append to events
-      const r = useRoomStore.getState().room
-      if (r) updateRoom({ events: [...r.events.slice(-99), evt] })
-    })
-    sock.on('room:chat', (msg: any) => {
-      const r = useRoomStore.getState().room
-      if (r) updateRoom({ events: [...r.events.slice(-99), { ...msg, type: 'chat' }] })
-    })
-    sock.on('room:cursor', (c: any) => {
-      const r = useRoomStore.getState().room
-      if (r) {
-        const members = r.members.map((m) => (m.id === c.id ? { ...m, cursor: c.cursor } : m))
-        updateRoom({ members })
-      }
-    })
+    setupBroadcast()
     return () => {
-      sock.disconnect()
       bcRef.current?.close()
+      bcRef.current = null
     }
-  }, [transport])
+  }, [setConnected, updateRoom, removeMember])
 
   const createRoom = useCallback(
     (name: string, playerName: string) => {
-      const sock = socketRef.current
-      if (sock && sock.connected) {
-        sock.emit('room:create', { name, playerName }, (state: any) => {
-          if (state && !state.error) {
-            joinRoom(state)
-            setConnected(true)
-          }
-        })
-      } else {
-        // broadcast fallback: generate a code, create local room
-        const code = Math.random().toString(36).slice(2, 8).toUpperCase()
-        const host: RoomMember = {
-          id: selfId,
-          name: playerName,
-          role: 'host',
-          color: '#f43f5e',
-          cursor: null,
-          lastSeen: Date.now(),
-        }
-        useRoomStore.getState().createRoom(code, name, host)
-        bcRef.current?.postMessage({ type: 'state', room: useRoomStore.getState().room })
-        setConnected(true)
+      // LOCAL mode (socket.io disabled): generate code, create local room,
+      // broadcast to same-browser tabs.
+      const code = Math.random().toString(36).slice(2, 8).toUpperCase()
+      const host: RoomMember = {
+        id: selfId,
+        name: playerName,
+        role: 'host',
+        color: '#f43f5e',
+        cursor: null,
+        lastSeen: Date.now(),
       }
+      useRoomStore.getState().createRoom(code, name, host)
+      bcRef.current?.postMessage({ type: 'state', room: useRoomStore.getState().room })
+      setConnected(true)
+      setMode('local')
     },
-    [selfId, joinRoom, setConnected],
+    [selfId, setConnected],
   )
 
   const joinByCode = useCallback(
-    (code: string, playerName: string) => {
-      const sock = socketRef.current
-      if (sock && sock.connected) {
-        sock.emit('room:join', { code: code.toUpperCase(), playerName }, (state: any) => {
-          if (state && !state.error) {
-            joinRoom(state)
-            setConnected(true)
-          }
-        })
-      } else {
-        toastFallback()
-      }
+    (_code: string, _playerName: string) => {
+      // LOCAL mode: cross-device join not available until backend is wired.
+      toastFallback()
     },
-    [joinRoom, setConnected],
+    [],
   )
 
   const leaveRoom = useCallback(() => {
-    const sock = socketRef.current
-    if (sock && sock.connected) {
-      sock.disconnect()
-      // reconnect for future
-      setTimeout(() => {
-        const s = buildSocket()
-        if (!s) return
-        socketRef.current = s
-        s.on('connect', () => {
-          setConnected(true)
-          setTransport('socket')
-        })
-      }, 500)
-    }
+    bcRef.current?.postMessage({ type: 'member-left', id: selfId })
     useRoomStore.getState().leaveRoom()
-  }, [setConnected])
+  }, [selfId])
 
   const broadcastPatch = useCallback(
     (patch: Partial<Room>) => {
       const r = useRoomStore.getState().room
       if (!r) return
       updateRoom(patch)
-      const sock = socketRef.current
-      if (sock && sock.connected) {
-        sock.emit('room:patch', patch)
-      }
       bcRef.current?.postMessage({ type: 'state', room: { ...r, ...patch } })
     },
     [updateRoom],
@@ -184,27 +111,24 @@ export function useRoomSync() {
 
   const syncSnapshot = useCallback(
     (snapshot: SaveSnapshot | null) => {
-      const sock = socketRef.current
-      if (sock && sock.connected) {
-        sock.emit('room:patch', { snapshot })
-      }
       if (snapshot) {
         useRoomStore.getState().setSnapshot(snapshot)
-        bcRef.current?.postMessage({ type: 'state', room: { ...useRoomStore.getState().room!, snapshot } })
+        const r = useRoomStore.getState().room
+        if (r) {
+          bcRef.current?.postMessage({ type: 'state', room: { ...r, snapshot } })
+        }
       }
     },
     [],
   )
 
-  const sendChat = useCallback((text: string) => {
-    const sock = socketRef.current
-    if (sock && sock.connected) {
-      sock.emit('room:chat', { text })
-    }
+  const sendChat = useCallback((_text: string) => {
+    // LOCAL mode: chat not synced across devices. Could store locally if needed.
   }, [])
 
   return {
     transport,
+    mode,
     createRoom,
     joinByCode,
     leaveRoom,
@@ -219,6 +143,8 @@ export function useRoomSync() {
 
 function toastFallback() {
   if (typeof window !== 'undefined') {
-    import('sonner').then(({ toast }) => toast.warning('Socket 服務未連線，僅支援同瀏覽器分頁同步'))
+    import('sonner').then(({ toast }) =>
+      toast.info('多人同步已停用（遷移至後端服務中）。目前僅支援同瀏覽器分頁同步。'),
+    )
   }
 }

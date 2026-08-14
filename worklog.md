@@ -480,3 +480,71 @@ Stage Summary:
 - 舊版 `_latest.json` 的 regex 修復路徑仍保留（向後相容），但未來使用者應全部改用新版 `save.json` 格式。
 - 成就進度追蹤（local persist + room sync）的 checklist id 用 steamId，已從舊版 `0_Millionaire` 遷移到新版 `ach_millionaire_s_holiday` — 舊 localStorage 已標記的成就會失效（需重新勾選），這是預期行為。
 - 下一階段可考慮：①利用 skillUnlocks + perkIndexToSkill 在技能頁顯示「已解鎖」標記 ②利用 layout 欄位在店面平面圖自動標示經典/廣場 ③利用 inventory.propInventory 的 productName 欄位做名稱校驗。
+
+---
+Task ID: 10
+Agent: orchestrator (main) — cron reviewer round 3
+Task: 技能樹完整圖譜 + 44 技能 TSV 表格 + 停用 socket.io 多人同步 + 後端服務推薦
+
+Work Log:
+- 使用者上傳 3 個檔案：`skill_tree_graph_v2.json`（99 節點 93 連線，從 Unity UI 層級提取）、`skill_graph.json`（舊版）、`perks_table.tsv`（44 perk 完整表）。要求：①用這些檔案做策略工具（完整圖譜 + 44 技能表格）②停用現在的 socket.io 多人同步 ③推薦免費後端同步服務（房間密碼認證 + host 上載存檔）。
+
+- **分析資料**：`skill_tree_graph_v2.json` 是最完整版本：
+  - 99 節點（44 perk + 55 category）、93 連線（category-category 53、category-perk 22、perk-category 18）。
+  - `_meta.note`：「no perk prereqs — all cost 1000 FP, lines are visual organization only」。
+  - 44 perk 中：5 個 placeholder（Employee I-V，各 +1 最大員工）、39 個實技能。
+  - 每個 perk 有 name_en/name_zhHant/skill_id/desc_en/x/y/is_placeholder。
+  - perk_to_category 映射每個 perk 到最近的產品分類節點。
+
+- **複製資料到專案**：`skill_tree_graph_v2.json` → `src/lib/data/skill-graph.json`；`perks_table.tsv` → `src/lib/data/perks.tsv`。
+
+- **新增型別**（types.ts）：`SkillGraphNode`、`SkillGraphEdge`、`PerkToCategoryEntry`、`SkillTreeGraph`。
+
+- **新增載入器**（data-loader.ts）：`export const skillGraph = skillGraphJson as unknown as SkillTreeGraph`。
+
+- **新建 `src/components/lab/skill-tree.tsx`**（~560 行）：
+  - `SkillTreeView`：互動式 SVG 技能樹圖譜。
+    - 99 節點按 x/y 定位、93 連線、perk 用圓圈（佔位=琥珀、實技能=翠綠）、category 用方塊。
+    - 已解鎖 perk（從 save 的 skillUnlocks 陣列）顯示外圈光環 + emerald 高亮。
+    - 拖曳平移 + 滾輪縮放 + 放大/縮小/重設按鈕。
+    - 切換：連線 / 分類節點 / 只看已解鎖。
+    - hover tooltip 顯示名稱+skill_id+效果；點擊展開詳情面板（node id/perk#/skill_id/座標/成本/效果/encyclopedia effect/最近分類）。
+    - 圖例（右下角）+ 設計重點 callout（說明無前置、1000 FP、連線純視覺）。
+  - `PerksTableView`：44 技能完整總表（TSV）。
+    - 搜尋（名稱/skill_id/描述）+ 篩選（全部/實技能/員工佔位）+ 排序（#/名稱/分類/類型）。
+    - 8 欄：# / 名稱（中英雙語）/ skill_id / 效果 / 最近分類 / 類型（佔位/實技能 badge）/ 狀態（已解鎖 badge）/ 座標。
+    - 底部 4 個 summary tile：總 perk 數 / 實技能 / 員工佔位 / 總成本（44,000 FP）。
+
+- **整合到 skills.tsx**：改用 Tabs 三分頁：「技能樹圖譜」（預設，SkillTreeView）/「44 技能總表」（PerksTableView）/「推薦策略」（原有 ROI 推薦）。Tab 帶圖示（Network/TableIcon/Lightbulb）。
+
+- **停用 socket.io 多人同步**：
+  - 殺掉 room-service mini-service（port 3003）。
+  - `src/lib/room-sync.ts` 重寫：`buildSocket()` 回傳 `null`（socket.io 停用），保留 BroadcastChannel（同瀏覽器分頁同步）作為本地 fallback。
+  - `useRoomSync()` 改為本地模式：createRoom 生成代碼+本地房間、joinByCode 顯示「後端整合中」toast、leaveRoom/broadcastPatch/syncSnapshot 只走 BroadcastChannel。
+  - 新增 `mode: 'local' | 'backend'` 狀態。
+  - 移除 socket.io-client import（不再需要）。
+  - room.tsx 更新：SectionHeader 改為「後端同步服務整合中」、狀態卡片改為 sky 色「本地模式（後端整合中）」banner 說明遷移計畫 + 連結到推薦文件。
+
+- **撰寫後端推薦文件** `BACKEND_SYNC_RECOMMENDATION.md`（~200 行）：
+  - **首選 Supabase**：免費 500MB Postgres + Realtime + RLS；完整 schema（rooms/saves/members/events 表 + RLS policies）；註冊步驟；前端接入範例程式碼（createRoom/uploadSave/joinRoom/subscribeSave）；密碼處理（前端 bcrypt 或後端 pgcrypto）。
+  - **備選**：Firebase Firestore（Google 生態）、JSONBin.io（最簡單無即時）、PocketBase（自架）。
+  - **選型建議表** + **遷移路徑**（socket.io → Supabase 的 5 步）+ **下一步**（使用者註冊 Supabase → 給我 keys → 我接前端）。
+
+Stage Summary:
+- **策略工具完成**：技能樹完整圖譜（99 節點 93 連線互動式 SVG）+ 44 技能 TSV 總表（8 欄可搜尋排序篩選），整合到 skills.tsx 三分頁。已解鎖狀態從真實存檔的 skillUnlocks 陣列貫穿圖譜（外圈光環）+ 表格（badge）。
+- **多人同步已停用**：socket.io room-service 殺掉、buildSocket 回傳 null、room-sync 改本地模式、room.tsx 顯示遷移 banner。BroadcastChannel 仍可用（同瀏覽器分頁同步）。
+- **後端推薦文件完成**：Supabase 為首選，含完整 schema + 註冊步驟 + 前端範例 + 遷移路徑。等使用者註冊並提供 keys 即可接入。
+- `bun run lint` 0 errors；`bunx tsc --noEmit` src/ 0 errors。
+- agent-browser 端對端驗證：
+  1. 技能頁預設顯示「技能樹圖譜」tab（選中），含 99 節點/93 連線/39 實技能/5 佔位 badge + 設計重點 callout（無前置、1000 FP）✓
+  2. 切到「44 技能總表」tab → 顯示 Employee I/免費早晨咖啡 + SodaDrinksII 分類 + 佔位/實技能 badge + 搜尋篩選 ✓
+  3. 切到「推薦策略」tab → 顯示營運策略 + 員工自動化/結帳速度/客流提升 ✓
+  4. 載入存檔後 → 圖譜顯示「/44 已解鎖」badge + 「只看已解鎖」按鈕；表格顯示個別技能「已解鎖」badge（免費早晨咖啡/skill1）✓
+  5. 多人房間頁顯示「本地模式（後端整合中）」sky banner + Supabase 遷移說明 ✓
+  6. 截圖：`download/skill-tree-graph.png`（103KB）。
+- dev server + keepalive 以 setsid 啟動，port 3000。
+
+未解決問題/風險：
+- 後端同步待使用者註冊 Supabase 並提供 Project URL + anon key（文件已附 schema + 步驟）。
+- socket.io-client 套件仍安裝但未使用（可後續移除 `bun remove socket.io socket.io-client` + 刪 `mini-services/room-service/`）。
+- 下一階段可考慮：①利用 skillGraph 的 perk_to_category 在圖譜上標示產品分類群組 ②技能 ROI 推薦結合已解鎖狀態標記「已擁有」③製造配方頁用 manufacUnlockedRecipes 顯示解鎖狀態。

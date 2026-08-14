@@ -1,0 +1,1878 @@
+{
+  "_meta": {
+    "version": "1.0",
+    "extracted_from": "level2 (coll=8) of Supermarket Together_Data via UnityPy",
+    "description": "44 個技能的視覺關係圖（不是遊戲邏輯的前置條件）",
+    "total_nodes": 99,
+    "total_edges": 93,
+    "coordinate_system": "UI 局部座標（從 Canvas_Upgrades 起算，正值向右向上）"
+  },
+  "nodes": [
+    {
+      "id": "perk0",
+      "type": "perk",
+      "index": 0,
+      "name": "Employee I",
+      "raw_name": "0_Employee",
+      "x": -957.8,
+      "y": 332.9,
+      "is_placeholder": true
+    },
+    {
+      "id": "perk1",
+      "type": "perk",
+      "index": 1,
+      "name": "Employee II",
+      "raw_name": "1_Employee",
+      "x": 285.5,
+      "y": 120.4,
+      "is_placeholder": true
+    },
+    {
+      "id": "perk2",
+      "type": "perk",
+      "index": 2,
+      "name": "Employee III",
+      "raw_name": "2_Employee",
+      "x": -461.1,
+      "y": -272.1,
+      "is_placeholder": true
+    },
+    {
+      "id": "perk3",
+      "type": "perk",
+      "index": 3,
+      "name": "Employee IV",
+      "raw_name": "3_Employee",
+      "x": -78.5,
+      "y": -509.7,
+      "is_placeholder": true
+    },
+    {
+      "id": "perk4",
+      "type": "perk",
+      "index": 4,
+      "name": "Employee V",
+      "raw_name": "4_Employee",
+      "x": 702.8,
+      "y": -494.0,
+      "is_placeholder": true
+    },
+    {
+      "id": "perk5",
+      "type": "perk",
+      "index": 5,
+      "name": "Free morning coffee",
+      "raw_name": "5_MorningCoffee",
+      "x": -470.0,
+      "y": -161.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk6",
+      "type": "perk",
+      "index": 6,
+      "name": "Marketing courses I",
+      "raw_name": "6_MarketingCourses",
+      "x": -332.0,
+      "y": 204.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk7",
+      "type": "perk",
+      "index": 7,
+      "name": "Formation courses",
+      "raw_name": "7_FormationCourses ",
+      "x": 162.0,
+      "y": -160.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk8",
+      "type": "perk",
+      "index": 8,
+      "name": "Recycling courses",
+      "raw_name": "8_RecyclingCourses",
+      "x": -214.3,
+      "y": -24.0,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk9",
+      "type": "perk",
+      "index": 9,
+      "name": "Air Conditioning",
+      "raw_name": "9_AirConditioner",
+      "x": 23.1,
+      "y": 96.8,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk10",
+      "type": "perk",
+      "index": 10,
+      "name": "Wifi connection",
+      "raw_name": "10_Wifi",
+      "x": -655.6,
+      "y": 267.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk11",
+      "type": "perk",
+      "index": 11,
+      "name": "",
+      "raw_name": "11_Employee",
+      "x": -825.5,
+      "y": 530.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk12",
+      "type": "perk",
+      "index": 12,
+      "name": "",
+      "raw_name": "12_Employee",
+      "x": 834.5,
+      "y": 88.8,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk13",
+      "type": "perk",
+      "index": 13,
+      "name": "",
+      "raw_name": "13_Employee",
+      "x": 707.4,
+      "y": 90.0,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk14",
+      "type": "perk",
+      "index": 14,
+      "name": "",
+      "raw_name": "14_Employee",
+      "x": -209.0,
+      "y": 354.7,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk15",
+      "type": "perk",
+      "index": 15,
+      "name": "Employee VI",
+      "raw_name": "15_Employee",
+      "x": 669.2,
+      "y": -145.7,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk16",
+      "type": "perk",
+      "index": 16,
+      "name": "Employee VII",
+      "raw_name": "16_Cashier",
+      "x": 538.8,
+      "y": 90.2,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk17",
+      "type": "perk",
+      "index": 17,
+      "name": "Employee VIII",
+      "raw_name": "17_Cashier",
+      "x": -531.0,
+      "y": 407.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk18",
+      "type": "perk",
+      "index": 18,
+      "name": "Employee IX",
+      "raw_name": "18_Cashier",
+      "x": 163.7,
+      "y": -276.8,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk19",
+      "type": "perk",
+      "index": 19,
+      "name": "Employee X",
+      "raw_name": "19_ProductPlacement",
+      "x": 163.6,
+      "y": -517.2,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk20",
+      "type": "perk",
+      "index": 20,
+      "name": "Cashier Formation I",
+      "raw_name": "20_ProductPlacement",
+      "x": -462.6,
+      "y": -523.3,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk21",
+      "type": "perk",
+      "index": 21,
+      "name": "Cashier Formation II",
+      "raw_name": "21_EvenMoreCoffee",
+      "x": 414.6,
+      "y": 89.3,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk22",
+      "type": "perk",
+      "index": 22,
+      "name": "Cashier Formation III",
+      "raw_name": "22_EnergyDrink",
+      "x": -729.1,
+      "y": 107.7,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk23",
+      "type": "perk",
+      "index": 23,
+      "name": "Restock Formation I",
+      "raw_name": "23_EnergyDrink",
+      "x": 450.3,
+      "y": -243.2,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk24",
+      "type": "perk",
+      "index": 24,
+      "name": "Restock Formation II",
+      "raw_name": "24_RecycleBox",
+      "x": 790.5,
+      "y": -266.4,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk25",
+      "type": "perk",
+      "index": 25,
+      "name": "Even more coffee",
+      "raw_name": "25_MoreSelfCheckouts",
+      "x": -86.7,
+      "y": 355.3,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk26",
+      "type": "perk",
+      "index": 26,
+      "name": "Free Energy Drinks I",
+      "raw_name": "26_EmployeeXI",
+      "x": -658.0,
+      "y": 530.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk27",
+      "type": "perk",
+      "index": 27,
+      "name": "Free Energy Drinks II",
+      "raw_name": "27_EmployeeXII",
+      "x": 711.8,
+      "y": 434.7,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk28",
+      "type": "perk",
+      "index": 28,
+      "name": "Recycling courses II",
+      "raw_name": "28_STAR_RecycleBin",
+      "x": 1222.0,
+      "y": -385.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk29",
+      "type": "perk",
+      "index": 29,
+      "name": "Friendly Interface",
+      "raw_name": "29_STAR_SoftwareUpdate",
+      "x": 1222.0,
+      "y": 363.6,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk30",
+      "type": "perk",
+      "index": 30,
+      "name": "Employee XI",
+      "raw_name": "30_STAR_TicTacGoesFast",
+      "x": 1222.0,
+      "y": -7.3,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk31",
+      "type": "perk",
+      "index": 31,
+      "name": "Employee XII",
+      "raw_name": "31_STAR_LowEnergyLightBulbs",
+      "x": 1222.0,
+      "y": 220.7,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk32",
+      "type": "perk",
+      "index": 32,
+      "name": "Recycling container",
+      "raw_name": "32_FriendlyInterface",
+      "x": 32.1,
+      "y": 565.5,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk33",
+      "type": "perk",
+      "index": 33,
+      "name": "MART OS 2.0",
+      "raw_name": "33_STAR_Logistics",
+      "x": -291.8,
+      "y": -378.4,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk34",
+      "type": "perk",
+      "index": 34,
+      "name": "Tic-tac goes fast",
+      "raw_name": "34_ExternalAccountant",
+      "x": 538.2,
+      "y": -497.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk35",
+      "type": "perk",
+      "index": 35,
+      "name": "Low energy light bulbs",
+      "raw_name": "35_SpecialPricesI",
+      "x": 10.9,
+      "y": -185.2,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk36",
+      "type": "perk",
+      "index": 36,
+      "name": "User-friendly Interface",
+      "raw_name": "36_SpecialPricesII",
+      "x": 423.8,
+      "y": 565.5,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk37",
+      "type": "perk",
+      "index": 37,
+      "name": "Logistics",
+      "raw_name": "37_SpecialPricesIII",
+      "x": 809.9,
+      "y": -137.6,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk38",
+      "type": "perk",
+      "index": 38,
+      "name": "External Accountant",
+      "raw_name": "38_STAR_PalletsDisplay",
+      "x": 1222.0,
+      "y": 499.8,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk39",
+      "type": "perk",
+      "index": 39,
+      "name": "Special Prices I",
+      "raw_name": "39_STAR_HumanResources",
+      "x": 1222.0,
+      "y": -205.2,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk40",
+      "type": "perk",
+      "index": 40,
+      "name": "Special Prices II",
+      "raw_name": "40_RecruitmentI",
+      "x": 621.7,
+      "y": 565.5,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk41",
+      "type": "perk",
+      "index": 41,
+      "name": "Special Prices III",
+      "raw_name": "41_RecruitmentII",
+      "x": 1069.6,
+      "y": 90.7,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk42",
+      "type": "perk",
+      "index": 42,
+      "name": "Pallet Displays",
+      "raw_name": "42_PersuasionTechniques",
+      "x": 568.1,
+      "y": -275.8,
+      "is_placeholder": false
+    },
+    {
+      "id": "perk43",
+      "type": "perk",
+      "index": 43,
+      "name": "Human Resources",
+      "raw_name": "43_BadWeatherBoost",
+      "x": 932.2,
+      "y": 307.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat0",
+      "type": "category",
+      "index": 0,
+      "name": "0_BasicProducts_I",
+      "raw_name": "0_BasicProducts_I",
+      "x": -1086.0,
+      "y": -23.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat1",
+      "type": "category",
+      "index": 1,
+      "name": "1_BasicProducts_II",
+      "raw_name": "1_BasicProducts_II",
+      "x": -836.0,
+      "y": -23.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat2",
+      "type": "category",
+      "index": 2,
+      "name": "2_BasicProducts_III",
+      "raw_name": "2_BasicProducts_III",
+      "x": -586.0,
+      "y": -23.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat3",
+      "type": "category",
+      "index": 3,
+      "name": "3_BasicProducts_IV",
+      "raw_name": "3_BasicProducts_IV",
+      "x": -336.0,
+      "y": -23.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat4",
+      "type": "category",
+      "index": 4,
+      "name": "4_BasicProducts_V",
+      "raw_name": "4_BasicProducts_V",
+      "x": -86.0,
+      "y": -23.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat5",
+      "type": "category",
+      "index": 5,
+      "name": "5_BasicProducts_VI",
+      "raw_name": "5_BasicProducts_VI",
+      "x": 414.0,
+      "y": -23.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat6",
+      "type": "category",
+      "index": 6,
+      "name": "6_DairyProducts_I",
+      "raw_name": "6_DairyProducts_I",
+      "x": -961.0,
+      "y": 101.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat7",
+      "type": "category",
+      "index": 7,
+      "name": "7_DairyProducts_II",
+      "raw_name": "7_DairyProducts_II",
+      "x": -1086.0,
+      "y": 226.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat8",
+      "type": "category",
+      "index": 8,
+      "name": "8_SodaDrinks_I",
+      "raw_name": "8_SodaDrinks_I",
+      "x": -836.0,
+      "y": 226.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat9",
+      "type": "category",
+      "index": 9,
+      "name": "9_FrozenFoods_I",
+      "raw_name": "9_FrozenFoods_I",
+      "x": -711.0,
+      "y": -148.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat10",
+      "type": "category",
+      "index": 10,
+      "name": "10_FrozenFoods_II",
+      "raw_name": "10_FrozenFoods_II",
+      "x": -586.0,
+      "y": -273.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat11",
+      "type": "category",
+      "index": 11,
+      "name": "11_Hygiene_I",
+      "raw_name": "11_Hygiene_I",
+      "x": -211.0,
+      "y": 101.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat12",
+      "type": "category",
+      "index": 12,
+      "name": "12_Hygiene_II",
+      "raw_name": "12_Hygiene_II",
+      "x": -86.0,
+      "y": 226.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat13",
+      "type": "category",
+      "index": 13,
+      "name": "13_Hygiene_III",
+      "raw_name": "13_Hygiene_III",
+      "x": 164.0,
+      "y": 226.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat14",
+      "type": "category",
+      "index": 14,
+      "name": "14_CleaningProducts_I",
+      "raw_name": "14_CleaningProducts_I",
+      "x": 414.0,
+      "y": 226.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat15",
+      "type": "category",
+      "index": 15,
+      "name": "15_CleaningProducts_II",
+      "raw_name": "15_CleaningProducts_II",
+      "x": 539.0,
+      "y": 226.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat16",
+      "type": "category",
+      "index": 16,
+      "name": "16_SweetsAndSnacks_I",
+      "raw_name": "16_SweetsAndSnacks_I",
+      "x": -211.0,
+      "y": -148.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat17",
+      "type": "category",
+      "index": 17,
+      "name": "17_SweetsAndSnacks_II",
+      "raw_name": "17_SweetsAndSnacks_II",
+      "x": -86.0,
+      "y": -273.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat18",
+      "type": "category",
+      "index": 18,
+      "name": "18_SweetsAndSnacks_III",
+      "raw_name": "18_SweetsAndSnacks_III",
+      "x": 39.0,
+      "y": -398.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat19",
+      "type": "category",
+      "index": 19,
+      "name": "19_SweetsAndSnacks_IV",
+      "raw_name": "19_SweetsAndSnacks_IV",
+      "x": 164.0,
+      "y": -398.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat20",
+      "type": "category",
+      "index": 20,
+      "name": "20_Meat",
+      "raw_name": "20_Meat",
+      "x": 164.0,
+      "y": -23.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat21",
+      "type": "category",
+      "index": 21,
+      "name": "21_Preserves/PetFood",
+      "raw_name": "21_Preserves/PetFood",
+      "x": -655.9,
+      "y": 400.6,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat22",
+      "type": "category",
+      "index": 22,
+      "name": "22_Infusions",
+      "raw_name": "22_Infusions",
+      "x": -961.0,
+      "y": -148.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat23",
+      "type": "category",
+      "index": 23,
+      "name": "23_Seafood",
+      "raw_name": "23_Seafood",
+      "x": -461.0,
+      "y": -398.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat24",
+      "type": "category",
+      "index": 24,
+      "name": "24_BooksPack_I",
+      "raw_name": "24_BooksPack_I",
+      "x": 708.8,
+      "y": 226.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat25",
+      "type": "category",
+      "index": 25,
+      "name": "25_BooksPack_II",
+      "raw_name": "25_BooksPack_II",
+      "x": 836.0,
+      "y": 226.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat26",
+      "type": "category",
+      "index": 26,
+      "name": "26_AlcoholicDrinks_I",
+      "raw_name": "26_AlcoholicDrinks_I",
+      "x": 539.0,
+      "y": -148.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat27",
+      "type": "category",
+      "index": 27,
+      "name": "27_AlcoholicDrinks_II",
+      "raw_name": "27_AlcoholicDrinks_II",
+      "x": 664.0,
+      "y": -273.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat28",
+      "type": "category",
+      "index": 28,
+      "name": "28_AlcoholicDrinks_III",
+      "raw_name": "28_AlcoholicDrinks_III",
+      "x": 789.5,
+      "y": -398.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat29",
+      "type": "category",
+      "index": 29,
+      "name": "29_Pharmacy_I",
+      "raw_name": "29_Pharmacy_I",
+      "x": 40.0,
+      "y": 353.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat30",
+      "type": "category",
+      "index": 30,
+      "name": "30_Pharmacy_II",
+      "raw_name": "30_Pharmacy_II",
+      "x": 238.7,
+      "y": 350.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat31",
+      "type": "category",
+      "index": 31,
+      "name": "31_ProduceI",
+      "raw_name": "31_ProduceI",
+      "x": -586.0,
+      "y": 101.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat32",
+      "type": "category",
+      "index": 32,
+      "name": "32_ProduceII",
+      "raw_name": "32_ProduceII",
+      "x": -461.0,
+      "y": 226.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat33",
+      "type": "category",
+      "index": 33,
+      "name": "33_ProduceIII",
+      "raw_name": "33_ProduceIII",
+      "x": -336.0,
+      "y": 351.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat34",
+      "type": "category",
+      "index": 34,
+      "name": "34_ProduceIV",
+      "raw_name": "34_ProduceIV",
+      "x": -211.0,
+      "y": 476.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat35",
+      "type": "category",
+      "index": 35,
+      "name": "35_ChildCare_I",
+      "raw_name": "35_ChildCare_I",
+      "x": 435.4,
+      "y": 350.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat36",
+      "type": "category",
+      "index": 36,
+      "name": "36_ChildCare_II",
+      "raw_name": "36_ChildCare_II",
+      "x": 632.5,
+      "y": 350.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat37",
+      "type": "category",
+      "index": 37,
+      "name": "37_SodaDrinksII",
+      "raw_name": "37_SodaDrinksII",
+      "x": -836.0,
+      "y": 400.6,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat38",
+      "type": "category",
+      "index": 38,
+      "name": "38_SodaDrinksIII",
+      "raw_name": "38_SodaDrinksIII",
+      "x": -957.9,
+      "y": 527.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat39",
+      "type": "category",
+      "index": 39,
+      "name": "39_SweetsAndSnacks_V",
+      "raw_name": "39_SweetsAndSnacks_V",
+      "x": 299.5,
+      "y": -398.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat40",
+      "type": "category",
+      "index": 40,
+      "name": "40_SweetsAndSnacks_VI",
+      "raw_name": "40_SweetsAndSnacks_VI",
+      "x": 434.5,
+      "y": -398.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat41",
+      "type": "category",
+      "index": 41,
+      "name": "41_PreservesII",
+      "raw_name": "41_PreservesII",
+      "x": -526.4,
+      "y": 525.5,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat42",
+      "type": "category",
+      "index": 42,
+      "name": "42_GardeningI",
+      "raw_name": "42_GardeningI",
+      "x": -62.0,
+      "y": 477.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat43",
+      "type": "category",
+      "index": 43,
+      "name": "43_GardeningII",
+      "raw_name": "43_GardeningII",
+      "x": 135.1,
+      "y": 477.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat44",
+      "type": "category",
+      "index": 44,
+      "name": "44_GardeningIII",
+      "raw_name": "44_GardeningIII",
+      "x": 332.2,
+      "y": 477.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat45",
+      "type": "category",
+      "index": 45,
+      "name": "45_GardeningIV",
+      "raw_name": "45_GardeningIV",
+      "x": 527.9,
+      "y": 477.9,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat46",
+      "type": "category",
+      "index": 46,
+      "name": "46_ElectronicsI",
+      "raw_name": "46_ElectronicsI",
+      "x": 812.2,
+      "y": -23.7,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat47",
+      "type": "category",
+      "index": 47,
+      "name": "47_ElectronicsII",
+      "raw_name": "47_ElectronicsII",
+      "x": 943.9,
+      "y": -23.7,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat48",
+      "type": "category",
+      "index": 48,
+      "name": "48_ElectronicsIII",
+      "raw_name": "48_ElectronicsIII",
+      "x": 1072.0,
+      "y": -23.7,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat49",
+      "type": "category",
+      "index": 49,
+      "name": "49_ProduceV",
+      "raw_name": "49_ProduceV",
+      "x": -389.5,
+      "y": 477.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat50",
+      "type": "category",
+      "index": 50,
+      "name": "50_SweetsAndSnacks_VII",
+      "raw_name": "50_SweetsAndSnacks_VII",
+      "x": 569.2,
+      "y": -398.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat51",
+      "type": "category",
+      "index": 51,
+      "name": "51_BasicProducts_VII",
+      "raw_name": "51_BasicProducts_VII",
+      "x": 607.9,
+      "y": -23.1,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat52",
+      "type": "category",
+      "index": 52,
+      "name": "52_HalloweenI",
+      "raw_name": "52_HalloweenI",
+      "x": 299.5,
+      "y": -267.4,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat53",
+      "type": "category",
+      "index": 53,
+      "name": "53_ChristmasI",
+      "raw_name": "53_ChristmasI",
+      "x": 299.5,
+      "y": -136.3,
+      "is_placeholder": false
+    },
+    {
+      "id": "cat54",
+      "type": "category",
+      "index": 54,
+      "name": "54_DummyManufacturing",
+      "raw_name": "54_DummyManufacturing",
+      "x": -1110.0,
+      "y": -427.1,
+      "is_placeholder": false
+    }
+  ],
+  "edges": [
+    {
+      "line": 1,
+      "from": "cat0",
+      "to": "cat6",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 2,
+      "from": "cat1",
+      "to": "cat6",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 3,
+      "from": "cat0",
+      "to": "cat22",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 4,
+      "from": "cat7",
+      "to": "cat6",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 5,
+      "from": "cat6",
+      "to": "cat8",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 6,
+      "from": "cat8",
+      "to": "cat21",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 7,
+      "from": "cat2",
+      "to": "cat3",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 8,
+      "from": "cat4",
+      "to": "cat20",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 9,
+      "from": "cat20",
+      "to": "cat5",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 10,
+      "from": "cat3",
+      "to": "cat11",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 11,
+      "from": "cat22",
+      "to": "cat1",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 12,
+      "from": "cat1",
+      "to": "cat9",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 13,
+      "from": "cat9",
+      "to": "cat10",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 14,
+      "from": "cat10",
+      "to": "cat23",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 15,
+      "from": "cat3",
+      "to": "cat16",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 16,
+      "from": "cat16",
+      "to": "cat17",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 17,
+      "from": "cat17",
+      "to": "cat18",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 18,
+      "from": "cat18",
+      "to": "cat19",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 19,
+      "from": "cat16",
+      "to": "cat4",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 20,
+      "from": "cat11",
+      "to": "cat4",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 21,
+      "from": "cat13",
+      "to": "cat14",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 22,
+      "from": "cat12",
+      "to": "cat13",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 23,
+      "from": "cat11",
+      "to": "cat12",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 24,
+      "from": "cat5",
+      "to": "cat26",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 25,
+      "from": "cat26",
+      "to": "cat27",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 26,
+      "from": "cat27",
+      "to": "cat28",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 27,
+      "from": "cat24",
+      "to": "cat25",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 28,
+      "from": "cat15",
+      "to": "cat24",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 29,
+      "from": "cat14",
+      "to": "cat15",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 30,
+      "from": "cat8",
+      "to": "perk0",
+      "from_type": "category",
+      "to_type": "perk"
+    },
+    {
+      "line": 31,
+      "from": "cat10",
+      "to": "perk5",
+      "from_type": "category",
+      "to_type": "perk"
+    },
+    {
+      "line": 32,
+      "from": "perk1",
+      "to": "cat13",
+      "from_type": "perk",
+      "to_type": "category"
+    },
+    {
+      "line": 34,
+      "from": "cat19",
+      "to": "cat39",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 35,
+      "from": "perk4",
+      "to": "cat28",
+      "from_type": "perk",
+      "to_type": "category"
+    },
+    {
+      "line": 36,
+      "from": "perk6",
+      "to": "cat11",
+      "from_type": "perk",
+      "to_type": "category"
+    },
+    {
+      "line": 37,
+      "from": "perk7",
+      "to": "cat20",
+      "from_type": "perk",
+      "to_type": "category"
+    },
+    {
+      "line": 38,
+      "from": "cat3",
+      "to": "perk8",
+      "from_type": "category",
+      "to_type": "perk"
+    },
+    {
+      "line": 39,
+      "from": "cat4",
+      "to": "perk9",
+      "from_type": "category",
+      "to_type": "perk"
+    },
+    {
+      "line": 40,
+      "from": "perk10",
+      "to": "cat21",
+      "from_type": "perk",
+      "to_type": "category"
+    },
+    {
+      "line": 41,
+      "from": "cat38",
+      "to": "perk11",
+      "from_type": "category",
+      "to_type": "perk"
+    },
+    {
+      "line": 42,
+      "from": "cat21",
+      "to": "perk17",
+      "from_type": "category",
+      "to_type": "perk"
+    },
+    {
+      "line": 43,
+      "from": "perk22",
+      "to": "cat8",
+      "from_type": "perk",
+      "to_type": "category"
+    },
+    {
+      "line": 44,
+      "from": "perk20",
+      "to": "cat23",
+      "from_type": "perk",
+      "to_type": "category"
+    },
+    {
+      "line": 45,
+      "from": "perk19",
+      "to": "cat19",
+      "from_type": "perk",
+      "to_type": "category"
+    },
+    {
+      "line": 46,
+      "from": "perk12",
+      "to": "cat25",
+      "from_type": "perk",
+      "to_type": "category"
+    },
+    {
+      "line": 48,
+      "from": "perk16",
+      "to": "cat15",
+      "from_type": "perk",
+      "to_type": "category"
+    },
+    {
+      "line": 49,
+      "from": "cat5",
+      "to": "perk21",
+      "from_type": "category",
+      "to_type": "perk"
+    },
+    {
+      "line": 50,
+      "from": "perk23",
+      "to": "cat26",
+      "from_type": "perk",
+      "to_type": "category"
+    },
+    {
+      "line": 51,
+      "from": "cat19",
+      "to": "perk18",
+      "from_type": "category",
+      "to_type": "perk"
+    },
+    {
+      "line": 52,
+      "from": "perk14",
+      "to": "cat33",
+      "from_type": "perk",
+      "to_type": "category"
+    },
+    {
+      "line": 53,
+      "from": "cat28",
+      "to": "perk24",
+      "from_type": "category",
+      "to_type": "perk"
+    },
+    {
+      "line": 54,
+      "from": "cat26",
+      "to": "perk15",
+      "from_type": "category",
+      "to_type": "perk"
+    },
+    {
+      "line": 55,
+      "from": "cat12",
+      "to": "cat29",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 57,
+      "from": "cat31",
+      "to": "cat32",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 58,
+      "from": "cat32",
+      "to": "cat33",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 59,
+      "from": "cat33",
+      "to": "cat34",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 60,
+      "from": "cat2",
+      "to": "cat31",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 61,
+      "from": "cat29",
+      "to": "cat30",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 62,
+      "from": "cat30",
+      "to": "cat35",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 63,
+      "from": "perk25",
+      "to": "cat29",
+      "from_type": "perk",
+      "to_type": "category"
+    },
+    {
+      "line": 64,
+      "from": "cat39",
+      "to": "cat40",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 65,
+      "from": "cat8",
+      "to": "cat37",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 66,
+      "from": "cat37",
+      "to": "cat38",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 67,
+      "from": "perk3",
+      "to": "cat18",
+      "from_type": "perk",
+      "to_type": "category"
+    },
+    {
+      "line": 68,
+      "from": "cat21",
+      "to": "cat41",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 69,
+      "from": "perk26",
+      "to": "cat41",
+      "from_type": "perk",
+      "to_type": "category"
+    },
+    {
+      "line": 70,
+      "from": "cat36",
+      "to": "perk27",
+      "from_type": "category",
+      "to_type": "perk"
+    },
+    {
+      "line": 71,
+      "from": "perk13",
+      "to": "cat24",
+      "from_type": "perk",
+      "to_type": "category"
+    },
+    {
+      "line": 72,
+      "from": "cat28",
+      "to": "perk28",
+      "from_type": "category",
+      "to_type": "perk"
+    },
+    {
+      "line": 73,
+      "from": "cat35",
+      "to": "perk43",
+      "from_type": "category",
+      "to_type": "perk"
+    },
+    {
+      "line": 74,
+      "from": "cat35",
+      "to": "cat36",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 75,
+      "from": "cat42",
+      "to": "perk32",
+      "from_type": "category",
+      "to_type": "perk"
+    },
+    {
+      "line": 76,
+      "from": "cat42",
+      "to": "cat43",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 77,
+      "from": "cat43",
+      "to": "cat44",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 78,
+      "from": "cat44",
+      "to": "cat45",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 79,
+      "from": "cat34",
+      "to": "cat42",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 82,
+      "from": "cat47",
+      "to": "cat48",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 83,
+      "from": "cat48",
+      "to": "perk30",
+      "from_type": "category",
+      "to_type": "perk"
+    },
+    {
+      "line": 84,
+      "from": "cat23",
+      "to": "perk2",
+      "from_type": "category",
+      "to_type": "perk"
+    },
+    {
+      "line": 85,
+      "from": "cat46",
+      "to": "cat47",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 86,
+      "from": "perk34",
+      "to": "cat40",
+      "from_type": "perk",
+      "to_type": "category"
+    },
+    {
+      "line": 87,
+      "from": "cat44",
+      "to": "perk36",
+      "from_type": "category",
+      "to_type": "perk"
+    },
+    {
+      "line": 88,
+      "from": "cat17",
+      "to": "perk35",
+      "from_type": "category",
+      "to_type": "perk"
+    },
+    {
+      "line": 89,
+      "from": "perk37",
+      "to": "cat46",
+      "from_type": "perk",
+      "to_type": "category"
+    },
+    {
+      "line": 92,
+      "from": "cat49",
+      "to": "cat34",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 93,
+      "from": "cat40",
+      "to": "cat50",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 94,
+      "from": "cat5",
+      "to": "cat46",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 95,
+      "from": "cat45",
+      "to": "perk40",
+      "from_type": "category",
+      "to_type": "perk"
+    },
+    {
+      "line": 96,
+      "from": "cat48",
+      "to": "perk41",
+      "from_type": "category",
+      "to_type": "perk"
+    },
+    {
+      "line": 97,
+      "from": "cat50",
+      "to": "perk42",
+      "from_type": "category",
+      "to_type": "perk"
+    },
+    {
+      "line": 98,
+      "from": "cat25",
+      "to": "perk43",
+      "from_type": "category",
+      "to_type": "perk"
+    },
+    {
+      "line": 99,
+      "from": "cat39",
+      "to": "cat52",
+      "from_type": "category",
+      "to_type": "category"
+    },
+    {
+      "line": 100,
+      "from": "cat52",
+      "to": "cat53",
+      "from_type": "category",
+      "to_type": "category"
+    }
+  ],
+  "perk_to_category": {
+    "perk0": {
+      "category_id": "cat37",
+      "category_name": "SodaDrinksII",
+      "distance": 139.4
+    },
+    "perk1": {
+      "category_id": "cat13",
+      "category_name": "Hygiene_III",
+      "distance": 161.6
+    },
+    "perk2": {
+      "category_id": "cat10",
+      "category_name": "FrozenFoods_II",
+      "distance": 124.9
+    },
+    "perk3": {
+      "category_id": "cat18",
+      "category_name": "SweetsAndSnacks_III",
+      "distance": 162.1
+    },
+    "perk4": {
+      "category_id": "cat28",
+      "category_name": "AlcoholicDrinks_III",
+      "distance": 129.3
+    },
+    "perk5": {
+      "category_id": "cat10",
+      "category_name": "FrozenFoods_II",
+      "distance": 161.2
+    },
+    "perk6": {
+      "category_id": "cat32",
+      "category_name": "ProduceII",
+      "distance": 130.9
+    },
+    "perk7": {
+      "category_id": "cat20",
+      "category_name": "Meat",
+      "distance": 137.0
+    },
+    "perk8": {
+      "category_id": "cat3",
+      "category_name": "BasicProducts_IV",
+      "distance": 121.7
+    },
+    "perk9": {
+      "category_id": "cat4",
+      "category_name": "BasicProducts_V",
+      "distance": 162.1
+    },
+    "perk10": {
+      "category_id": "cat21",
+      "category_name": "Preserves/PetFood",
+      "distance": 132.7
+    },
+    "perk11": {
+      "category_id": "cat37",
+      "category_name": "SodaDrinksII",
+      "distance": 130.7
+    },
+    "perk12": {
+      "category_id": "cat46",
+      "category_name": "ElectronicsI",
+      "distance": 114.7
+    },
+    "perk13": {
+      "category_id": "cat24",
+      "category_name": "BooksPack_I",
+      "distance": 136.9
+    },
+    "perk14": {
+      "category_id": "cat34",
+      "category_name": "ProduceIV",
+      "distance": 122.2
+    },
+    "perk15": {
+      "category_id": "cat27",
+      "category_name": "AlcoholicDrinks_II",
+      "distance": 127.5
+    },
+    "perk16": {
+      "category_id": "cat51",
+      "category_name": "BasicProducts_VII",
+      "distance": 132.7
+    },
+    "perk17": {
+      "category_id": "cat41",
+      "category_name": "PreservesII",
+      "distance": 117.7
+    },
+    "perk18": {
+      "category_id": "cat19",
+      "category_name": "SweetsAndSnacks_IV",
+      "distance": 121.3
+    },
+    "perk19": {
+      "category_id": "cat19",
+      "category_name": "SweetsAndSnacks_IV",
+      "distance": 119.1
+    },
+    "perk20": {
+      "category_id": "cat23",
+      "category_name": "Seafood",
+      "distance": 125.2
+    },
+    "perk21": {
+      "category_id": "cat5",
+      "category_name": "BasicProducts_VI",
+      "distance": 112.4
+    },
+    "perk22": {
+      "category_id": "cat31",
+      "category_name": "ProduceI",
+      "distance": 143.2
+    },
+    "perk23": {
+      "category_id": "cat26",
+      "category_name": "AlcoholicDrinks_I",
+      "distance": 130.0
+    },
+    "perk24": {
+      "category_id": "cat27",
+      "category_name": "AlcoholicDrinks_II",
+      "distance": 126.7
+    },
+    "perk25": {
+      "category_id": "cat42",
+      "category_name": "GardeningI",
+      "distance": 125.1
+    },
+    "perk26": {
+      "category_id": "cat21",
+      "category_name": "Preserves/PetFood",
+      "distance": 130.3
+    },
+    "perk27": {
+      "category_id": "cat36",
+      "category_name": "ChildCare_II",
+      "distance": 115.4
+    },
+    "perk28": {
+      "category_id": "cat48",
+      "category_name": "ElectronicsIII",
+      "distance": 391.3
+    },
+    "perk29": {
+      "category_id": "cat25",
+      "category_name": "BooksPack_II",
+      "distance": 409.5
+    },
+    "perk30": {
+      "category_id": "cat48",
+      "category_name": "ElectronicsIII",
+      "distance": 150.9
+    },
+    "perk31": {
+      "category_id": "cat48",
+      "category_name": "ElectronicsIII",
+      "distance": 286.8
+    },
+    "perk32": {
+      "category_id": "cat42",
+      "category_name": "GardeningI",
+      "distance": 128.6
+    },
+    "perk33": {
+      "category_id": "cat23",
+      "category_name": "Seafood",
+      "distance": 170.3
+    },
+    "perk34": {
+      "category_id": "cat50",
+      "category_name": "SweetsAndSnacks_VII",
+      "distance": 104.5
+    },
+    "perk35": {
+      "category_id": "cat17",
+      "category_name": "SweetsAndSnacks_II",
+      "distance": 130.8
+    },
+    "perk36": {
+      "category_id": "cat44",
+      "category_name": "GardeningIII",
+      "distance": 126.7
+    },
+    "perk37": {
+      "category_id": "cat46",
+      "category_name": "ElectronicsI",
+      "distance": 113.9
+    },
+    "perk38": {
+      "category_id": "cat25",
+      "category_name": "BooksPack_II",
+      "distance": 472.7
+    },
+    "perk39": {
+      "category_id": "cat48",
+      "category_name": "ElectronicsIII",
+      "distance": 235.5
+    },
+    "perk40": {
+      "category_id": "cat45",
+      "category_name": "GardeningIV",
+      "distance": 128.3
+    },
+    "perk41": {
+      "category_id": "cat48",
+      "category_name": "ElectronicsIII",
+      "distance": 114.4
+    },
+    "perk42": {
+      "category_id": "cat27",
+      "category_name": "AlcoholicDrinks_II",
+      "distance": 95.9
+    },
+    "perk43": {
+      "category_id": "cat25",
+      "category_name": "BooksPack_II",
+      "distance": 125.8
+    }
+  },
+  "note": "代碼無視覺上的前置條件（每個技能可獨立用 1000 FP 購買）。連線純為 UI 視覺組織。"
+}

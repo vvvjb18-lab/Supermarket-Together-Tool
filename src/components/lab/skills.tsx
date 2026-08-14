@@ -29,14 +29,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { Crown, Lightbulb, ThumbsUp, Users, AlertTriangle, Coins } from 'lucide-react'
+import { Crown, Lightbulb, ThumbsUp, Users, AlertTriangle, Coins, Network, Table as TableIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { SkillTreeView, PerksTableView } from './skill-tree'
 
 type Strategy = SkillStrategy
 
@@ -111,6 +113,34 @@ export function Skills() {
           </p>
         </div>
 
+        <Tabs defaultValue="graph" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:grid-cols-3">
+            <TabsTrigger value="graph" className="text-xs gap-1.5">
+              <Network className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">技能樹圖譜</span>
+              <span className="sm:hidden">圖譜</span>
+            </TabsTrigger>
+            <TabsTrigger value="table" className="text-xs gap-1.5">
+              <TableIcon className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">44 技能總表</span>
+              <span className="sm:hidden">總表</span>
+            </TabsTrigger>
+            <TabsTrigger value="strategy" className="text-xs gap-1.5">
+              <Lightbulb className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">推薦策略</span>
+              <span className="sm:hidden">策略</span>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="graph" className="space-y-4 mt-0">
+            <SkillTreeView />
+          </TabsContent>
+
+          <TabsContent value="table" className="space-y-4 mt-0">
+            <PerksTableView />
+          </TabsContent>
+
+          <TabsContent value="strategy" className="space-y-4 mt-0">
         {/* Strategy selector */}
         <Card>
           <CardHeader className="pb-2">
@@ -324,6 +354,8 @@ export function Skills() {
             )
           })}
         </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </TooltipProvider>
   )

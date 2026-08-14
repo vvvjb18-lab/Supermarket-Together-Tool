@@ -60,22 +60,29 @@ export function Room() {
       <div className="mx-auto max-w-[700px] space-y-4 p-4">
         <SectionHeader
           title="多人房間"
-          description="與朋友共用網站，對應遊戲多人房間。支援共享存檔快照、清單、補貨/定價/貨架/技能計畫、任務分配、即時編輯與 cursor presence。"
-          confidence={sync.transport === 'socket' ? 'confirmed' : 'unverified'}
-          note={sync.transport === 'socket' ? 'Socket.IO 已連線 (port 3003)' : sync.transport === 'broadcast' ? 'BroadcastChannel 同瀏覽器分頁同步' : '離線模式'}
+          description="與朋友共用決策。後端同步服務整合中（房間密碼認證 + host 上載存檔）。目前為本地模式。"
+          confidence="unverified"
+          note="socket.io 已停用（Task 10）；後端服務待接入。目前僅同瀏覽器分頁可同步。"
         />
 
-        <Card className={sync.transport === 'socket' ? 'border-emerald-500/30' : 'border-amber-500/30'}>
-          <CardContent className="flex items-center gap-3 py-3">
-            {sync.transport === 'socket' ? <Wifi className="h-5 w-5 text-emerald-500" /> : <WifiOff className="h-5 w-5 text-amber-500" />}
+        <Card className="border-sky-500/30 bg-sky-500/5">
+          <CardContent className="flex items-start gap-3 py-3">
+            <WifiOff className="mt-0.5 h-5 w-5 shrink-0 text-sky-500" />
             <div className="text-sm">
-              <div className="font-medium">
-                {sync.transport === 'socket' ? 'Socket 服務已連線' : sync.transport === 'broadcast' ? '使用 BroadcastChannel（同瀏覽器分頁）' : '離線'}
+              <div className="font-medium">本地模式（後端整合中）</div>
+              <div className="text-xs text-muted-foreground leading-relaxed">
+                跨裝置同步已停用，正遷移至後端服務（Supabase）+ 房間密碼認證。
+                屆時僅 host 需上載存檔，成員輸入房間代碼 + 密碼即可查看。
+                目前可建立本地房間（同瀏覽器分頁可同步），用於預覽功能。
               </div>
-              <div className="text-xs text-muted-foreground">
-                {sync.transport === 'socket'
-                  ? '跨裝置即時同步已就緒。建立房間後分享代碼給朋友。'
-                  : 'room-service (port 3003) 未連線。可建立房間但僅限同瀏覽器分頁同步。'}
+              <div className="mt-1.5 text-[11px]">
+                <a
+                  href="#backend-plan"
+                  className="font-medium text-sky-600 underline-offset-2 hover:underline dark:text-sky-400"
+                  onClick={() => setView('rawdata')}
+                >
+                  查看後端接入方案 →
+                </a>
               </div>
             </div>
           </CardContent>
@@ -84,7 +91,7 @@ export function Room() {
         <div className="grid gap-4 md:grid-cols-2">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">建立房間</CardTitle>
+              <CardTitle className="text-base">建立房間（本地）</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div>

@@ -1,0 +1,45 @@
+perk_index	skill_id	name_en	name_zhHant	x	y	is_placeholder	desc_en	nearest_category
+0	skill01	Employee I	員工一號	-957.8	332.9	True	+1 maxEmployees (placeholder perk I)	SodaDrinksII
+1	skill02	Employee II	員工二號	285.5	120.4	True	+1 maxEmployees (placeholder perk II)	Hygiene_III
+2	skill03	Employee III	員工三號	-461.1	-272.1	True	+1 maxEmployees (placeholder perk III)	FrozenFoods_II
+3	skill04	Employee IV	員工四號	-78.5	-509.7	True	+1 maxEmployees (placeholder perk IV)	SweetsAndSnacks_III
+4	skill05	Employee V	員工五號	702.8	-494.0	True	+1 maxEmployees (placeholder perk V)	AlcoholicDrinks_III
+5	skill1	Free morning coffee	免費早晨咖啡	-470.0	-161.1	False	Employees move +20% faster	FrozenFoods_II
+6	skill2	Marketing courses I	行銷課程一	-332.0	204.9	False	Employees generate +10% money in checkouts	ProduceII
+7	skill3	Formation courses	培育課程	162.0	-160.1	False	Employees move 20% faster	Meat
+8	skill4	Recycling courses	回收課程	-214.3	-24.0	False	Recycling boxes award four times as much	BasicProducts_IV
+9	skill5	Air Conditioning	空調	23.1	96.8	False	Attracts more customers per day	BasicProducts_V
+10	skill6	Wifi connection	Wifi 連接	-655.6	267.9	False		Preserves/PetFood
+11	skill07			-825.5	530.9	False		SodaDrinksII
+12	skill08			834.5	88.8	False		ElectronicsI
+13	skill09			707.4	90.0	False		BooksPack_I
+14	skill10			-209.0	354.7	False		ProduceIV
+15	skill11	Employee VI	員工六號	669.2	-145.7	False		AlcoholicDrinks_II
+16	skill12	Employee VII	僱員七	538.8	90.2	False		BasicProducts_VII
+17	skill13	Employee VIII	員工八號	-531.0	407.9	False		PreservesII
+18	skill14	Employee IX	員工九	163.7	-276.8	False		SweetsAndSnacks_IV
+19	skill15	Employee X	員工 X	163.6	-517.2	False		SweetsAndSnacks_IV
+20	skill16	Cashier Formation I	收銀員I組	-462.6	-523.3	False	Employees will handle products in checkout faster	Seafood
+21	skill17	Cashier Formation II	收銀員陣型二	414.6	89.3	False		BasicProducts_VI
+22	skill18	Cashier Formation III	收銀員陣型三	-729.1	107.7	False		ProduceI
+23	skill19	Restock Formation I	補給I型	450.3	-243.2	False	Employees will place products faster	AlcoholicDrinks_I
+24	skill20	Restock Formation II	補給編隊 II	790.5	-266.4	False		AlcoholicDrinks_II
+25	skill21	Even more coffee	更多咖啡	-86.7	355.3	False		GardeningI
+26	skill22	Free Energy Drinks I	免費能量飲料 I	-658.0	530.9	False		Preserves/PetFood
+27	skill23	Free Energy Drinks II	免費能量飲料 II	711.8	434.7	False		ChildCare_II
+28	skill24	Recycling courses II	回收課程二	1222.0	-385.1	False	Employees will recycle boxes	ElectronicsIII
+29	skill25	Friendly Interface	友善的介面	1222.0	363.6	False	Customers will use self-checkouts more	BooksPack_II
+30	skill26	Employee XI	員工十一	1222.0	-7.3	False		ElectronicsIII
+31	skill27	Employee XII	僱員十二	1222.0	220.7	False		ElectronicsIII
+32	skill28	Recycling container	回收容器	32.1	565.5	False	The closest trash container will be replaced with a recycling one.	GardeningI
+33	skill29	MART OS 2.0	智慧型作業系統2.0	-291.8	-378.4	False	The pricing machine software is improved and a way to automate prices can now be set	Seafood
+34	skill30	Tic-tac goes fast	井字棋走得很快	538.2	-497.9	False	When store is closed during nights, the manager can use the new clock in the manager's room to accelerate time	SweetsAndSnacks_VII
+35	skill31	Low energy light bulbs	低能耗灯泡	10.9	-185.2	False	Reduces overall electrical consumption by a 20%	SweetsAndSnacks_II
+36	skill32	User-friendly Interface	用户友好界面	423.8	565.5	False	Customers use self-checkout faster	GardeningIII
+37	skill33	Logistics	物流	809.9	-137.6	False	When taking a box, players will be able to visualize its contained product's position both in store and storage	ElectronicsI
+38	skill34	External Accountant	外部会计师	1222.0	499.8	False	Invoices will be paid every new day if there are funds to do so	BooksPack_II
+39	skill35	Special Prices I	特价 I	1222.0	-205.2	False	Increases maximum amount of daily sales by 2	ElectronicsIII
+40	skill36	Special Prices II	特价 II	621.7	565.5	False		GardeningIV
+41	skill37	Special Prices III	特价 III	1069.6	90.7	False		ElectronicsIII
+42	skill38	Pallet Displays	托盘展示	568.1	-275.8	False	Unlocks different types of pallet displays for the biggest products	AlcoholicDrinks_II
+43	skill39	Human Resources	人力资源	932.2	307.9	False	Unlocks six more employees	BooksPack_II

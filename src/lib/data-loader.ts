@@ -1,10 +1,12 @@
 // Loads the generated encyclopedia.json and demo-save.json into typed objects.
 import encyclopediaJson from './data/encyclopedia.json'
 import demoSaveJson from './data/demo-save.json'
-import type { Encyclopedia, SaveSnapshot, Product, Tier, ProductGroup, Buildable, Container } from './types'
+import skillGraphJson from './data/skill-graph.json'
+import type { Encyclopedia, SaveSnapshot, Product, Tier, ProductGroup, Buildable, Container, SkillTreeGraph } from './types'
 
 export const encyclopedia = encyclopediaJson as unknown as Encyclopedia
 export const demoSave = demoSaveJson as unknown as SaveSnapshot
+export const skillGraph = skillGraphJson as unknown as SkillTreeGraph
 
 // pre-indexed maps for fast lookup
 export const productById = new Map<number, Product>(encyclopedia.products.map((p) => [p.id, p]))

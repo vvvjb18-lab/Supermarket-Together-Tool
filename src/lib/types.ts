@@ -137,6 +137,61 @@ export interface EmployeeTask {
   color: string
 }
 
+// ---------- Skill tree graph (extracted from Unity UI hierarchy) ----------
+
+export interface SkillGraphNode {
+  id: string // 'perk0' | 'cat0' | ...
+  type: 'perk' | 'category'
+  index: number
+  name_en: string
+  name_zhHant?: string
+  raw_name: string
+  skill_id?: string // 'skill1' etc. (only for non-placeholder perks)
+  desc_en?: string
+  is_placeholder: boolean
+  x: number
+  y: number
+  size?: number
+}
+
+export interface SkillGraphEdge {
+  line: number
+  from: string
+  to: string
+  from_type: 'perk' | 'category'
+  to_type: 'perk' | 'category'
+}
+
+export interface PerkToCategoryEntry {
+  category_id: string
+  category_name: string
+  distance: number
+}
+
+export interface SkillTreeGraph {
+  _meta: {
+    source: string
+    extraction_method: string
+    coordinate_system: string
+    total_nodes: number
+    total_edges: number
+    note: string
+  }
+  nodes: SkillGraphNode[]
+  edges: SkillGraphEdge[]
+  adjacency: Record<string, string[]>
+  perk_to_category: Record<string, PerkToCategoryEntry>
+  unmatched_lines: Array<{
+    line: number
+    ep1: [number, number]
+    ep2: [number, number]
+    p1_id: string | null
+    d1: number
+    p2_id: string | null
+    d2: number
+  }>
+}
+
 export interface ManufacturingProduct {
   id: number
   name: LocalizedName
