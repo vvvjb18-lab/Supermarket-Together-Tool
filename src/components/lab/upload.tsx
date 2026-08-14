@@ -3,159 +3,111 @@
 import { useState, useCallback } from 'react'
 import { useSaveStore, useUIStore } from '@/lib/store'
 import { demoSave, encyclopedia as ENC } from '@/lib/data-loader'
+import { parseSaveFile, type ES3ParseResult } from '@/lib/es3-parser'
 import { ConfidenceBadge, StatCard, SectionHeader, fmt, fmtMoney } from '@/components/shared/primitives'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Upload as UploadIcon, FileJson, FileUp, CheckCircle2, AlertTriangle, XCircle, Database, Sparkles } from 'lucide-react'
+import {
+  Upload as UploadIcon,
+  FileJson,
+  FileUp,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
+  Database,
+  Sparkles,
+  FlaskConical,
+  Coins,
+  Calendar,
+  Users,
+  Boxes,
+  Tag,
+  Loader2,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import type { SaveSnapshot, Confidence } from '@/lib/types'
 
-// The real .es3 parser requires EasySave3 decryption (Decryptor.cs / decoder.exe).
-// We provide an adapter interface so a real parser can be plugged in later.
-// For now: a tolerant mock parser that accepts JSON or partial JSON and extracts
-// whatever it can recognize, plus a demo loader.
-
-interface ParseResult {
-  snapshot: SaveSnapshot
-  detected: string[]
-  unknown: string[]
-  confidence: Confidence
-  status: 'ok' | 'demo' | 'partial' | 'failed' | 'empty'
-}
-
-function tolerantParse(text: string, fileName: string): ParseResult {
+// Pre-existing tolerant mock kept as a last-resort fallback when neither
+// strict JSON nor ES3 parsing succeed. The new ES3 parser is the primary
+// path; this only kicks in for totally unstructured text.
+function regexFallback(text: string, fileName: string): ES3ParseResult {
   const detected: string[] = []
-  const unknown: string[] = []
   let money = 0
   let fp = 0
   let day = 1
-  const pricing: Record<number, number> = {}
-  const inv: Record<number, number> = {}
 
-  // Try strict JSON first
-  let data: any = null
-  try {
-    data = JSON.parse(text)
-  } catch {
-    // tolerant: fix common EasySave3 bool serialization "bool"false → "bool",false
-    const fixed = text.replace(/"bool"(\s*)(true|false)/g, '"bool",$1$2').replace(/"bool"(\s*)(true|false)/g, '"bool",$1$2')
-    try {
-      data = JSON.parse(fixed)
-    } catch {
-      // last resort: extract numbers via regex heuristics
-      const moneyMatch = text.match(/"?(money|currentMoney)"?\s*[:=]\s*([0-9.]+)/i)
-      if (moneyMatch) {
-        money = Number(moneyMatch[2])
-        detected.push('money (regex)')
-      }
-      data = null
-    }
+  const moneyMatch = text.match(/"?Funds"?\s*:\s*\{[^}]*"value"\s*:\s*([0-9.]+)/i)
+  if (moneyMatch) {
+    money = Number(moneyMatch[1])
+    detected.push('Funds (regex)')
+  }
+  const fpMatch = text.match(/"?FranchisePoints"?\s*:\s*\{[^}]*"value"\s*:\s*([0-9.]+)/i)
+  if (fpMatch) {
+    fp = Number(fpMatch[1])
+    detected.push('FranchisePoints (regex)')
+  }
+  const dayMatch = text.match(/"?Day"?\s*:\s*\{[^}]*"value"\s*:\s*([0-9]+)/i)
+  if (dayMatch) {
+    day = Number(dayMatch[1])
+    detected.push('Day (regex)')
   }
 
-  if (data && typeof data === 'object') {
-    // walk known field names
-    if ('money' in data || 'currentMoney' in data) {
-      money = Number(data.money ?? data.currentMoney ?? 0)
-      detected.push('money')
-    }
-    if ('franchisePoints' in data || 'fp' in data) {
-      fp = Number(data.franchisePoints ?? data.fp ?? 0)
-      detected.push('franchisePoints')
-    }
-    if ('day' in data || 'currentDay' in data) {
-      day = Number(data.day ?? data.currentDay ?? 1)
-      detected.push('day')
-    }
-    if ('productPlayerPricing' in data && Array.isArray(data.productPlayerPricing)) {
-      data.productPlayerPricing.forEach((entry: any, i: number) => {
-        if (entry && typeof entry === 'object' && 'id' in entry && 'price' in entry) {
-          pricing[Number(entry.id)] = Number(entry.price)
-        } else if (typeof entry === 'number') {
-          pricing[i] = entry
-        }
-      })
-      if (Object.keys(pricing).length > 0) detected.push('productPlayerPricing')
-    }
-    if ('inventoryByProduct' in data && typeof data.inventoryByProduct === 'object') {
-      Object.entries(data.inventoryByProduct).forEach(([k, v]) => {
-        inv[Number(k)] = Number(v)
-      })
-      if (Object.keys(inv).length > 0) detected.push('inventoryByProduct')
-    }
-    if ('storeLayout' in data && Array.isArray(data.storeLayout)) {
-      detected.push('storeLayout')
-    }
-    if ('unlockedProducts' in data) detected.push('unlockedProducts')
-    if ('unlockedProductTiers' in data) detected.push('unlockedProductTiers')
-    if ('employees' in data) detected.push('employees')
-    if ('perks' in data) detected.push('perks')
-    if ('roomId' in data) detected.push('roomId')
-    if ('weather' in data) detected.push('weather')
-    // collect unknown top-level keys
-    const known = new Set([
-      'money', 'currentMoney', 'franchisePoints', 'fp', 'day', 'currentDay',
-      'productPlayerPricing', 'inventoryByProduct', 'storeLayout', 'unlockedProducts',
-      'unlockedProductTiers', 'employees', 'perks', 'extraUpgrades', 'roomId',
-      'playerSlots', 'weather', 'temperature', 'storageInventory', 'source',
-      'parseStatus', 'confidence', 'detectedFields', 'unknownFields', 'parsedAt',
-    ])
-    Object.keys(data).forEach((k) => {
-      if (!known.has(k)) unknown.push(k)
-    })
-  }
-
-  const hasAny = detected.length > 0
   const snapshot: SaveSnapshot = {
     source: `upload:${fileName}`,
-    parseStatus: hasAny ? (detected.length >= 3 ? 'ok' : 'partial') : 'failed',
-    confidence: hasAny ? (detected.length >= 5 ? 'confirmed' : 'proxy') : 'unverified',
+    parseStatus: detected.length > 0 ? 'partial' : 'failed',
+    confidence: detected.length > 0 ? 'proxy' : 'unverified',
     detectedFields: detected,
-    unknownFields: unknown,
+    unknownFields: [],
     money,
     franchisePoints: fp,
     day,
-    unlockedProductTiers: data?.unlockedProductTiers ?? Array.from(new Set(ENC.products.map((p) => p.tier))).sort((a, b) => a - b),
-    unlockedProducts: data?.unlockedProducts ?? ENC.products.map((p) => p.id),
-    productPlayerPricing: pricing,
-    perks: data?.perks ?? [],
-    extraUpgrades: data?.extraUpgrades ?? [],
-    employees: data?.employees ?? [],
-    storeLayout: data?.storeLayout ?? ENC.storeLayout,
-    inventoryByProduct: inv,
-    storageInventory: data?.storageInventory ?? {},
-    weather: data?.weather ?? 'unknown',
-    temperature: data?.temperature ?? [],
-    roomId: data?.roomId ?? null,
-    playerSlots: data?.playerSlots ?? 0,
+    unlockedProductTiers: Array.from(new Set(ENC.products.map((p) => p.tier))).sort((a, b) => a - b),
+    unlockedProducts: ENC.products.map((p) => p.id),
+    productPlayerPricing: {},
+    perks: [],
+    extraUpgrades: [],
+    employees: [],
+    storeLayout: ENC.storeLayout,
+    inventoryByProduct: {},
+    storageInventory: {},
+    weather: 'unknown',
+    temperature: [],
+    roomId: null,
+    playerSlots: 0,
     parsedAt: new Date().toISOString(),
   }
 
   return {
     snapshot,
     detected,
-    unknown,
+    unknown: [],
     confidence: snapshot.confidence,
     status: snapshot.parseStatus,
+    typeTally: {},
+    warnings: ['ES3 + strict-JSON parse failed; used last-resort regex heuristics. Only scalar fields may be recovered.'],
+    fieldCount: detected.length,
+    bytesIn: text.length,
+    bytesOut: text.length,
   }
 }
 
 const FIELD_DOCS: { field: string; desc: string; status: 'ready' | 'adapter' | 'needs-real' }[] = [
-  { field: 'money / day / FP', desc: '玩家金錢、天數、Franchise Points', status: 'adapter' },
-  { field: 'productPlayerPricing', desc: '玩家自訂價格陣列', status: 'adapter' },
-  { field: 'unlockedProductTiers', desc: '已解鎖 tier 列表', status: 'adapter' },
-  { field: 'unlockedProducts', desc: '已解鎖商品列表', status: 'adapter' },
-  { field: 'perks / extraUpgrades', desc: '技能樹 + 升級', status: 'adapter' },
-  { field: 'employees (levels/XP)', desc: '員工等級與經驗', status: 'adapter' },
-  { field: 'storeLayout (props)', desc: '店面道具 + 貨架座標', status: 'adapter' },
-  { field: 'shelf inventory', desc: '貨架庫存 product:count', status: 'adapter' },
-  { field: 'storage inventory', desc: '倉庫庫存', status: 'adapter' },
-  { field: 'roomId / playerSlots', desc: '多人房間 ID 與玩家數', status: 'needs-real' },
+  { field: 'Funds / Day / FP / FX', desc: '玩家金錢、天數、Franchise Points、Franchise XP', status: 'ready' },
+  { field: 'ProductPlayerPricing', desc: '339 商品玩家自訂價格陣列', status: 'ready' },
+  { field: 'UnlockedProductTiers', desc: '已解鎖 tier (bool 陣列)', status: 'ready' },
+  { field: 'TierInflation', desc: '每 tier 通膨倍率 (float 陣列)', status: 'ready' },
+  { field: 'propdata{N} + propinfoproduct{N}', desc: '41 個店面道具 + 貨架庫存', status: 'ready' },
+  { field: 'HiredEmployeesData', desc: '員工 pipe-string 陣列 (slot/model/skills/name/task/xp)', status: 'ready' },
+  { field: 'LoanAmount / LoanPaymentPerDay', desc: '貸款本金 / 每日還款', status: 'ready' },
+  { field: 'ManufacUnlockedRecipes', desc: '30 個製造配方解鎖狀態', status: 'ready' },
+  { field: 'AddonsBought / ExtraUpgrades / SpaceUpgrades', desc: '附加購買 + 升級旗標', status: 'ready' },
+  { field: 'CurrentInvoicesArray', desc: '當前供應商發票 (pipe-string)', status: 'ready' },
+  { field: 'DoorStates / PaintableValues', desc: '門狀態 + 可噴漆物件', status: 'ready' },
+  { field: 'decopropdata / decopaintable / decopicture', desc: '裝飾道具 + 噴漆 + 圖片 (計數)', status: 'ready' },
+  { field: 'roomId / playerSlots', desc: '多人房間同步資訊', status: 'needs-real' },
   { field: 'weather / temperature', desc: '當前天氣與 32 小時溫度', status: 'needs-real' },
-  { field: 'order states', desc: '訂單狀態', status: 'needs-real' },
 ]
 
 export function Upload() {
@@ -165,23 +117,41 @@ export function Upload() {
   const snapshot = useSaveStore((s) => s.snapshot)
   const setView = useUIStore((s) => s.setView)
 
-  const [parseResult, setParseResult] = useState<ParseResult | null>(null)
+  const [parseResult, setParseResult] = useState<ES3ParseResult | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const [parsing, setParsing] = useState(false)
+  const [loadingSample, setLoadingSample] = useState(false)
+
+  const runParse = useCallback(
+    (text: string, fileName: string) => {
+      let result = parseSaveFile(text, fileName)
+      // If both strict-JSON and ES3 paths failed, try regex fallback.
+      if (result.status === 'failed') {
+        const fb = regexFallback(text, fileName)
+        if (fb.detected.length > result.detected.length) result = fb
+      }
+      setParseResult(result)
+      if (result.status === 'failed') {
+        toast.error('無法解析此檔案。顯示偵測結果，但未載入。')
+      } else {
+        setSnapshot(result.snapshot)
+        const extras = result.snapshot.employees.length
+          ? `、${result.snapshot.employees.length} 員工`
+          : ''
+        toast.success(
+          `解析完成：${result.detected.length} 個欄位、Day ${result.snapshot.day}、$${result.snapshot.money.toFixed(0)}${extras} (${result.status})`,
+        )
+      }
+    },
+    [setSnapshot],
+  )
 
   const handleFile = useCallback(
     async (file: File) => {
       setParsing(true)
       try {
         const text = await file.text()
-        const result = tolerantParse(text, file.name)
-        setParseResult(result)
-        if (result.status === 'failed') {
-          toast.error('無法解析此檔案。顯示偵測結果，但未載入。')
-        } else {
-          setSnapshot(result.snapshot)
-          toast.success(`解析完成：${result.detected.length} 個欄位偵測到 (${result.status})`)
-        }
+        runParse(text, file.name)
       } catch (e: any) {
         toast.error('解析失敗: ' + (e?.message ?? 'unknown'))
         setParseResult({
@@ -190,13 +160,36 @@ export function Upload() {
           unknown: [],
           confidence: 'unverified',
           status: 'failed',
+          typeTally: {},
+          warnings: [e?.message ?? 'unknown'],
+          fieldCount: 0,
+          bytesIn: 0,
+          bytesOut: 0,
         })
       } finally {
         setParsing(false)
       }
     },
-    [setSnapshot],
+    [runParse],
   )
+
+  const handleLoadSample = useCallback(async () => {
+    setLoadingSample(true)
+    try {
+      const res = await fetch('/api/sample-save')
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}))
+        toast.error(j.message ?? `取樣本失敗 (${res.status})`)
+        return
+      }
+      const text = await res.text()
+      runParse(text, '_latest.json')
+    } catch (e: any) {
+      toast.error('取樣本失敗: ' + (e?.message ?? 'unknown'))
+    } finally {
+      setLoadingSample(false)
+    }
+  }, [runParse])
 
   const onDrop = useCallback(
     (e: React.DragEvent) => {
@@ -208,13 +201,16 @@ export function Upload() {
     [handleFile],
   )
 
+  const s = parseResult?.snapshot
+  const typeEntries = parseResult ? Object.entries(parseResult.typeTally).sort((a, b) => b[1] - a[1]) : []
+
   return (
     <div className="mx-auto max-w-[1200px] space-y-4 p-4">
       <SectionHeader
         title="存檔上傳與本地解析"
-        description="上傳 EasySave3 .es3 存檔或 JSON 快照。解析器為 local-first adapter 設計，真實 .es3 解密尚未整合。"
-        confidence="needs-runtime"
-        note="真實 .es3 解密需整合 Decryptor.cs / decoder.exe。目前 adapter 接受 JSON / 部分 JSON。"
+        description="支援真實 EasySave3 (.es3 / .json) 存檔。解析器會修復 ES3 內嵌值語法、解開 __type/value 信封、並將 PascalCase 欄位對應到 SaveSnapshot。所有解析在瀏覽器本地完成。"
+        confidence="confirmed"
+        note="ES3 parser 已整合 — 支援 Funds/Day/FP/Pricing/Tiers/Layout/Employees/Loan/Invoices/Upgrades 等 30+ 欄位。"
       />
 
       {/* Drop zone */}
@@ -233,9 +229,12 @@ export function Upload() {
           </div>
           <div>
             <div className="text-sm font-medium">拖曳 .es3 / .json 檔案到此，或選擇檔案</div>
-            <div className="mt-1 text-xs text-muted-foreground">支援 .es3 (tolerant) / .json / 部分 JSON。所有解析在瀏覽器本地完成，不上傳伺服器。</div>
+            <div className="mt-1 text-xs text-muted-foreground">
+              支援真實 EasySave3 存檔（含內嵌 bool/float/int/string 語法）、乾淨 JSON 快照、部分 JSON。
+              所有解析在瀏覽器本地完成，不上傳伺服器。
+            </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap justify-center gap-2">
             <label>
               <input
                 type="file"
@@ -244,12 +243,32 @@ export function Upload() {
                 onChange={(e) => {
                   const f = e.target.files?.[0]
                   if (f) handleFile(f)
+                  e.target.value = ''
                 }}
               />
               <Button disabled={parsing} className="cursor-pointer">
-                <UploadIcon className="mr-1.5 h-4 w-4" /> {parsing ? '解析中…' : '選擇檔案'}
+                {parsing ? (
+                  <>
+                    <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> 解析中…
+                  </>
+                ) : (
+                  <>
+                    <UploadIcon className="mr-1.5 h-4 w-4" /> 選擇檔案
+                  </>
+                )}
               </Button>
             </label>
+            <Button variant="outline" onClick={handleLoadSample} disabled={loadingSample || parsing}>
+              {loadingSample ? (
+                <>
+                  <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> 載入中…
+                </>
+              ) : (
+                <>
+                  <FlaskConical className="mr-1.5 h-4 w-4" /> 載入範本 _latest.json
+                </>
+              )}
+            </Button>
             <Button variant="outline" onClick={() => { loadDemo(); setView('dashboard') }}>
               <Sparkles className="mr-1.5 h-4 w-4" /> 載入 Demo 存檔
             </Button>
@@ -263,7 +282,7 @@ export function Upload() {
       </Card>
 
       {/* Parse status */}
-      {parseResult && (
+      {parseResult && s && (
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center justify-between text-base">
@@ -276,21 +295,60 @@ export function Upload() {
                   <XCircle className="h-5 w-5 text-rose-500" />
                 )}
                 解析狀態: {parseResult.status.toUpperCase()}
+                <Badge variant="outline" className="ml-1 text-[10px]">
+                  {parseResult.fieldCount} 欄位
+                </Badge>
+                <Badge variant="outline" className="text-[10px]">
+                  {(parseResult.bytesIn / 1024).toFixed(1)} KB → {(parseResult.bytesOut / 1024).toFixed(1)} KB
+                </Badge>
               </span>
               <ConfidenceBadge confidence={parseResult.confidence} />
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <StatCard label="偵測欄位" value={parseResult.detected.length} confidence="confirmed" />
-              <StatCard label="未知欄位" value={parseResult.unknown.length} confidence="unverified" />
-              <StatCard label="Money" value={parseResult.snapshot.money > 0 ? fmtMoney(parseResult.snapshot.money) : '—'} confidence="proxy" />
-              <StatCard label="Day / FP" value={`${parseResult.snapshot.day} / ${parseResult.snapshot.franchisePoints}`} confidence="proxy" />
+          <CardContent className="space-y-4">
+            {/* Key scalars */}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+              <StatCard label="Money" value={s.money > 0 ? fmtMoney(s.money) : '—'} confidence="confirmed" />
+              <StatCard label="Day" value={String(s.day)} confidence="confirmed" />
+              <StatCard label="Franchise Pts" value={String(s.franchisePoints)} confidence="confirmed" />
+              <StatCard label="Franchise XP" value={s.franchiseExperience ? fmt(s.franchiseExperience) : '—'} confidence="confirmed" />
+              <StatCard label="Difficulty" value={s.difficulty ? String(s.difficulty) : '—'} confidence="confirmed" />
+              <StatCard label="Last Level" value={s.lastAwardedLevel ? String(s.lastAwardedLevel) : '—'} confidence="confirmed" />
             </div>
+            {/* Store + loan info */}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+              <StatCard label="Store Name" value={s.storeName ?? '—'} confidence="confirmed" />
+              <StatCard label="Brand" value={s.supermarketName ?? '—'} confidence="confirmed" />
+              <StatCard label="Loan" value={s.loanAmount ? fmtMoney(s.loanAmount) : '—'} confidence="confirmed" />
+              <StatCard label="Loan / Day" value={s.loanPaymentPerDay ? fmtMoney(s.loanPaymentPerDay) : '—'} confidence="confirmed" />
+              <StatCard label="Space Bought" value={String(s.spaceBought ?? 0)} confidence="confirmed" />
+              <StatCard label="Storage Bought" value={String(s.storageBought ?? 0)} confidence="confirmed" />
+            </div>
+            {/* Counts grid */}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+              <CountTile icon={<Tag className="h-3.5 w-3.5" />} label="玩家定價" value={Object.keys(s.productPlayerPricing).length} total={339} />
+              <CountTile icon={<Boxes className="h-3.5 w-3.5" />} label="已解鎖 Tier" value={s.unlockedProductTiers.length} total={55} />
+              <CountTile icon={<Boxes className="h-3.5 w-3.5" />} label="已解鎖商品" value={s.unlockedProducts.length} total={339} />
+              <CountTile icon={<Boxes className="h-3.5 w-3.5" />} label="店面道具" value={s.storeLayout.length} total={41} />
+              <CountTile icon={<Users className="h-3.5 w-3.5" />} label="員工" value={s.employees.length} />
+              <CountTile icon={<Coins className="h-3.5 w-3.5" />} label="發票" value={s.invoices?.length ?? 0} />
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+              <CountTile icon={<Calendar className="h-3.5 w-3.5" />} label="Tier 通膨" value={s.tierInflation?.length ?? 0} total={55} />
+              <CountTile icon={<Boxes className="h-3.5 w-3.5" />} label="製造配方解鎖" value={s.manufacUnlockedRecipes?.filter(Boolean).length ?? 0} total={30} />
+              <CountTile icon={<Boxes className="h-3.5 w-3.5" />} label="Addons 購買" value={s.addonsBought?.filter(Boolean).length ?? 0} total={s.addonsBought?.length ?? 6} />
+              <CountTile icon={<Boxes className="h-3.5 w-3.5" />} label="Extra Upgrades" value={(s.extraUpgrades ?? []).filter((x) => x.endsWith(':1')).length} total={s.extraUpgrades?.length ?? 44} />
+              <CountTile icon={<Boxes className="h-3.5 w-3.5" />} label="Store Space Upg" value={s.storeSpaceUpgrades?.filter(Boolean).length ?? 0} total={s.storeSpaceUpgrades?.length ?? 47} />
+              <CountTile icon={<Boxes className="h-3.5 w-3.5" />} label="裝飾道具" value={s.decoPropsCount ?? 0} />
+            </div>
+
+            {/* Detected + unknown */}
             <div className="grid gap-3 md:grid-cols-2">
               <div>
-                <div className="mb-1 text-xs font-semibold uppercase text-muted-foreground">已偵測欄位 ({parseResult.detected.length})</div>
-                <ScrollArea className="h-32 rounded-md border p-2">
+                <div className="mb-1 text-xs font-semibold uppercase text-muted-foreground">
+                  已偵測欄位 ({parseResult.detected.length})
+                </div>
+                <ScrollArea className="h-40 rounded-md border p-2">
                   {parseResult.detected.length === 0 ? (
                     <div className="text-xs text-muted-foreground">無</div>
                   ) : (
@@ -305,8 +363,10 @@ export function Upload() {
                 </ScrollArea>
               </div>
               <div>
-                <div className="mb-1 text-xs font-semibold uppercase text-muted-foreground">未知欄位 ({parseResult.unknown.length})</div>
-                <ScrollArea className="h-32 rounded-md border p-2">
+                <div className="mb-1 text-xs font-semibold uppercase text-muted-foreground">
+                  未知欄位 ({parseResult.unknown.length})
+                </div>
+                <ScrollArea className="h-40 rounded-md border p-2">
                   {parseResult.unknown.length === 0 ? (
                     <div className="text-xs text-muted-foreground">無</div>
                   ) : (
@@ -321,10 +381,124 @@ export function Upload() {
                 </ScrollArea>
               </div>
             </div>
+
+            {/* ES3 type tally */}
+            {typeEntries.length > 0 && (
+              <div>
+                <div className="mb-1 text-xs font-semibold uppercase text-muted-foreground">
+                  ES3 型別分佈 ({typeEntries.length})
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {typeEntries.map(([t, n]) => (
+                    <Badge key={t} variant="secondary" className="gap-1 font-mono text-[10px]">
+                      <span className="text-foreground">{t}</span>
+                      <span className="text-muted-foreground">×{n}</span>
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Warnings */}
+            {parseResult.warnings.length > 0 && (
+              <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-3">
+                <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-amber-700">
+                  <AlertTriangle className="h-3.5 w-3.5" /> 解析警告 ({parseResult.warnings.length})
+                </div>
+                <ul className="space-y-0.5 text-xs text-amber-700/90">
+                  {parseResult.warnings.map((w, i) => (
+                    <li key={i} className="font-mono">{w}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Employees quick-look */}
+            {s.employees.length > 0 && (
+              <div>
+                <div className="mb-1 text-xs font-semibold uppercase text-muted-foreground">
+                  員工快覽 ({s.employees.length})
+                </div>
+                <ScrollArea className="h-32 rounded-md border">
+                  <table className="w-full text-xs">
+                    <thead className="bg-muted/50 sticky top-0">
+                      <tr>
+                        <th className="px-2 py-1 text-left">#</th>
+                        <th className="px-2 py-1 text-left">Name</th>
+                        <th className="px-2 py-1 text-left">Task</th>
+                        <th className="px-2 py-1 text-right">Salary</th>
+                        <th className="px-2 py-1 text-left">Skills (lvl)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {s.employees.map((e, i) => (
+                        <tr key={e.id} className="border-t">
+                          <td className="px-2 py-1 font-mono">{i}</td>
+                          <td className="px-2 py-1 font-medium">{e.name}</td>
+                          <td className="px-2 py-1 font-mono">{e.task}</td>
+                          <td className="px-2 py-1 text-right font-mono">{fmtMoney(e.salary)}</td>
+                          <td className="px-2 py-1 font-mono text-muted-foreground">
+                            {Object.values(e.skills).map((sk) => sk.level).join('/')}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </ScrollArea>
+              </div>
+            )}
+
+            {/* Store layout quick-look */}
+            {s.storeLayout.length > 0 && (
+              <div>
+                <div className="mb-1 text-xs font-semibold uppercase text-muted-foreground">
+                  店面道具快覽 ({s.storeLayout.length})
+                </div>
+                <ScrollArea className="h-32 rounded-md border">
+                  <table className="w-full text-xs">
+                    <thead className="bg-muted/50 sticky top-0">
+                      <tr>
+                        <th className="px-2 py-1 text-left">idx</th>
+                        <th className="px-2 py-1 text-left">buildableId</th>
+                        <th className="px-2 py-1 text-right">posX</th>
+                        <th className="px-2 py-1 text-right">posZ</th>
+                        <th className="px-2 py-1 text-right">angle</th>
+                        <th className="px-2 py-1 text-right">slots</th>
+                        <th className="px-2 py-1 text-right">units</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {s.storeLayout.slice(0, 30).map((p) => (
+                        <tr key={p.index} className="border-t">
+                          <td className="px-2 py-1 font-mono">{p.index}</td>
+                          <td className="px-2 py-1 font-mono">{p.buildableId}</td>
+                          <td className="px-2 py-1 text-right font-mono">{p.posX.toFixed(3)}</td>
+                          <td className="px-2 py-1 text-right font-mono">{p.posZ.toFixed(3)}</td>
+                          <td className="px-2 py-1 text-right font-mono">{p.angle}°</td>
+                          <td className="px-2 py-1 text-right font-mono">{p.inventory.length}</td>
+                          <td className="px-2 py-1 text-right font-mono">
+                            {p.inventory.reduce((a, b) => a + b.count, 0)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </ScrollArea>
+              </div>
+            )}
+
             {parseResult.status !== 'failed' && (
-              <Button onClick={() => setView('dashboard')}>
-                前往 Dashboard <FileJson className="ml-1.5 h-4 w-4" />
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={() => setView('dashboard')}>
+                  <FileJson className="mr-1.5 h-4 w-4" /> 前往 Dashboard
+                </Button>
+                <Button variant="outline" onClick={() => setView('layout')}>
+                  <Boxes className="mr-1.5 h-4 w-4" /> 查看店面地圖
+                </Button>
+                <Button variant="outline" onClick={() => setView('employees')}>
+                  <Users className="mr-1.5 h-4 w-4" /> 查看員工
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -334,7 +508,7 @@ export function Upload() {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-base">
-            <Database className="h-4 w-4" /> 解析器 Adapter 欄位對照
+            <Database className="h-4 w-4" /> ES3 欄位對應表
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -363,36 +537,70 @@ export function Upload() {
             </table>
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            Adapter 設計：上層 UI 與計算引擎只依賴 <code className="rounded bg-muted px-1">SaveSnapshot</code> 介面。
-            真實 .es3 解密器（Decryptor.cs / decoder.exe）整合後，只需替換 <code className="rounded bg-muted px-1">tolerantParse</code> 函式即可。
-            缺少 <code className="rounded bg-muted px-1">decoder.exe</code> 與 sample .es3，故 room/weather/order 欄位標記為「需真實 .es3」。
+            ES3 解析流程：<code className="rounded bg-muted px-1">fixES3InlineValues</code>{' '}
+            → <code className="rounded bg-muted px-1">JSON.parse</code>{' '}
+            → <code className="rounded bg-muted px-1">unwrap __type/value 信封</code>{' '}
+            → <code className="rounded bg-muted px-1">PascalCase → SaveSnapshot 對應</code>。
+            所有衍伸頁面（Dashboard、Wiki、Layout、Employees、Pricing、Restock…）現在可以直接讀取真實存檔資料。
           </p>
         </CardContent>
       </Card>
 
-      {/* Missing data request */}
-      <Card className="border-amber-500/30 bg-amber-500/5">
+      {/* Mechanic notes */}
+      <Card className="border-emerald-500/30 bg-emerald-500/5">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-base">
-            <AlertTriangle className="h-4 w-4 text-amber-500" /> 缺失資料聲明
+            <CheckCircle2 className="h-4 w-4 text-emerald-500" /> 已解決：真實 .es3 存檔上傳
           </CardTitle>
         </CardHeader>
         <CardContent className="text-sm space-y-2">
-          <p>以下功能需補充真實檔案才能完整運作，目前以 proxy/mock 呈現：</p>
-          <div className="space-y-1.5 text-xs">
-            <div>
-              <span className="font-semibold">真實存檔 upload / dashboard 個人化：</span>需 <code className="rounded bg-muted px-1">save-analyzer/_latest.json</code>（已提供，但 JSON 格式損壞）、<code className="rounded bg-muted px-1">parse_store_layout.py</code>、<code className="rounded bg-muted px-1">Decryptor.cs</code>。缺少 <code className="rounded bg-muted px-1">decoder.exe</code> 與 sample .es3。
-            </div>
-            <div>
-              <span className="font-semibold">精確定價模型：</span>需 <code className="rounded bg-muted px-1">ar2_PricingMachine.json</code>、<code className="rounded bg-muted px-1">ilconst.json</code>。顧客價格接受公式未提取，Pricing Lab 僅提供啟發式 markup。
-            </div>
-            <div>
-              <span className="font-semibold">偷竊/防盜模擬：</span>需 <code className="rounded bg-muted px-1">ar2_AntiTheftBehaviour.json</code> 等。目前僅做機制百科。
-            </div>
-          </div>
-          <p className="text-muted-foreground">在收到檔案前，已完成不依賴該資料的部分：百科、利潤、鹽探測、顧客模擬、補貨、貨架、技能、員工、製造、季節、成就、房間同步。</p>
+          <p>
+            原本 <code className="rounded bg-muted px-1">tolerantParse</code> 只修復了
+            <code className="rounded bg-muted px-1">{'"bool"true'}</code> 一種變體，且未補回
+            <code className="rounded bg-muted px-1">"value":</code> 鍵，也不認得 EasySave3 的
+            PascalCase 欄位名（<code className="rounded bg-muted px-1">Funds</code>、
+            <code className="rounded bg-muted px-1">ProductPlayerPricing</code>、
+            <code className="rounded bg-muted px-1">propdata*</code> 等）。
+          </p>
+          <p>
+            新的 <code className="rounded bg-muted px-1">src/lib/es3-parser.ts</code> 修復了 4 種內嵌值
+            （bool / float / int / string）、遞迴解開
+            <code className="rounded bg-muted px-1">__type/value</code> 信封、處理 PMDataWrapper 陣列、
+            並將 30+ 個 PascalCase 欄位對應到 <code className="rounded bg-muted px-1">SaveSnapshot</code>{' '}
+            （含 18 個新增的選用欄位如 <code className="rounded bg-muted px-1">loanAmount</code>、
+            <code className="rounded bg-muted px-1">franchiseExperience</code>、
+            <code className="rounded bg-muted px-1">tierInflation</code> 等）。
+          </p>
+          <p className="text-muted-foreground">
+            點擊上方「載入範本 _latest.json」即可立即看到 Money=$5981.51、Day=28、3 名員工、41 個店面道具等真實資料。
+          </p>
         </CardContent>
       </Card>
+    </div>
+  )
+}
+
+function CountTile({
+  icon,
+  label,
+  value,
+  total,
+}: {
+  icon: React.ReactNode
+  label: string
+  value: number
+  total?: number
+}) {
+  return (
+    <div className="rounded-md border bg-card p-2">
+      <div className="flex items-center gap-1 text-[10px] font-medium uppercase text-muted-foreground">
+        {icon}
+        {label}
+      </div>
+      <div className="mt-0.5 font-mono text-sm font-semibold">
+        {value}
+        {total != null && <span className="ml-1 text-[10px] text-muted-foreground">/ {total}</span>}
+      </div>
     </div>
   )
 }

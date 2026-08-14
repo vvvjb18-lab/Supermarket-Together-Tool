@@ -162,3 +162,46 @@ Stage Summary:
 - Verified pages: Dashboard, Wiki, Profit, Salt render real game data with correct confidence labels (Confirmed/Proxy/Unverified/Exploit).
 - Salt Monopoly Probe verified: route9=0.008621, route10=0.006952, total=0.015573, rawTokens preserved (5/5 + 1/62).
 - Remaining risk: exhaustive multi-page browser test limited by dev-server idle-reaping in sandbox; error boundary ensures graceful degradation. Cron reviewer will continue QA.
+
+---
+Task ID: 6
+Agent: orchestrator (main)
+Task: 修復存檔上傳 — 真實 EasySave3 .es3 / .json 無法解析的問題
+
+Work Log:
+- 使用者上傳真實存檔 `/home/z/my-project/upload/_latest.json` (45 KB, 339 商品定價、41 店面道具、3 員工、18/55 已解鎖 tier)。
+- 檢視檔案結構發現 EasySave3 的 4 種內嵌值語法全部損壞：
+  - `{"__type" : "bool"false}`     (缺逗號 + 缺 "value" 鍵)
+  - `{"__type" : "float"3.26}`     (同上)
+  - `{"__type" : "int"-5}`         (同上)
+  - `{"__type" : "string""text"}`  (型別結尾引號與值開頭引號共用)
+- 舊的 `tolerantParse` 只修復 bool 一種變體且沒有補回 `"value":` 鍵，也不認得 EasySave3 的 PascalCase 欄位名 (`Funds`、`Day`、`ProductPlayerPricing`、`propdata*`、`propinfoproduct*`、`HiredEmployeesData` 等)。所以即使 JSON 修復成功，欄位對應也全部失敗。
+- 新建 `src/lib/es3-parser.ts`：
+  - `fixES3InlineValues()` — 4 條針對性正規式依序修復 bool/float/int/string 內嵌值（順序很重要：string 必須最後避免吃到其他型別的引號）。
+  - `unwrap()` / `unwrapPMArray()` — 遞迴解開 `{ __type, value }` 信封與 PMDataWrapper 陣列。
+  - `parsePropData()` — 解析 `"0|1|-1,430456|0|4,553804|89,99998"` → `{ index, buildableId, posX, posZ, angle, rotation }`（歐洲逗號小數 → 點號；角度 snap 到 90°）。
+  - `parsePropInventory()` — 解析 `[12,0,2,0,143,3,145,5]` → 4 個 (product, count) 配對。
+  - `parseEmployeeString()` — 解析 `"5|83|6|10|7|8|10|8|10|big sb|0|5780|16900|..."` → `{ id, name, task, salary, skills[7] }`（7 個技能等級 + 名稱 + 任務 + XP + 薪資）。
+  - `parseES3Save()` — 主函式，對應 30+ 個 PascalCase 欄位到 SaveSnapshot：Funds/Day/FP/FX/Difficulty/Loan/StoreName/SupermarketName/SupermarketColor/LastAwardedLevel/Space/Storage/ProductPlayerPricing/UnlockedProductTiers/TierInflation/AddonsBought/ExtraUpgrades/StoreSpaceUpgrades/StorageSpaceUpgrades/ManufacUnlockedRecipes/ManufacPlayerRecipes/DoorStates/CurrentInvoicesArray/DemolishableValues/PaintableValues/HiredEmployeesData/HiredRerollTimes/HiredHasRerolled/propdata{N}+propinfoproduct{N}/decopropdata{N}/decopaintabledata{N}/decopicturedata{N}。
+  - `parseSaveFile()` — 二段式：先試 strict JSON（已是 SaveSnapshot 格式 → 直接用），否則走 ES3 路徑。
+- 擴充 `src/lib/types.ts` 的 `SaveSnapshot` 介面，加入 18 個選用 ES3-only 欄位：`franchiseExperience`、`loanAmount`、`loanPaymentPerDay`、`difficulty`、`storeName`、`supermarketName`、`supermarketColor`、`lastAwardedLevel`、`spaceBought`、`storageBought`、`tierInflation`、`manufacUnlockedRecipes`、`manufacPlayerRecipes`、`invoices`、`doorStates`、`addonsBought`、`storeSpaceUpgrades`、`storageSpaceUpgrades`、`decoPropsCount`、`hiredRerollTimes`、`hiredHasRerolled`。全部為 optional 不會破壞既有元件。
+- 新增 `src/app/api/sample-save/route.ts` — 從 `/home/z/my-project/upload/_latest.json` 串流原始文字到瀏覽器，提供「載入範本」按鈕一鍵測試。
+- 重寫 `src/components/lab/upload.tsx`：
+  - 主路徑用 `parseSaveFile`（含 strict-JSON + ES3 兩段）；舊的 regex mock 保留為最後手段。
+  - 新增「載入範本 _latest.json」按鈕（fetch `/api/sample-save` → runParse）。
+  - 解析結果面板大改：6+6 StatCard（Money/Day/FP/FX/Difficulty/LastLevel + StoreName/Brand/Loan/LoanPerDay/SpaceBought/StorageBought）、12 CountTile（玩家定價 339/339、已解鎖 Tier 18/55、已解鎖商品 119/339、店面道具 41/41、員工 3、發票 3、Tier 通膨 55/55、製造配方 0/30、Addons 0/6、Extra Upg 7/44、Store Space Upg 2/47、裝飾道具 43）、Detected/Unknown 雙欄、ES3 型別分佈徽章、Warnings 區、員工快覽表（5 欄）、店面道具快覽表（7 欄，前 30 列）、3 個導航按鈕。
+  - 「已解決」綠色 callout 解釋新舊差異。
+  - 12 列 ES3 欄位對照表（全部標「已整合」）。
+- 刪除測試腳本 `scripts/test-es3-parser.ts`（遵守「不寫測試碼」原則；測試結果已記錄：33 欄位、Money=5981.51、Day=28、3 員工、41 道具、18/55 tier、339 定價、55 通膨、3 invoice、loan 10200/850）。
+
+Stage Summary:
+- 檔案：新增 `src/lib/es3-parser.ts` (~540 行)、`src/app/api/sample-save/route.ts`；改寫 `src/components/lab/upload.tsx` (~470 行)；擴充 `src/lib/types.ts` SaveSnapshot (+18 optional 欄位)。
+- 真實存檔上傳完全可用：`bun run lint` 0 errors、`bunx tsc --noEmit` 自己的 4 個檔案 0 errors（pre-existing skills/ 錯誤與本次無關）。
+- agent-browser 端對端驗證：
+  1. `/upload` → 點「載入範本 _latest.json」→ toast「解析完成：33 個欄位、Day 28、$5982、3 員工 (ok)」。
+  2. TopBar 立即顯示 `Day 28 · $5,981.51`。
+  3. `/upload` 面板顯示 Money=$5,981.51、Day=28、FP=0、FX=41,776、Difficulty=5、StoreName=兒子進、Brand=XVIDEO、Loan=$10,200、LoanPerDay=$850、339 定價、18/55 tier、41 道具、3 員工（big sb $16,900、small sb $1,560、medium sb $1,016）。
+  4. `/layout` 顯示「41 props · 2055 units」（真實存檔的店面地圖）。
+  5. `/pricing` 顯示 339 products 與真實玩家定價（$3.26 等）。
+- API `/api/sample-save` 200 OK in 652ms，無 console error、無 hydration mismatch。
+- 18 個新欄位已可被後續頁面使用（員工薪資、貸款、裝飾道具數、製造配方解鎖狀態等）— 為下一階段功能擴展鋪路。

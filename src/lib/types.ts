@@ -198,6 +198,50 @@ export interface SaveSnapshot {
   roomId: string | null
   playerSlots: number
   parsedAt: string
+
+  // ---- ES3-only extras (populated when parsing a real .es3 save) ----
+  /** Total franchise XP accumulated (FranchiseExperience field). */
+  franchiseExperience?: number
+  /** Outstanding loan principal (LoanAmount). */
+  loanAmount?: number
+  /** Daily loan repayment (LoanPaymentPerDay). */
+  loanPaymentPerDay?: number
+  /** Game difficulty setting 1-5 (Difficulty). */
+  difficulty?: number
+  /** Store name chosen by the player (StoreName). */
+  storeName?: string
+  /** Supermarket brand name (SupermarketName). */
+  supermarketName?: string
+  /** Supermarket brand color RGBA (SupermarketColor). */
+  supermarketColor?: { r: number; g: number; b: number; a: number }
+  /** Last franchise level awarded (LastAwardedLevel). */
+  lastAwardedLevel?: number
+  /** Number of floor-expansion slots purchased (SpaceBought). */
+  spaceBought?: number
+  /** Number of storage-expansion slots purchased (StorageBought). */
+  storageBought?: number
+  /** Per-tier price inflation multipliers (TierInflation). */
+  tierInflation?: number[]
+  /** Per-recipe manufacturing unlock flags (ManufacUnlockedRecipes). */
+  manufacUnlockedRecipes?: boolean[]
+  /** Player-owned manufacturing recipes (ManufacPlayerRecipes). */
+  manufacPlayerRecipes?: string[]
+  /** Outstanding supplier invoices as raw pipe-strings (CurrentInvoicesArray). */
+  invoices?: string[]
+  /** Door open/closed states (DoorStates). */
+  doorStates?: number[]
+  /** Addon purchase flags (AddonsBought). */
+  addonsBought?: boolean[]
+  /** Store space upgrade flags (StoreSpaceUpgrades). */
+  storeSpaceUpgrades?: boolean[]
+  /** Storage space upgrade flags (StorageSpaceUpgrades). */
+  storageSpaceUpgrades?: boolean[]
+  /** Total count of decoration props (decopropdata + decopaintabledata). */
+  decoPropsCount?: number
+  /** Employee reroll counter (HiredRerollTimes). */
+  hiredRerollTimes?: number
+  /** Whether employees have ever been rerolled (HiredHasRerolled). */
+  hiredHasRerolled?: boolean
 }
 
 export interface EmployeeRecord {
