@@ -5,7 +5,7 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { useRoomStore } from '@/lib/store'
 import { encyclopedia as ENC } from '@/lib/data-loader'
-import { useLang, achievementNameFor } from '@/lib/i18n'
+import { useLang, achievementNameFor, achievementDescFor } from '@/lib/i18n'
 import {
   ConfidenceBadge,
   SectionHeader,
@@ -78,33 +78,59 @@ function rarity(p: number): { label: string; cls: string } {
 }
 
 // Notable achievement guides (player-community knowledge).
+// steamIds now match the real Steam achievement slugs in encyclopedia.json.
 const GUIDES: { steamId: string; zhName: string; tips: string[] }[] = [
   {
-    steamId: '0_Millionaire',
-    zhName: '百萬富翁',
+    steamId: 'ach_millionaire_s_holiday',
+    zhName: "百萬富翁的假期",
     tips: [
-      '累計賺取 $1,000,000。長期目標。',
+      '資金達到 $1,000,000。長期目標。',
       '主力：高單價電子產品（USB 1TB、Gaming Console）+ 酒類。',
       '搭配製造業鏈（Manufacturing）提升邊際利潤。',
-      '每日 Good Earnings（單日收入門檻）也會推進累計收入。',
+      '每日 Gaining Traction!（單日 $25k）也會推進累計收入。',
     ],
   },
   {
-    steamId: '50_EnigmaCube',
-    zhName: '謎之方塊',
+    steamId: 'ach_what_is_this',
+    zhName: '這是什麼？',
     tips: [
-      '隱藏成就 — 全球完成率 0%。',
-      '沒有公開解鎖條件，可能與隱藏地圖或特殊事件觸發。',
-      '非純農刷可解，需社群合作挖掘觸發條件。',
+      '隱藏成就 — 全球完成率 0.1%。在廣場佈局中建造謎樣方塊（enigma cube）。',
+      '沒有公開解鎖條件，需在廣場佈局（Layout=1）下觸發。',
+      '非純農刷可解，需社群合作挖掘建造位置與材料。',
     ],
   },
   {
-    steamId: '49_HiddenCatPlaza',
-    zhName: '隱藏貓廣場',
+    steamId: 'ach_might_need_two_ladders_or_more',
+    zhName: '可能需要兩把梯子…或更多',
     tips: [
-      '隱藏成就 — 全球完成率 0.1%。',
-      '可能與 33_HiddenCat 相關 — 尋找遊戲中隱藏貓咪位置。',
+      '隱藏成就 — 全球完成率 0.1%。在廣場佈局中找到失蹤的貓。',
+      '需切換到廣場佈局（Layout=1）才能觸發。',
       '建議查閱最新社群攻略與地圖標記。',
+    ],
+  },
+  {
+    steamId: 'ach_might_need_two_ladders',
+    zhName: '可能需要兩把梯子',
+    tips: [
+      '隱藏成就 — 全球完成率 1.2%。在經典佈局中找到失蹤的貓。',
+      '需在經典佈局（Layout=0）下尋找貓咪位置。',
+      '建議查閱最新社群攻略與地圖標記。',
+    ],
+  },
+  {
+    steamId: 'ach_how_is_this_still_standing_a',
+    zhName: '這怎麼還站著？（A）',
+    tips: [
+      '隱藏成就 — 全球完成率 0.4%。在經典佈局中拆除所有可拆的柱子與橫樑。',
+      '需在經典佈局（Layout=0）下完成。',
+    ],
+  },
+  {
+    steamId: 'ach_superfood',
+    zhName: '超級食物',
+    tips: [
+      '隱藏成就 — 全球完成率 0.3%。製造一個含至少 7 種額外配料的配方。',
+      '需先解鎖製造部門並收集多種配料。',
     ],
   },
 ]
@@ -317,21 +343,22 @@ export function Achievements() {
             <ConfidenceBadge
               confidence="confirmed"
               formula="encyclopedia.achievements"
-              note="從 Steam IL 擷取的 51 個成就定義"
+              note="Steam 面向玩家的成就名稱 + 描述 + 全球解鎖百分比（51 項）"
             />
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="max-h-[600px] overflow-y-auto scrollbar-thin">
+          <div className="max-h-[640px] overflow-y-auto scrollbar-thin">
             <Table>
               <TableHeader className="sticky top-0 bg-card z-10">
                 <TableRow>
                   <TableHead className="w-10">✓</TableHead>
                   <TableHead className="w-12 text-right">#</TableHead>
                   <TableHead className="min-w-[200px]">名稱</TableHead>
-                  <TableHead className="text-right">Steam ID</TableHead>
+                  <TableHead className="min-w-[260px]">解鎖條件</TableHead>
                   <TableHead className="text-right">全球 %</TableHead>
                   <TableHead>稀有度</TableHead>
+                  <TableHead className="text-center">標記</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -345,14 +372,33 @@ export function Achievements() {
                       </TableCell>
                       <TableCell className="text-right font-mono text-xs text-muted-foreground">{i + 1}</TableCell>
                       <TableCell>
-                        <span className={done ? 'line-through text-muted-foreground' : 'font-medium'}>
+                        <div className={done ? 'line-through text-muted-foreground' : 'font-medium'}>
                           {achievementNameFor(a, lang)}
+                        </div>
+                        <div className="font-mono text-[10px] text-muted-foreground">{a.steamId}</div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-xs leading-relaxed text-muted-foreground whitespace-normal">
+                          {achievementDescFor(a, lang)}
                         </span>
                       </TableCell>
-                      <TableCell className="text-right font-mono text-xs text-muted-foreground">{a.steamId}</TableCell>
                       <TableCell className="text-right font-mono">{fmt(a.globalPercent, 1)}%</TableCell>
                       <TableCell>
                         <Badge variant="outline" className={`text-[10px] ${r.cls}`}>{r.label}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap justify-center gap-1">
+                          {a.collective && (
+                            <Badge variant="outline" className="text-[9px] bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-300 border-fuchsia-500/30">
+                              集體
+                            </Badge>
+                          )}
+                          {a.layout && (
+                            <Badge variant="outline" className="text-[9px] bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30">
+                              {a.layout === 'classic' ? '經典' : '廣場'}
+                            </Badge>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   )

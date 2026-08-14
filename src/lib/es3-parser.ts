@@ -573,18 +573,28 @@ function emptySnapshot(fileName: string, status: SaveSnapshot['parseStatus']): S
 // ---------- Convenience: try strict-JSON snapshot first, then ES3 ----------
 
 /**
- * Try to parse a save file in two passes:
+ * Try to parse a save file in three passes:
  *  1. If the text is already a clean SaveSnapshot JSON (e.g. demo-save.json
  *     or a previously-exported snapshot), use it directly.
- *  2. Otherwise, treat it as an EasySave3 .es3/.json file and run the ES3 parser.
+ *  2. If the text is the new pre-extracted structured format (has top-level
+ *     `decoded` + `kpis` + `store_layout` keys), route to parseExtractedSave().
+ *  3. Otherwise, treat it as a raw EasySave3 .es3/.json file and run the ES3 parser.
  *
  * Returns a unified ES3ParseResult shape so the UI can render a single panel.
  */
 export function parseSaveFile(text: string, fileName: string): ES3ParseResult {
-  // Pass 1: clean snapshot?
+  // Pass 1+2+3: strict JSON paths
   try {
     const data = JSON.parse(text)
     if (data && typeof data === 'object' && !Array.isArray(data)) {
+      // New pre-extracted structured format?
+      const looksExtracted =
+        'decoded' in data && 'kpis' in data && 'store_layout' in data
+      if (looksExtracted) {
+        return parseExtractedSave(data, fileName, text.length)
+      }
+
+      // Clean snapshot?
       const looksLikeSnapshot =
         'parseStatus' in data ||
         ('money' in data && 'day' in data) ||
@@ -637,6 +647,381 @@ export function parseSaveFile(text: string, fileName: string): ES3ParseResult {
     // not strict JSON — fall through to ES3 path
   }
 
-  // Pass 2: ES3
+  // Pass 3: raw ES3
   return parseES3Save(text, fileName)
+}
+
+// ---------- New pre-extracted structured save format (v1.0 extractor) ----------
+//
+// The new save.json is a pre-processed JSON with top-level sections:
+//   decoded        — raw EasySave3 fields (211 fields, properly formatted)
+//   kpis           — pre-flattened 15 KPI scalars/arrays
+//   store_layout   — { totalProps, props[] } with buildableId/posX/posZ/angle/containerInfo
+//   inventory      — { totalItems, propInventory: {idx: [{productID,count}]}, byProduct: {pid:cnt} }
+//   pricing        — { arrayLength, prices[] }
+//   tier_unlocks   — { arrayLength, unlockedIndices[] }
+//   skill_unlocks  — { arrayLength, unlockedIndices[], perkIndexToSkill[] }
+//   manufacturing  — { unlockedRecipes[bool], playerRecipes[] }
+//   employee_data  — { hired[pipe-string], todays[] }
+//   decorations    — { prop[], picture[], paintable[] }
+//   _meta          — extractor metadata
+//
+// This is far cleaner than regex-fixing the raw ES3 text.
+
+export function parseExtractedSave(
+  data: any,
+  fileName: string,
+  bytesIn: number,
+): ES3ParseResult {
+  const detected: string[] = []
+  const unknown: string[] = []
+  const warnings: string[] = []
+  const typeTally: Record<string, number> = {}
+
+  const kpis = (data.kpis ?? {}) as Record<string, any>
+  const decoded = (data.decoded ?? {}) as Record<string, any>
+  const storeLayoutSec = data.store_layout ?? {}
+  const inventorySec = data.inventory ?? {}
+  const pricingSec = data.pricing ?? {}
+  const tierUnlocksSec = data.tier_unlocks ?? {}
+  const skillUnlocksSec = data.skill_unlocks ?? {}
+  const manufacturingSec = data.manufacturing ?? {}
+  const employeeSec = data.employee_data ?? {}
+  const decorationsSec = data.decorations ?? {}
+  const meta = data._meta ?? {}
+
+  // ---- scalar KPIs ----
+  const money = numOrUndef(kpis.Funds)
+  if (money != null) detected.push('Funds (money)')
+
+  const franchisePoints = numOrUndef(kpis.FranchisePoints)
+  if (franchisePoints != null) detected.push('FranchisePoints')
+
+  const franchiseExperience = numOrUndef(kpis.FranchiseExperience)
+  if (franchiseExperience != null) detected.push('FranchiseExperience')
+
+  const day = numOrUndef(kpis.Day)
+  if (day != null) detected.push('Day')
+
+  const difficulty = numOrUndef(kpis.Difficulty)
+  if (difficulty != null) detected.push('Difficulty')
+
+  const lastAwardedLevel = numOrUndef(kpis.LastAwardedLevel)
+  if (lastAwardedLevel != null) detected.push('LastAwardedLevel')
+
+  const layout = numOrUndef(kpis.Layout)
+  if (layout != null) detected.push('Layout')
+
+  const spaceBought = numOrUndef(kpis.SpaceBought)
+  if (spaceBought != null) detected.push('SpaceBought')
+
+  const storageBought = numOrUndef(kpis.StorageBought)
+  if (storageBought != null) detected.push('StorageBought')
+
+  const storeName = kpis.StoreName
+  if (typeof storeName === 'string') detected.push('StoreName')
+
+  const supermarketName = kpis.SupermarketName
+  if (typeof supermarketName === 'string') detected.push('SupermarketName')
+
+  // ---- KPI arrays ----
+  const addonsBought = boolArr(kpis.AddonsBought)
+  if (addonsBought.length > 0) detected.push(`AddonsBought (${addonsBought.filter(Boolean).length}/${addonsBought.length})`)
+
+  const extraUpgradeFlags = boolArr(kpis.ExtraUpgrades)
+  if (extraUpgradeFlags.length > 0) detected.push(`ExtraUpgrades (${extraUpgradeFlags.filter(Boolean).length}/${extraUpgradeFlags.length})`)
+
+  const storeSpaceUpgrades = boolArr(kpis.StoreSpaceUpgrades)
+  if (storeSpaceUpgrades.length > 0) detected.push(`StoreSpaceUpgrades (${storeSpaceUpgrades.filter(Boolean).length}/${storeSpaceUpgrades.length})`)
+
+  const storageSpaceUpgrades = boolArr(kpis.StorageSpaceUpgrades)
+  if (storageSpaceUpgrades.length > 0) detected.push(`StorageSpaceUpgrades (${storageSpaceUpgrades.filter(Boolean).length}/${storageSpaceUpgrades.length})`)
+
+  // ---- decoded-only scalars (not in kpis) ----
+  const loanAmount = numOrUndef(decoded.LoanAmount?.value ?? decoded.LoanAmount)
+  if (loanAmount != null) detected.push('LoanAmount')
+
+  const loanPaymentPerDay = numOrUndef(decoded.LoanPaymentPerDay?.value ?? decoded.LoanPaymentPerDay)
+  if (loanPaymentPerDay != null) detected.push('LoanPaymentPerDay')
+
+  const hiredRerollTimes = numOrUndef(decoded.HiredRerollTimes?.value ?? decoded.HiredRerollTimes)
+  if (hiredRerollTimes != null) detected.push('HiredRerollTimes')
+
+  const hiredHasRerolledRaw = decoded.HiredHasRerolled?.value ?? decoded.HiredHasRerolled
+  const hiredHasRerolled = typeof hiredHasRerolledRaw === 'boolean' ? hiredHasRerolledRaw : undefined
+  if (hiredHasRerolled != null) detected.push('HiredHasRerolled')
+
+  const playersAddFunds = numOrUndef(decoded.PlayersAddFunds?.value ?? decoded.PlayersAddFunds)
+  if (playersAddFunds != null) detected.push('PlayersAddFunds')
+
+  // SupermarketColor
+  let supermarketColor: { r: number; g: number; b: number; a: number } | undefined
+  const colorNode = decoded.SupermarketColor?.value ?? decoded.SupermarketColor
+  if (colorNode && typeof colorNode === 'object' && 'r' in colorNode) {
+    supermarketColor = { r: colorNode.r ?? 0, g: colorNode.g ?? 0, b: colorNode.b ?? 0, a: colorNode.a ?? 1 }
+    detected.push('SupermarketColor')
+  }
+
+  // ---- decoded arrays (PMDataWrapper) ----
+  const doorStates = numArrFromWrapper(decoded.DoorStates)
+  if (doorStates.length > 0) detected.push(`DoorStates (${doorStates.length})`)
+
+  const invoices = strArrFromWrapper(decoded.CurrentInvoicesArray).filter((s) => s.trim().length > 0)
+  if (invoices.length > 0) detected.push(`CurrentInvoicesArray (${invoices.length})`)
+
+  const tierInflation = numArrFromWrapper(decoded.TierInflation)
+  if (tierInflation.length > 0) detected.push(`TierInflation (${tierInflation.length})`)
+
+  const manufacUnlockedRecipes = boolArrFromWrapper(decoded.ManufacUnlockedRecipes)
+  if (manufacUnlockedRecipes.length > 0)
+    detected.push(`ManufacUnlockedRecipes (${manufacUnlockedRecipes.filter(Boolean).length}/${manufacUnlockedRecipes.length})`)
+
+  const manufacPlayerRecipes = strArrFromWrapper(decoded.ManufacPlayerRecipes)
+  if (manufacPlayerRecipes.length > 0) detected.push(`ManufacPlayerRecipes (${manufacPlayerRecipes.length})`)
+
+  // ---- pricing ----
+  const pricesRaw: number[] = Array.isArray(pricingSec.prices) ? pricingSec.prices : []
+  const productPlayerPricing: Record<number, number> = {}
+  pricesRaw.forEach((p, i) => {
+    if (typeof p === 'number' && Number.isFinite(p)) productPlayerPricing[i] = p
+  })
+  if (pricesRaw.length > 0) detected.push(`ProductPlayerPricing (${pricesRaw.length})`)
+
+  // ---- tier unlocks ----
+  const unlockedTierIndices: number[] = Array.isArray(tierUnlocksSec.unlockedIndices)
+    ? tierUnlocksSec.unlockedIndices
+    : []
+  let unlockedProductTiers: number[] = ENC_TIER_IDS
+  let unlockedProducts: number[] = ENC.products.map((p) => p.id)
+  if (unlockedTierIndices.length > 0) {
+    unlockedProductTiers = unlockedTierIndices
+    const tierSet = new Set(unlockedProductTiers)
+    unlockedProducts = ENC.products.filter((p) => tierSet.has(p.tier)).map((p) => p.id)
+    detected.push(`UnlockedProductTiers (${unlockedTierIndices.length}/${tierUnlocksSec.arrayLength ?? unlockedTierIndices.length})`)
+  }
+
+  // ---- skill unlocks ----
+  const skillUnlocks: number[] = Array.isArray(skillUnlocksSec.unlockedIndices)
+    ? skillUnlocksSec.unlockedIndices
+    : []
+  if (skillUnlocks.length > 0) detected.push(`SkillUnlocks (${skillUnlocks.length}/${skillUnlocksSec.arrayLength ?? skillUnlocks.length})`)
+  const perkIndexToSkill: number[] = Array.isArray(skillUnlocksSec.perkIndexToSkill)
+    ? skillUnlocksSec.perkIndexToSkill
+    : []
+
+  // ---- manufacturing (structured section, overrides decoded if present) ----
+  const mfgUnlocked: boolean[] = Array.isArray(manufacturingSec.unlockedRecipes)
+    ? manufacturingSec.unlockedRecipes
+    : manufacUnlockedRecipes
+  const mfgPlayer: string[] = Array.isArray(manufacturingSec.playerRecipes)
+    ? manufacturingSec.playerRecipes
+    : manufacPlayerRecipes
+
+  // ---- employees ----
+  const empStrings: string[] = Array.isArray(employeeSec.hired) ? employeeSec.hired : []
+  const employees: EmployeeRecord[] = []
+  empStrings.forEach((s, i) => {
+    const emp = parseEmployeeString(s, i)
+    if (emp) employees.push(emp)
+  })
+  if (employees.length > 0) detected.push(`HiredEmployeesData (${employees.length})`)
+
+  // ---- store layout (structured) ----
+  const storeLayout: LayoutProp[] = []
+  const inventoryByProduct: Record<number, number> = {}
+  const propsArr: any[] = Array.isArray(storeLayoutSec.props) ? storeLayoutSec.props : []
+  const propInv: Record<string, Array<{ productID: number; count: number }>> = inventorySec.propInventory ?? {}
+
+  propsArr.forEach((p, i) => {
+    const idx = typeof p.index === 'number' ? p.index : i
+    const buildableId = typeof p.buildableId === 'number' ? p.buildableId : 0
+    const posX = typeof p.posX === 'number' ? p.posX : 0
+    const posZ = typeof p.posZ === 'number' ? p.posZ : 0
+    const angleRaw = typeof p.angle === 'number' ? p.angle : 0
+    const angle = Math.round(angleRaw / 90) * 90
+    const rotation = typeof p.rotation === 'number' ? p.rotation : ((angle % 360) + 360) % 360
+
+    // inventory from inventorySec.propInventory[idx]
+    const invRaw = propInv[String(idx)] ?? []
+    const inv: { product: number; count: number }[] = []
+    if (Array.isArray(invRaw)) {
+      invRaw.forEach((it) => {
+        const pid = it?.productID
+        const cnt = it?.count
+        if (typeof pid === 'number' && typeof cnt === 'number' && pid >= 0) {
+          inv.push({ product: pid, count: cnt })
+          inventoryByProduct[pid] = (inventoryByProduct[pid] ?? 0) + cnt
+        }
+      })
+    }
+    storeLayout.push({ index: idx, buildableId, posX, posZ, rotation, angle, inventory: inv })
+  })
+  if (storeLayout.length > 0) detected.push(`StoreLayout (${storeLayout.length} props)`)
+
+  // byProduct fallback (if propInventory didn't yield totals, use byProduct directly)
+  if (Object.keys(inventoryByProduct).length === 0 && inventorySec.byProduct) {
+    for (const [k, v] of Object.entries(inventorySec.byProduct as Record<string, number>)) {
+      const pid = Number(k)
+      if (Number.isFinite(pid) && typeof v === 'number') inventoryByProduct[pid] = v
+    }
+    if (Object.keys(inventoryByProduct).length > 0) detected.push(`InventoryByProduct (${Object.keys(inventoryByProduct).length})`)
+  }
+
+  // ---- decorations ----
+  const decoPropCount = Array.isArray(decorationsSec.prop) ? decorationsSec.prop.length : 0
+  const decoPictureCount = Array.isArray(decorationsSec.picture) ? decorationsSec.picture.length : 0
+  const decoPaintableCount = Array.isArray(decorationsSec.paintable) ? decorationsSec.paintable.length : 0
+  const decoPropsCount = decoPropCount + decoPictureCount + decoPaintableCount
+  if (decoPropsCount > 0)
+    detected.push(`Decorations (${decoPropCount} prop + ${decoPictureCount} picture + ${decoPaintableCount} paintable)`)
+
+  // ---- type tally from decoded ----
+  for (const v of Object.values(decoded) as any[]) {
+    if (v && typeof v === 'object' && '__type' in v && typeof v.__type === 'string') {
+      const t = v.__type.split(',')[0].replace(/^ES3PlayMaker\./, '')
+      typeTally[t] = (typeTally[t] ?? 0) + 1
+    }
+  }
+
+  // ---- meta ----
+  if (meta.extractor_version) detected.push(`Extractor v${meta.extractor_version}`)
+  if (meta.source_es3) detected.push(`Source: ${meta.source_es3}`)
+
+  // ---- unknown decoded keys (top-level keys we don't recognize) ----
+  const KNOWN_DECODED = new Set<string>([
+    'Difficulty', 'PlayersAddFunds', 'Layout', 'StoreName', 'Day',
+    'FranchiseExperience', 'FranchisePoints', 'Funds', 'LastAwardedLevel',
+    'SupermarketName', 'SupermarketColor', 'hasGeneratedOrganizers',
+    'SpaceBought', 'StorageBought', 'AddonsBought', 'ExtraUpgrades',
+    'StoreSpaceUpgrades', 'StorageSpaceUpgrades', 'ProductPlayerPricing',
+    'TierInflation', 'UnlockedProductTiers', 'PaintableValues', 'DoorStates',
+    'HiredEmployeesData', 'HiredRerollTimes', 'HiredHasRerolled',
+    'DemolishableValues', 'CurrentInvoicesArray', 'LoanAmount',
+    'LoanPaymentPerDay', 'ManufacUnlockedRecipes', 'ManufacPlayerRecipes',
+  ])
+  Object.keys(decoded).forEach((k) => {
+    if (!KNOWN_DECODED.has(k) && !/^propdata\d+$/.test(k) && !/^propinfoproduct\d+$/.test(k) &&
+        !/^decopropdata\d+$/.test(k) && !/^decopaintabledata\d+$/.test(k) &&
+        !/^decopicturedata\d+$/.test(k)) {
+      unknown.push(k)
+    }
+  })
+
+  // ---- build snapshot ----
+  const fieldCount = detected.length
+  const status: ES3ParseResult['status'] = fieldCount >= 8 ? 'ok' : fieldCount >= 3 ? 'partial' : 'failed'
+  const confidence: Confidence = fieldCount >= 8 ? 'confirmed' : fieldCount >= 3 ? 'proxy' : 'unverified'
+
+  const snapshot: SaveSnapshot = {
+    source: `extracted:${fileName}`,
+    parseStatus: status,
+    confidence,
+    detectedFields: detected,
+    unknownFields: unknown,
+    money: money ?? 0,
+    franchisePoints: franchisePoints ?? 0,
+    day: day ?? 1,
+    unlockedProductTiers,
+    unlockedProducts,
+    productPlayerPricing,
+    perks: [],
+    extraUpgrades: extraUpgradeFlags.map((b, i) => `extra_${i}:${b ? 1 : 0}`),
+    employees,
+    storeLayout: storeLayout.length > 0 ? storeLayout : ENC.storeLayout,
+    inventoryByProduct,
+    storageInventory: {},
+    weather: 'unknown',
+    temperature: [],
+    roomId: null,
+    playerSlots: 0,
+    parsedAt: new Date().toISOString(),
+    // ES3-only extras:
+    franchiseExperience,
+    loanAmount,
+    loanPaymentPerDay,
+    difficulty,
+    storeName,
+    supermarketName,
+    supermarketColor,
+    lastAwardedLevel,
+    spaceBought,
+    storageBought,
+    tierInflation,
+    manufacUnlockedRecipes: mfgUnlocked,
+    manufacPlayerRecipes: mfgPlayer,
+    invoices,
+    doorStates,
+    addonsBought,
+    storeSpaceUpgrades,
+    storageSpaceUpgrades,
+    decoPropsCount,
+    hiredRerollTimes,
+    hiredHasRerolled,
+    layout: layout ?? undefined,
+    skillUnlocks,
+    perkIndexToSkill,
+  }
+
+  return {
+    snapshot,
+    detected,
+    unknown,
+    confidence,
+    status,
+    typeTally,
+    warnings,
+    fieldCount,
+    bytesIn,
+    bytesOut: bytesIn,
+  }
+}
+
+// ---------- helpers for extracted format ----------
+
+function numOrUndef(v: any): number | undefined {
+  if (typeof v === 'number') return v
+  if (typeof v === 'string') {
+    const n = Number(v.replace(',', '.'))
+    if (!Number.isNaN(n)) return n
+  }
+  if (typeof v === 'boolean') return v ? 1 : 0
+  return undefined
+}
+
+function boolArr(v: any): boolean[] {
+  if (!Array.isArray(v)) return []
+  return v.filter((x): x is boolean => typeof x === 'boolean')
+}
+
+function numArrFromWrapper(node: any): number[] {
+  if (!node) return []
+  const inner = node.value ?? node
+  let arr: any[] = []
+  if (Array.isArray(inner)) arr = inner
+  else if (inner && Array.isArray(inner.array)) arr = inner.array
+  return arr
+    .map((x) => (x && typeof x === 'object' && 'value' in x ? x.value : x))
+    .filter((x): x is number => typeof x === 'number')
+}
+
+function boolArrFromWrapper(node: any): boolean[] {
+  if (!node) return []
+  const inner = node.value ?? node
+  let arr: any[] = []
+  if (Array.isArray(inner)) arr = inner
+  else if (inner && Array.isArray(inner.array)) arr = inner.array
+  return arr
+    .map((x) => (x && typeof x === 'object' && 'value' in x ? x.value : x))
+    .filter((x): x is boolean => typeof x === 'boolean')
+}
+
+function strArrFromWrapper(node: any): string[] {
+  if (!node) return []
+  const inner = node.value ?? node
+  let arr: any[] = []
+  if (Array.isArray(inner)) arr = inner
+  else if (inner && Array.isArray(inner.array)) arr = inner.array
+  return arr
+    .map((x) => (x && typeof x === 'object' && 'value' in x ? x.value : x))
+    .filter((x): x is string => typeof x === 'string')
 }

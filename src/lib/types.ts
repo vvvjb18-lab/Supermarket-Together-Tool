@@ -109,8 +109,20 @@ export interface Buildable {
 
 export interface Achievement {
   steamId: string
+  /** Player-facing Steam display name (English). */
   name: string
+  /** Steam global unlock percentage (0-100). */
   globalPercent: number
+  /** Steam achievement description (the "how to unlock" text shown to players). */
+  description?: string
+  /** Traditional Chinese translation of the display name. */
+  zhHant?: string
+  /** Traditional Chinese translation of the description. */
+  zhHantDesc?: string
+  /** True if the achievement requires collective/co-op progress. */
+  collective?: boolean
+  /** Layout restriction if any ('classic' | 'plaza'). */
+  layout?: 'classic' | 'plaza'
 }
 
 export interface AchievementStat {
@@ -242,6 +254,12 @@ export interface SaveSnapshot {
   hiredRerollTimes?: number
   /** Whether employees have ever been rerolled (HiredHasRerolled). */
   hiredHasRerolled?: boolean
+  /** Store layout variant (Layout: 0=classic, 1=plaza). */
+  layout?: number
+  /** Indices of unlocked skills (from skill_unlocks.unlockedIndices). */
+  skillUnlocks?: number[]
+  /** Perk-index → skill-index mapping (from skill_unlocks.perkIndexToSkill). */
+  perkIndexToSkill?: number[]
 }
 
 export interface EmployeeRecord {

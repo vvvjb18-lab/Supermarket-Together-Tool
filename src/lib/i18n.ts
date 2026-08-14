@@ -195,70 +195,27 @@ export function customerTypeIdLabel(idx: number, lang: Lang): string {
   return customerTypeLabel(ct, lang)
 }
 
-// ---------- achievement names (Steam English + manual zhHant map) ----------
-
-const ACH_ZH: Record<string, string> = {
-  Millionaire: '百萬富翁',
-  'Restocker A': '補貨員 A',
-  'Restocker B': '補貨員 B',
-  'Restocker C': '補貨員 C',
-  'Recycler A': '回收者 A',
-  'Recycler B': '回收者 B',
-  'Recycler C': '回收者 C',
-  'Customers A': '顧客 A',
-  'Customers B': '顧客 B',
-  'Customers C': '顧客 C',
-  'Enigma Cube': '謎樣方塊',
-  'Hidden Cat Plaza': '隱藏貓咪廣場',
-  'Franchise Level 5': '加盟等級 5',
-  'Franchise Level 10': '加盟等級 10',
-  'Franchise Level 25': '加盟等級 25',
-  'Franchise Level 50': '加盟等級 50',
-  'Franchise Level 75': '加盟等級 75',
-  'Franchise Level 100': '加盟等級 100',
-  'Franchise Level 150': '加盟等級 150',
-  'Franchise Level 200': '加盟等級 200',
-  'Franchise Level 250': '加盟等級 250',
-  'Franchise Level 300': '加盟等級 300',
-  'Franchise Level 400': '加盟等級 400',
-  'Franchise Level 500': '加盟等級 500',
-  'Fully Stocked': '全數補滿',
-  'Storage Master': '倉儲大師',
-  'Cart Return': '推車歸位',
-  'Big Spender': '大戶消費',
-  'Speed Runner': '速通達人',
-  'Night Owl': '夜貓子',
-  'Early Bird': '早起鳥兒',
-  'First Employee': '首位員工',
-  'Ten Employees': '十名員工',
-  'Full Staff': '滿編員工',
-  'Skill Master': '技能大師',
-  'Perk Collector': '特權收集者',
-  'Manufacturer': '製造商',
-  'Seasonal Seller': '季節商人',
-  'Salt Tycoon': '鹽業大亨',
-  'Layout Designer': '佈局設計師',
-  'Clean Sweep': '一掃而空',
-  'Price Perfect': '定價完美',
-  'Happy Customers': '顧客滿意',
-  'No Theft': '零竊盜',
-  'Premium Products': '高級商品',
-  'Full Tier': '全階層解鎖',
-  'Expansionist': '擴張主義者',
-  'Self Checkout': '自助結帳',
-  'Garden Keeper': '園丁',
-  'Pharmacist': '藥劑師',
-  'Bartender': '酒保',
-}
+// ---------- achievement names (use data-builtin zhHant; fall back to English) ----------
 
 export function achievementNameFor(a: Achievement, lang: Lang): string {
   const en = a.name
-  const zh = ACH_ZH[en]
+  const zh = a.zhHant
   if (lang === 'en') return en
   if (lang === 'zhHant') return zh || en
   // both
   if (zh && zh !== en) return `${zh} / ${en}`
   return en
+}
+
+/** Localized achievement description (the "how to unlock" text). */
+export function achievementDescFor(a: Achievement, lang: Lang): string {
+  const en = a.description ?? ''
+  const zh = a.zhHantDesc ?? ''
+  if (lang === 'en') return en
+  if (lang === 'zhHant') return zh || en
+  // both — prefer zh, en in parens if both present and different
+  if (en && zh && en !== zh) return `${zh}\n${en}`
+  return zh || en
 }
 
 export function achievementSteamNameFor(steamId: string, lang: Lang): string {

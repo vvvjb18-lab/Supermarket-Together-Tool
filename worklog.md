@@ -408,3 +408,75 @@ Stage Summary:
   3. **圖表簡化**：Simulator 熱力圖 → 3 tab 簡單視圖；Profit/Seasons 散佈圖 → 排行榜條形圖（預設）+ 散佈圖（進階，摺疊）。一句話原則：把一個複雜圖表拆成多個簡單圖表。
 - ConfidenceBadge 也中文化：已確認 / 推算值 / 未驗證 / 漏洞候選 / 範本 / 需上傳存檔 / 需實機驗證。
 - `bun run lint` 0 errors、src/ tsc 0 errors、agent-browser 4 頁 QA 全綠。
+
+---
+Task ID: 9
+Agent: orchestrator (main) — cron reviewer round 2
+Task: 適配新版存檔 JSON 格式 + 使用面向玩家的 Steam 成就名稱
+
+Work Log:
+- 使用者上傳新版存檔 `upload/save.json`（145KB，pre-extracted 結構化格式，extractor v1.0），並提供 51 個真實 Steam 成就名稱+描述+全球百分比，要求：①適配新版存檔格式（以後採用此格式）②成就用面向玩家的 Steam 名稱而非變數名。
+
+- **分析新版 save.json 結構**：top-level 含 11 個 section：
+  - `decoded`（211 個原始 ES3 欄位，已是合法 JSON with `__type`+`value`）
+  - `kpis`（15 個預先展開的 KPI 純量/陣列）
+  - `store_layout`（`{totalProps, props[]}`，props 已含 buildableId/posX/posZ/angle/containerInfo）
+  - `inventory`（`{totalItems, propInventory:{idx:[{productID,count}]}, byProduct:{pid:cnt}}`）
+  - `pricing`（`{arrayLength:339, prices[]}`）
+  - `tier_unlocks`（`{arrayLength:55, unlockedIndices[]}`）
+  - `skill_unlocks`（`{arrayLength:44, unlockedIndices[], perkIndexToSkill[]}`）
+  - `manufacturing`（`{unlockedRecipes[bool], playerRecipes[]}`）
+  - `employee_data`（`{hired[pipe-string], todays[]}`）
+  - `decorations`（`{prop[], picture[], paintable[]}`）
+  - `_meta`（extractor 版本/來源/時間戳）
+  - 比舊版 `_latest.json`（45KB 畸形 ES3 文字需 regex 修復）乾淨得多。
+
+- **更新 types.ts**：
+  - `Achievement` 介面新增 `description?`, `zhHant?`, `zhHantDesc?`, `collective?`, `layout?: 'classic'|'plaza'`。
+  - `SaveSnapshot` 新增 `layout?: number`（0=經典, 1=廣場）、`skillUnlocks?: number[]`、`perkIndexToSkill?: number[]`。
+
+- **更新 encyclopedia.json**：用 Python 腳本將 51 個成就全部替換為真實 Steam 名稱+描述+中譯+集體標記+佈局標記：
+  - 舊：`{steamId:"1_RestockerA", name:"Restocker A", globalPercent:41.7}`
+  - 新：`{steamId:"ach_basic_restocker", name:"Basic Restocker", globalPercent:41.7, description:"Placed a total of 1000 products in shelves", zhHant:"基礎補貨員", zhHantDesc:"在貨架上總計放置 1000 個商品 [集體]", collective:true}`
+  - 51 項全部含中英文名稱+中英文描述+集體/佈局標記（22 個集體成就、7 個經典佈局、4 個廣場佈局）。
+
+- **更新 i18n.ts**：
+  - 移除舊的 `ACH_ZH` 硬編碼對照表（51 行），改用資料內建的 `a.zhHant` / `a.zhHantDesc` 欄位。
+  - 新增 `achievementDescFor(a, lang)` 函式，支援中/英/雙語描述。
+
+- **新增 `parseExtractedSave()`**（es3-parser.ts +~350 行）：
+  - 專門解析新版結構化格式：從 `kpis` 讀純量+陣列、從 `decoded` 讀 kpis 未含的欄位（LoanAmount/LoanPaymentPerDay/HiredRerollTimes/SupermarketColor/DoorStates/Invoices/TierInflation/ManufacRecipes）、從 `pricing.prices` 讀 339 定價、從 `tier_unlocks.unlockedIndices` 讀已解鎖 tier、從 `skill_unlocks` 讀技能解鎖+perk 映射、從 `employee_data.hired` 讀員工 pipe-string、從 `store_layout.props` + `inventory.propInventory` 讀店面地圖+庫存、從 `decorations` 讀裝飾道具數。
+  - 新增 helpers：`numOrUndef`, `boolArr`, `numArrFromWrapper`, `boolArrFromWrapper`, `strArrFromWrapper`。
+  - `parseSaveFile()` 改為三段式偵測：①新版結構化（`decoded`+`kpis`+`store_layout`）→ `parseExtractedSave` ②乾淨 snapshot → 直接用 ③原始 ES3 文字 → regex 修復路徑。
+
+- **更新 `/api/sample-save`**：優先伺服 `save.json`（新版），回退到 `_latest.json`（舊版），回應帶 `X-Save-Source` header 標示來源。
+
+- **更新 upload.tsx**：
+  - 「載入範本」按鈕標籤改為 `save.json`；`handleLoadSample` 從 `X-Save-Source` header 動態決定檔名。
+  - 解析結果面板新增第 3 行 CountTile（6 格）：技能解鎖 / Storage Space Upg / 門狀態 / Perk→Skill 映射 / 店面佈局（經典/廣場文字）/ 總庫存件數。
+  - `CountTile` 的 `value` 型別放寬為 `number | string`（店面佈局顯示「經典」/「廣場」）。
+
+- **更新 achievements.tsx**：
+  - 表格新增「解鎖條件」欄（顯示 `achievementDescFor`）+「標記」欄（集體/經典/廣場 badge）；移除獨立的 Steam ID 欄（改為名稱下方小字）。
+  - `GUIDES` 陣列的 steamId 全部更新為新 slug（`ach_millionaire_s_holiday`, `ach_what_is_this`, `ach_might_need_two_ladders_or_more`, `ach_might_need_two_ladders`, `ach_how_is_this_still_standing_a`, `ach_superfood`），新增廣場佈局/經典佈局攻略。
+  - import `achievementDescFor`。
+
+Stage Summary:
+- **新版存檔完全適配**：`upload/save.json`（extractor v1.0 結構化格式）可正確解析，extracted: Day 32, $2,505.60, StoreName=兒子進, Brand=TWITTER, Loan=$6,800, 3 員工, 57 店面道具, 339 定價, 22/55 tier 解鎖, 10/44 技能解鎖, 45 裝飾道具, 經典佈局。33 個偵測欄位。
+- **成就名稱全面更新**：51 個成就用真實 Steam 面向玩家名稱（Basic Restocker / Millionaire's Holiday / What is this? 等），不再是變數名（Restocker A / Millionaire / EnigmaCube）。每個成就含中英文雙語名稱+描述+集體/佈局標記。語言切換器即時切換。
+- `bun run lint` 0 errors；`bunx tsc --noEmit` src/ 0 errors。
+- agent-browser 端對端驗證：
+  1. `/api/sample-save` → 200, 145976 bytes, X-Save-Source=upload/save.json (extracted v1.0) ✓
+  2. 上傳頁「載入範本 save.json」→ toast「解析完成：33 個欄位、Day 32、$2506、3 員工 (ok)」✓
+  3. TopBar 顯示「Save Day 32」✓
+  4. 解析面板顯示 MONEY/FRANCHISE PTS/FRANCHISE XP/兒子進/TWITTER/LOAN/技能解鎖/店面佈局/總庫存件數 ✓
+  5. 成就頁顯示「基礎補貨員 / 基礎收銀員 / 略有斬獲」+ 解鎖條件欄 + 集體/經典/廣場標記 ✓
+  6. 切換 English → 「Basic Restocker / Basic Cashier / Some Success / Millionaire's Holiday」+ English descriptions ✓
+  7. 原始資料頁 Achievements tab 顯示 `ach_basic_restocker` + 「Placed a total of 1000 products in shelves」✓
+  8. 7 個關鍵頁面 QA 全綠（0 console errors）：營運儀表板 / 商品百科 / 利潤實驗室 / 店面平面圖 / 定價實驗 / 成就 / 員工實驗室。
+- dev server + keepalive 以 setsid 啟動，port 3000。
+
+未解決問題/風險：
+- 舊版 `_latest.json` 的 regex 修復路徑仍保留（向後相容），但未來使用者應全部改用新版 `save.json` 格式。
+- 成就進度追蹤（local persist + room sync）的 checklist id 用 steamId，已從舊版 `0_Millionaire` 遷移到新版 `ach_millionaire_s_holiday` — 舊 localStorage 已標記的成就會失效（需重新勾選），這是預期行為。
+- 下一階段可考慮：①利用 skillUnlocks + perkIndexToSkill 在技能頁顯示「已解鎖」標記 ②利用 layout 欄位在店面平面圖自動標示經典/廣場 ③利用 inventory.propInventory 的 productName 欄位做名稱校驗。

@@ -190,7 +190,9 @@ export function Upload() {
         return
       }
       const text = await res.text()
-      runParse(text, '_latest.json')
+      const srcLabel = res.headers.get('X-Save-Source') ?? 'unknown'
+      const fname = srcLabel.includes('save.json') ? 'save.json' : '_latest.json'
+      runParse(text, fname)
     } catch (e: any) {
       toast.error('取樣本失敗: ' + (e?.message ?? 'unknown'))
     } finally {
@@ -271,7 +273,7 @@ export function Upload() {
                 </>
               ) : (
                 <>
-                  <FlaskConical className="mr-1.5 h-4 w-4" /> 載入範本 _latest.json
+                  <FlaskConical className="mr-1.5 h-4 w-4" /> 載入範本 save.json
                 </>
               )}
             </Button>
@@ -346,6 +348,14 @@ export function Upload() {
               <CountTile icon={<Boxes className="h-3.5 w-3.5" />} label="Extra Upgrades" value={(s.extraUpgrades ?? []).filter((x) => x.endsWith(':1')).length} total={s.extraUpgrades?.length ?? 44} />
               <CountTile icon={<Boxes className="h-3.5 w-3.5" />} label="Store Space Upg" value={s.storeSpaceUpgrades?.filter(Boolean).length ?? 0} total={s.storeSpaceUpgrades?.length ?? 47} />
               <CountTile icon={<Boxes className="h-3.5 w-3.5" />} label="裝飾道具" value={s.decoPropsCount ?? 0} />
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+              <CountTile icon={<Boxes className="h-3.5 w-3.5" />} label="技能解鎖" value={s.skillUnlocks?.length ?? 0} total={44} />
+              <CountTile icon={<Boxes className="h-3.5 w-3.5" />} label="Storage Space Upg" value={s.storageSpaceUpgrades?.filter(Boolean).length ?? 0} total={s.storageSpaceUpgrades?.length ?? 12} />
+              <CountTile icon={<Boxes className="h-3.5 w-3.5" />} label="門狀態" value={s.doorStates?.length ?? 0} />
+              <CountTile icon={<Boxes className="h-3.5 w-3.5" />} label="Perk→Skill 映射" value={s.perkIndexToSkill?.length ?? 0} />
+              <CountTile icon={<Boxes className="h-3.5 w-3.5" />} label="店面佈局" value={s.layout === 1 ? '廣場' : s.layout === 0 ? '經典' : '—'} />
+              <CountTile icon={<Boxes className="h-3.5 w-3.5" />} label="總庫存件數" value={Object.values(s.inventoryByProduct).reduce((a, b) => a + b, 0)} />
             </div>
 
             {/* Detected + unknown */}
@@ -578,7 +588,7 @@ export function Upload() {
             <code className="rounded bg-muted px-1">tierInflation</code> 等）。
           </p>
           <p className="text-muted-foreground">
-            點擊上方「載入範本 _latest.json」即可立即看到 Money=$5981.51、Day=28、3 名員工、41 個店面道具等真實資料。
+            點擊上方「載入範本 save.json」即可立即看到 Money、Day、員工、店面道具、技能解鎖等真實資料（新版結構化存檔格式）。
           </p>
         </CardContent>
       </Card>
@@ -594,7 +604,7 @@ function CountTile({
 }: {
   icon: React.ReactNode
   label: string
-  value: number
+  value: number | string
   total?: number
 }) {
   return (
