@@ -604,7 +604,7 @@ export function Restock() {
                                   <SelectValue placeholder="指派" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {room.members.map((m) => (
+                                  {room.members.filter((m) => m.id).map((m) => (
                                     <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
                                   ))}
                                 </SelectContent>

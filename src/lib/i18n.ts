@@ -433,6 +433,25 @@ const SKILL_TOOL_STRINGS: Record<string, { en: string; zhHant: string }> = {
   'skilllab.fpCost': { en: 'FP Cost', zhHant: 'FP 成本' },
   'skilllab.rank': { en: 'Rank', zhHant: '排名' },
   'skilllab.perk': { en: 'Perk', zhHant: 'Perk' },
+
+  // Data Table (skilllab.dt.*)
+  'skilllab.dt.title': { en: '44 Skills Data Table', zhHant: '44 技能資料表' },
+  'skilllab.dt.unlocked': { en: 'Unlocked', zhHant: '已解鎖' },
+  'skilllab.dt.locked': { en: 'Locked', zhHant: '未解鎖' },
+  'skilllab.dt.exportTsv': { en: 'Export TSV', zhHant: '匯出 TSV' },
+  'skilllab.dt.searchPlaceholder': { en: 'Search name / ID / effect…', zhHant: '搜尋名稱 / ID / 效果…' },
+  'skilllab.dt.clearFilter': { en: 'Clear filter', zhHant: '清除篩選' },
+  'skilllab.dt.categoryFilter': { en: 'Category', zhHant: '類別篩選' },
+  'skilllab.dt.colName': { en: 'Name', zhHant: '名稱' },
+  'skilllab.dt.colCategory': { en: 'Category', zhHant: '類別' },
+  'skilllab.dt.colEffect': { en: 'Effect', zhHant: '效果' },
+  'skilllab.dt.colFpCost': { en: 'FP Cost', zhHant: 'FP 成本' },
+  'skilllab.dt.colStatus': { en: 'Status', zhHant: '狀態' },
+  'skilllab.dt.noResults': { en: 'No skills match the current filters.', zhHant: '沒有技能符合目前篩選條件。' },
+  'skilllab.dt.totalSkills': { en: 'Total Skills', zhHant: '總技能數' },
+  'skilllab.dt.totalFpCost': { en: 'Total FP Cost (all)', zhHant: '總 FP 成本（全解鎖）' },
+  'skilllab.dt.rawEffect': { en: 'Raw Effect String', zhHant: '原始效果字串' },
+  'skilllab.dt.parsedEffects': { en: 'Parsed Effects', zhHant: '解析效果' },
 }
 
 export function skillToolLabel(key: string, lang: Lang): string {

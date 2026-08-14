@@ -683,14 +683,14 @@ export function Employees() {
                   <div className="mt-2">
                     {room ? (
                       <Select
-                        value={assigned ?? ''}
+                        value={assigned || undefined}
                         onValueChange={(v) => setRoleAssign((p) => ({ ...p, [role.key]: v }))}
                       >
                         <SelectTrigger className="h-8 text-xs">
                           <SelectValue placeholder="指派玩家…" />
                         </SelectTrigger>
                         <SelectContent>
-                          {members.map((m) => (
+                          {members.filter((m) => m.id).map((m) => (
                             <SelectItem key={m.id} value={m.id} className="text-xs">
                               <span className="flex items-center gap-1">
                                 <span

@@ -1,0 +1,653 @@
+     1→     1→'use client'
+     2→     2→
+     3→     3→import { useMemo, useState } from 'react'
+     4→     4→import {
+     5→     5→  Bar,
+     6→     6→  BarChart,
+     7→     7→  CartesianGrid,
+     8→     8→  ResponsiveContainer,
+     9→     9→  Tooltip as RTooltip,
+    10→    10→  XAxis,
+    11→    11→  YAxis,
+    12→    12→} from 'recharts'
+    13→    13→import { encyclopedia as ENC, productById } from '@/lib/data-loader'
+    14→    14→import { useRoomStore, type Lang } from '@/lib/store'
+    15→    15→import { useLang, manufacturingIdNameFor, productNameFor } from '@/lib/i18n'
+    16→    16→import {
+    17→    17→  ConfidenceBadge,
+    18→    18→  SectionHeader,
+    19→    19→  StatCard,
+    20→    20→  MiniBar,
+    21→    21→  fmt,
+    22→    22→} from '@/components/shared/primitives'
+    23→    23→import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+    24→    24→import { Badge } from '@/components/ui/badge'
+    25→    25→import { Button } from '@/components/ui/button'
+    26→    26→import {
+    27→    27→  Select,
+    28→    28→  SelectContent,
+    29→    29→  SelectItem,
+    30→    30→  SelectTrigger,
+    31→    31→  SelectValue,
+    32→    32→} from '@/components/ui/select'
+    33→    33→import {
+    34→    34→  Tooltip,
+    35→    35→  TooltipContent,
+    36→    36→  TooltipProvider,
+    37→    37→  TooltipTrigger,
+    38→    38→} from '@/components/ui/tooltip'
+    39→    39→import {
+    40→    40→  Plus,
+    41→    41→  Trash2,
+    42→    42→  Layers,
+    43→    43→  AlertTriangle,
+    44→    44→  Factory,
+    45→    45→  Boxes,
+    46→    46→  TrendingUp,
+    47→    47→} from 'lucide-react'
+    48→    48→import { cn } from '@/lib/utils'
+    49→    49→import type { ManufacturingProduct } from '@/lib/types'
+    50→    50→
+    51→    51→const PRODUCTION_BASE_TIME = 30 // seconds, from config.manufacturing.productionBaseTimeSeconds
+    52→    52→
+    53→    53→interface QueueItem {
+    54→    54→  productId: number
+    55→    55→  quantity: number
+    56→    56→}
+    57→    57→
+    58→    58→export function Manufacturing() {
+    59→    59→  const lang = useLang()
+    60→    60→  const [queue, setQueue] = useState<QueueItem[]>([
+    61→    61→    { productId: 10, quantity: 5 }, // Muffin
+    62→    62→    { productId: 29, quantity: 3 }, // Smoothies
+    63→    63→  ])
+    64→    64→  const [addPick, setAddPick] = useState<string>('')
+    65→    65→
+    66→    66→  const products = ENC.manufacturingProducts
+    67→    67→
+    68→    68→  // Compute volume + density for each manufacturing product
+    69→    69→  const enriched = useMemo(() => {
+    70→    70→    return products.map((m) => {
+    71→    71→      const vol = m.size.x * m.size.y * m.size.z
+    72→    72→      const density = vol > 0 ? m.itemsPerBox / vol : 0
+    73→    73→      const linkedProduct = productById.get(m.linkedProductID)
+    74→    74→      const label = manufacturingIdNameFor(m.id, lang)
+    75→    75→      const linkedLabel = productNameFor(m.linkedProductID, lang)
+    76→    76→      return { m, vol, density, linkedProduct, label, linkedLabel }
+    77→    77→    })
+    78→    78→  }, [products, lang])
+    79→    79→
+    80→    80→  const densityRanking = useMemo(
+    81→    81→    () => [...enriched].sort((a, b) => b.density - a.density),
+    82→    82→    [enriched],
+    83→    83→  )
+    84→    84→
+    85→    85→  // Queue calcs
+    86→    86→  const queueEnriched = useMemo(
+    87→    87→    () =>
+    88→    88→      queue.map((q) => {
+    89→    89→        const m = products.find((p) => p.id === q.productId)!
+    90→    90→        const timeSeconds = q.quantity * PRODUCTION_BASE_TIME
+    91→    91→        const totalUnits = q.quantity * m.itemsPerBox
+    92→    92→        return { ...q, m, timeSeconds, totalUnits }
+    93→    93→      }),
+    94→    94→    [queue, products],
+    95→    95→  )
+    96→    96→
+    97→    97→  const totalSeconds = queueEnriched.reduce((a, q) => a + q.timeSeconds, 0)
+    98→    98→  const totalUnits = queueEnriched.reduce((a, q) => a + q.totalUnits, 0)
+    99→    99→  const totalBoxes = queueEnriched.reduce((a, q) => a + q.quantity, 0)
+   100→   100→
+   101→   101→  // Throughput: units per hour. assume one machine running 30s/product → 2 products/min → 120 products/hr
+   102→   102→  // then × itemsPerBox = units/hr. If parallel machines N, scale by N.
+   103→   103→  const [machines, setMachines] = useState(1)
+   104→   104→  const throughputPerHour = useMemo(() => {
+   105→   105→    if (totalSeconds <= 0) return 0
+   106→   106→    // units produced per hour at N machines:
+   107→   107→    // (3600 / 30) * itemsPerBox summed weighted = totalUnits * (3600 / totalSeconds) per machine
+   108→   108→    // with N machines, throughput scales linearly (proxy)
+   109→   109→    const perMachine = totalSeconds > 0 ? totalUnits * (3600 / totalSeconds) : 0
+   110→   110→    return perMachine * machines
+   111→   111→  }, [totalSeconds, totalUnits, machines])
+   112→   112→
+   113→   113→  // Room
+   114→   114→  const room = useRoomStore((s) => s.room)
+   115→   115→  const selfId = useRoomStore((s) => s.selfId)
+   116→   116→  const assignTask = useRoomStore((s) => s.assignTask)
+   117→   117→  const manufacturingTask = room?.tasks.find((t) => t.category === 'manufacturing')
+   118→   118→  const members = room?.members ?? []
+   119→   119→  const assignedMember = manufacturingTask
+   120→   120→    ? room?.members.find((m) => m.id === manufacturingTask.playerId)
+   121→   121→    : undefined
+   122→   122→
+   123→   123→  function addToQueue() {
+   124→   124→    if (!addPick) return
+   125→   125→    const pid = Number(addPick)
+   126→   126→    setQueue((q) => {
+   127→   127→      const ex = q.find((x) => x.productId === pid)
+   128→   128→      if (ex) return q.map((x) => (x.productId === pid ? { ...x, quantity: x.quantity + 1 } : x))
+   129→   129→      return [...q, { productId: pid, quantity: 1 }]
+   130→   130→    })
+   131→   131→    setAddPick('')
+   132→   132→  }
+   133→   133→
+   134→   134→  function updateQty(pid: number, qty: number) {
+   135→   135→    setQueue((q) => q.map((x) => (x.productId === pid ? { ...x, quantity: Math.max(0, qty) } : x)))
+   136→   136→  }
+   137→   137→
+   138→   138→  function removeItem(pid: number) {
+   139→   139→    setQueue((q) => q.filter((x) => x.productId !== pid))
+   140→   140→  }
+   141→   141→
+   142→   142→  return (
+   143→   143→    <TooltipProvider delayDuration={200}>
+   144→   144→      <div className="mx-auto max-w-[1600px] space-y-4 p-4">
+   145→   145→        {/* Header */}
+   146→   146→        <div>
+   147→   147→          <h1 className="text-2xl font-bold tracking-tight">製造實驗室</h1>
+   148→   148→          <p className="text-sm text-muted-foreground">
+   149→   149→            30 個製造產品 · 基底時間 30s/件 · 自由配方組合制 · 產能與密度推導
+   150→   150→          </p>
+   151→   151→        </div>
+   152→   152→
+   153→   153→        {/* Honesty callout */}
+   154→   154→        <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
+   155→   155→          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+   156→   156→          <div className="text-xs text-amber-800 dark:text-amber-200">
+   157→   157→            <span className="font-semibold">誠實聲明：</span>
+   158→   158→            固定配方盈利未完全提取；食譜為<span className="font-semibold">基底商品 + 任意可組合一般商品</span>，無固定配方表。
+   159→   159→            本頁只做<span className="font-semibold">產能與密度推導</span>，不預測成品售價或利潤。
+   160→   160→          </div>
+   161→   161→        </div>
+   162→   162→
+   163→   163→        {/* Top stats */}
+   164→   164→        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+   165→   165→          <StatCard
+   166→   166→            label="製造品總數"
+   167→   167→            value={products.length}
+   168→   168→            unit="items"
+   169→   169→            confidence="confirmed"
+   170→   170→            formula="encyclopedia.manufacturingProducts.length"
+   171→   171→            accent="neutral"
+   172→   172→          />
+   173→   173→          <StatCard
+   174→   174→            label="基底生產時間"
+   175→   175→            value={`${PRODUCTION_BASE_TIME}s`}
+   176→   176→            unit="/件"
+   177→   177→            confidence="confirmed"
+   178→   178→            formula="config.manufacturing.productionBaseTimeSeconds = 30"
+   179→   179→            accent="good"
+   180→   180→          />
+   181→   181→          <StatCard
+   182→   182→            label="佇列總時間"
+   183→   183→            value={fmtTime(totalSeconds)}
+   184→   184→            confidence="confirmed"
+   185→   185→            formula={`Σ(quantity × ${PRODUCTION_BASE_TIME}s) = ${totalSeconds}s`}
+   186→   186→            hint={`${totalBoxes} 箱 · ${totalUnits} 單位`}
+   187→   187→            accent="neutral"
+   188→   188→          />
+   189→   189→          <StatCard
+   190→   190→            label="預估吞吐量"
+   191→   191→            value={fmt(throughputPerHour, 0)}
+   192→   192→            unit="u/hr"
+   193→   193→            confidence="proxy"
+   194→   194→            formula={`throughput = totalUnits × (3600/totalSec) × ${machines} 機台`}
+   195→   195→            hint="假設並行線性擴展"
+   196→   196→            accent="warn"
+   197→   197→          />
+   198→   198→        </div>
+   199→   199→
+   200→   200→        {/* Production queue planner */}
+   201→   201→        <Card>
+   202→   202→          <CardHeader className="pb-2">
+   203→   203→            <CardTitle className="flex items-center justify-between text-base">
+   204→   204→              <span className="flex items-center gap-2">
+   205→   205→                <Factory className="h-4 w-4 text-emerald-500" />
+   206→   206→                生產佇列規劃
+   207→   207→              </span>
+   208→   208→              <div className="flex items-center gap-2">
+   209→   209→                <ConfidenceBadge confidence="confirmed" formula={`每件 ${PRODUCTION_BASE_TIME}s`} />
+   210→   210→                <ConfidenceBadge confidence="proxy" formula="throughput × machines" />
+   211→   211→              </div>
+   212→   212→            </CardTitle>
+   213→   213→          </CardHeader>
+   214→   214→          <CardContent className="space-y-3">
+   215→   215→            {/* Add row */}
+   216→   216→            <div className="flex flex-wrap items-center gap-2">
+   217→   217→              <Select value={addPick} onValueChange={setAddPick}>
+   218→   218→                <SelectTrigger className="h-8 w-[240px] text-xs">
+   219→   219→                  <SelectValue placeholder="選擇製造品加入佇列…" />
+   220→   220→                </SelectTrigger>
+   221→   221→                <SelectContent>
+   222→   222→                  {products.map((m) => (
+   223→   223→                    <SelectItem key={m.id} value={String(m.id)} className="text-xs">
+   224→   224→                      #{m.id} {manufacturingIdNameFor(m.id, lang)} · {m.itemsPerBox}/box
+   225→   225→                    </SelectItem>
+   226→   226→                  ))}
+   227→   227→                </SelectContent>
+   228→   228→              </Select>
+   229→   229→              <Button size="sm" className="h-8" onClick={addToQueue} disabled={!addPick}>
+   230→   230→                <Plus className="mr-1 h-3.5 w-3.5" /> 加入
+   231→   231→              </Button>
+   232→   232→              <div className="ml-auto flex items-center gap-2">
+   233→   233→                <span className="text-xs text-muted-foreground">並行機台</span>
+   234→   234→                <Select value={String(machines)} onValueChange={(v) => setMachines(Number(v))}>
+   235→   235→                  <SelectTrigger className="h-8 w-[80px] text-xs">
+   236→   236→                    <SelectValue />
+   237→   237→                  </SelectTrigger>
+   238→   238→                  <SelectContent>
+   239→   239→                    {[1, 2, 3, 4, 5, 6, 8, 10].map((n) => (
+   240→   240→                      <SelectItem key={n} value={String(n)} className="text-xs">
+   241→   241→                        {n}×
+   242→   242→                      </SelectItem>
+   243→   243→                    ))}
+   244→   244→                  </SelectContent>
+   245→   245→                </Select>
+   246→   246→              </div>
+   247→   247→            </div>
+   248→   248→
+   249→   249→            {/* Queue table */}
+   250→   250→            {queueEnriched.length === 0 ? (
+   251→   251→              <div className="rounded-md border border-dashed bg-muted/30 py-6 text-center text-sm text-muted-foreground">
+   252→   252→                佇列為空 — 從上方選擇製造品加入
+   253→   253→              </div>
+   254→   254→            ) : (
+   255→   255→              <div className="overflow-x-auto">
+   256→   256→                <table className="w-full text-sm">
+   257→   257→                  <thead>
+   258→   258→                    <tr className="border-b text-left text-[11px] uppercase text-muted-foreground">
+   259→   259→                      <th className="py-2 pr-3 font-medium">產品</th>
+   260→   260→                      <th className="py-2 pr-3 font-medium">數量（箱）</th>
+   261→   261→                      <th className="py-2 pr-3 font-medium">items/box</th>
+   262→   262→                      <th className="py-2 pr-3 font-medium">單位</th>
+   263→   263→                      <th className="py-2 pr-3 font-medium">耗時</th>
+   264→   264→                      <th className="py-2 font-medium"></th>
+   265→   265→                    </tr>
+   266→   266→                  </thead>
+   267→   267→                  <tbody>
+   268→   268→                    {queueEnriched.map((q) => (
+   269→   269→                      <tr key={q.productId} className="border-b last:border-0">
+   270→   270→                        <td className="py-2 pr-3">
+   271→   271→                          <div className="font-medium">
+   272→   272→                            {manufacturingIdNameFor(q.m.id, lang)}
+   273→   273→                          </div>
+   274→   274→                          <code className="text-[10px] text-muted-foreground">#{q.m.id} · {q.m.name.en}</code>
+   275→   275→                        </td>
+   276→   276→                        <td className="py-2 pr-3">
+   277→   277→                          <div className="flex items-center gap-1">
+   278→   278→                            <Button
+   279→   279→                              size="sm"
+   280→   280→                              variant="outline"
+   281→   281→                              className="h-6 w-6 p-0"
+   282→   282→                              onClick={() => updateQty(q.productId, q.quantity - 1)}
+   283→   283→                            >
+   284→   284→                              −
+   285→   285→                            </Button>
+   286→   286→                            <span className="w-8 text-center font-mono tabular-nums">{q.quantity}</span>
+   287→   287→                            <Button
+   288→   288→                              size="sm"
+   289→   289→                              variant="outline"
+   290→   290→                              className="h-6 w-6 p-0"
+   291→   291→                              onClick={() => updateQty(q.productId, q.quantity + 1)}
+   292→   292→                            >
+   293→   293→                              +
+   294→   294→                            </Button>
+   295→   295→                          </div>
+   296→   296→                        </td>
+   297→   297→                        <td className="py-2 pr-3 font-mono tabular-nums">{q.m.itemsPerBox}</td>
+   298→   298→                        <td className="py-2 pr-3 font-mono tabular-nums">{q.totalUnits}</td>
+   299→   299→                        <td className="py-2 pr-3 font-mono tabular-nums">{fmtTime(q.timeSeconds)}</td>
+   300→   300→                        <td className="py-2 text-right">
+   301→   301→                          <Button
+   302→   302→                            size="sm"
+   303→   303→                            variant="ghost"
+   304→   304→                            className="h-6 w-6 p-0 text-rose-500 hover:bg-rose-500/10"
+   305→   305→                            onClick={() => removeItem(q.productId)}
+   306→   306→                          >
+   307→   307→                            <Trash2 className="h-3.5 w-3.5" />
+   308→   308→                          </Button>
+   309→   309→                        </td>
+   310→   310→                      </tr>
+   311→   311→                    ))}
+   312→   312→                  </tbody>
+   313→   313→                  <tfoot>
+   314→   314→                    <tr className="border-t-2 bg-muted/40 font-semibold">
+   315→   315→                      <td className="py-2 pr-3">合計</td>
+   316→   316→                      <td className="py-2 pr-3 font-mono tabular-nums">{totalBoxes}</td>
+   317→   317→                      <td className="py-2 pr-3"></td>
+   318→   318→                      <td className="py-2 pr-3 font-mono tabular-nums">{totalUnits}</td>
+   319→   319→                      <td className="py-2 pr-3 font-mono tabular-nums">{fmtTime(totalSeconds)}</td>
+   320→   320→                      <td></td>
+   321→   321→                    </tr>
+   322→   322→                  </tfoot>
+   323→   323→                </table>
+   324→   324→              </div>
+   325→   325→            )}
+   326→   326→
+   327→   327→            {/* Throughput callout */}
+   328→   328→            <div className="rounded-md border bg-muted/40 p-3 text-xs">
+   329→   329→              <div className="font-mono">
+   330→   330→                throughput = {totalUnits} units × (3600 / {totalSeconds}s) × {machines} machines
+   331→   331→                {' → '}
+   332→   332→                <span className="font-bold text-emerald-600 dark:text-emerald-400">
+   333→   333→                  {fmt(throughputPerHour, 0)} units/hour
+   334→   334→                </span>
+   335→   335→              </div>
+   336→   336→              <div className="mt-1 text-muted-foreground">
+   337→   337→                proxy：假設機台並行線性擴展、無 setup/中斷。真實遊戲中可能受 factory slot 限制。
+   338→   338→              </div>
+   339→   339→            </div>
+   340→   340→          </CardContent>
+   341→   341→        </Card>
+   342→   342→
+   343→   343→        {/* Room task assignment: 製造佇列管理 */}
+   344→   344→        <Card>
+   345→   345→          <CardHeader className="pb-2">
+   346→   346→            <CardTitle className="flex items-center justify-between text-base">
+   347→   347→              <span className="flex items-center gap-2">
+   348→   348→                <Boxes className="h-4 w-4 text-sky-500" />
+   349→   349→                製造佇列管理（房間任務）
+   350→   350→              </span>
+   351→   351→              <ConfidenceBadge
+   352→   352→                confidence={room ? 'confirmed' : 'unverified'}
+   353→   353→                formula={room ? 'room.tasks[manufacturing].assignedTo' : 'no room'}
+   354→   354→                note={room ? '同步給房間' : '需建立房間'}
+   355→   355→              />
+   356→   356→            </CardTitle>
+   357→   357→          </CardHeader>
+   358→   358→          <CardContent>
+   359→   359→            {room && manufacturingTask ? (
+   360→   360→              <div className="flex flex-wrap items-center gap-3">
+   361→   361→                <div className="flex-1">
+   362→   362→                  <div className="text-sm font-medium">{manufacturingTask.label}</div>
+   363→   363→                  <div className="text-[11px] text-muted-foreground">
+   364→   364→                    task id: <code className="font-mono">{manufacturingTask.id}</code>
+   365→   365→                    {assignedMember && (
+   366→   366→                      <span className="ml-2 text-emerald-600 dark:text-emerald-400">
+   367→   367→                        · 已指派給 {assignedMember.name}
+   368→   368→                      </span>
+   369→   369→                    )}
+   370→   370→                  </div>
+   371→   371→                </div>
+   372→   372→                <Select
+   373→   373→                  value={manufacturingTask.playerId ?? '__none__'}
+   374→   374→                  onValueChange={(v) => assignTask(manufacturingTask.id, v === '__none__' ? '' : v)}
+   375→   375→                >
+   376→   376→                  <SelectTrigger className="h-8 w-[200px] text-xs">
+   377→   377→                    <SelectValue placeholder="指派房間成員…" />
+   378→   378→                  </SelectTrigger>
+   379→   379→                  <SelectContent>
+   380→   380→                    <SelectItem value="__none__" className="text-xs">— 未指派 —</SelectItem>
+   381→   381→                    {members.map((m) => (
+   382→   382→                      <SelectItem key={m.id} value={m.id} className="text-xs">
+   383→   383→                        <span className="flex items-center gap-1">
+   384→   384→                          <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: m.color }} />
+   385→   385→                          {m.name} {m.id === selfId && '(我)'}
+   386→   386→                        </span>
+   387→   387→                      </SelectItem>
+   388→   388→                    ))}
+   389→   389→                  </SelectContent>
+   390→   390→                </Select>
+   391→   391→              </div>
+   392→   392→            ) : (
+   393→   393→              <div className="rounded-md border border-dashed bg-muted/30 px-3 py-4 text-center text-xs text-muted-foreground">
+   394→   394→                未連接房間 — 此功能需先建立/加入房間後啟用。
+   395→   395→                <br />
+   396→   396→                <span className="text-[10px]">房間建立後，可將「製造佇列管理」任務指派給任一房間成員。</span>
+   397→   397→              </div>
+   398→   398→            )}
+   399→   399→          </CardContent>
+   400→   400→        </Card>
+   401→   401→
+   402→   402→        {/* Density ranking leaderboard */}
+   403→   403→        <Card>
+   404→   404→          <CardHeader className="pb-2">
+   405→   405→            <CardTitle className="flex items-center justify-between text-base">
+   406→   406→              <span className="flex items-center gap-2">
+   407→   407→                <TrendingUp className="h-4 w-4 text-fuchsia-500" />
+   408→   408→                貨架密度排行（itemsPerBox / volume）
+   409→   409→              </span>
+   410→   410→              <ConfidenceBadge
+   411→   411→                confidence="confirmed"
+   412→   412→                formula="density = itemsPerBox / (size.x × y × z)"
+   413→   413→                sources={['manufacturing.size (IL)', 'manufacturing.itemsPerBox']}
+   414→   414→                note="密度高者優先上架"
+   415→   415→              />
+   416→   416→            </CardTitle>
+   417→   417→          </CardHeader>
+   418→   418→          <CardContent>
+   419→   419→            <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+   420→   420→              {densityRanking.slice(0, 12).map((row, i) => (
+   421→   421→                <DensityRow key={row.m.id} rank={i + 1} row={row} max={densityRanking[0]?.density ?? 1} lang={lang} />
+   422→   422→              ))}
+   423→   423→            </div>
+   424→   424→            <p className="mt-2 text-[11px] text-muted-foreground">
+   425→   425→              顯示前 12 名。完整 30 名見下方產品表。
+   426→   426→            </p>
+   427→   427→          </CardContent>
+   428→   428→        </Card>
+   429→   429→
+   430→   430→        {/* Density chart top 15 */}
+   431→   431→        <Card>
+   432→   432→          <CardHeader className="pb-2">
+   433→   433→            <CardTitle className="flex items-center justify-between text-base">
+   434→   434→              <span className="flex items-center gap-2">
+   435→   435→                <Layers className="h-4 w-4 text-emerald-500" />
+   436→   436→                密度條圖（Top 15）
+   437→   437→              </span>
+   438→   438→              <ConfidenceBadge confidence="confirmed" formula="itemsPerBox / volume" />
+   439→   439→            </CardTitle>
+   440→   440→          </CardHeader>
+   441→   441→          <CardContent>
+   442→   442→            <div className="h-[380px] w-full">
+   443→   443→              <ResponsiveContainer width="100%" height="100%">
+   444→   444→                <BarChart
+   445→   445→                  data={densityRanking.slice(0, 15)}
+   446→   446→                  layout="vertical"
+   447→   447→                  margin={{ top: 4, right: 16, bottom: 4, left: 8 }}
+   448→   448→                >
+   449→   449→                  <CartesianGrid strokeDasharray="3 3" horizontal={false} opacity={0.3} />
+   450→   450→                  <XAxis type="number" tick={{ fontSize: 10 }} />
+   451→   451→                  <YAxis
+   452→   452→                    type="category"
+   453→   453→                    dataKey="label"
+   454→   454→                    width={120}
+   455→   455→                    tick={{ fontSize: 10 }}
+   456→   456→                  />
+   457→   457→                  <RTooltip
+   458→   458→                    cursor={{ fill: 'rgba(0,0,0,0.04)' }}
+   459→   459→                    content={({ active, payload }) => {
+   460→   460→                      if (!active || !payload || !payload.length) return null
+   461→   461→                      const r = payload[0].payload as (typeof densityRanking)[number]
+   462→   462→                      return (
+   463→   463→                        <div className="rounded-md border bg-background p-2 text-xs shadow-md">
+   464→   464→                          <div className="font-semibold">{manufacturingIdNameFor(r.m.id, lang)}</div>
+   465→   465→                          <div className="text-muted-foreground">#{r.m.id} · {r.m.name.en}</div>
+   466→   466→                          <div className="mt-1 font-mono">
+   467→   467→                            density: <span className="font-bold">{fmt(r.density, 2)}</span> items/u³
+   468→   468→                          </div>
+   469→   469→                          <div className="font-mono text-[10px] text-muted-foreground">
+   470→   470→                            itemsPerBox={r.m.itemsPerBox} · vol={fmt(r.vol, 4)} u³
+   471→   471→                          </div>
+   472→   472→                        </div>
+   473→   473→                      )
+   474→   474→                    }}
+   475→   475→                  />
+   476→   476→                  <Bar dataKey="density" radius={[0, 4, 4, 0]} fill="#10b981" />
+   477→   477→                </BarChart>
+   478→   478→              </ResponsiveContainer>
+   479→   479→            </div>
+   480→   480→          </CardContent>
+   481→   481→        </Card>
+   482→   482→
+   483→   483→        {/* Required input products / recipe note */}
+   484→   484→        <SectionHeader
+   485→   485→          title="基底商品（linkedProductID）"
+   486→   486→          description="每個製造品有一個 linkedProductID 指向基底商品。配方為基底+任意可組合一般商品，無固定配方表。"
+   487→   487→          confidence="unverified"
+   488→   488→          formula="linkedProductID = 基底商品（productsData）"
+   489→   489→          note="食譜 = 基底 + 任意 combinable 一般商品（未提取固定表）"
+   490→   490→        />
+   491→   491→        <Card>
+   492→   492→          <CardContent className="pt-2">
+   493→   493→            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+   494→   494→              {enriched.map(({ m, linkedProduct, linkedLabel }) => (
+   495→   495→                <div
+   496→   496→                  key={m.id}
+   497→   497→                  className="flex items-center justify-between gap-2 rounded-md border bg-card px-3 py-2 text-sm"
+   498→   498→                >
+   499→   499→                  <div className="min-w-0">
+   500→   500→                    <div className="truncate font-medium">
+   501→   501→                      {manufacturingIdNameFor(m.id, lang)}
+   502→   502→                    </div>
+   503→   503→                    <code className="text-[10px] text-muted-foreground">#{m.id}</code>
+   504→   504→                  </div>
+   505→   505→                  <div className="shrink-0 text-right">
+   506→   506→                    <div className="text-[10px] text-muted-foreground">基底</div>
+   507→   507→                    {linkedProduct ? (
+   508→   508→                      <Tooltip>
+   509→   509→                        <TooltipTrigger asChild>
+   510→   510→                          <code className="cursor-help font-mono text-xs underline decoration-dotted">
+   511→   511→                            #{m.linkedProductID}
+   512→   512→                          </code>
+   513→   513→                        </TooltipTrigger>
+   514→   514→                        <TooltipContent side="top" className="max-w-xs">
+   515→   515→                          <div className="text-xs">
+   516→   516→                            <div className="font-semibold">{linkedLabel}</div>
+   517→   517→                            <div className="text-muted-foreground">{linkedProduct.name.en}</div>
+   518→   518→                            <div className="mt-1 font-mono text-[10px]">
+   519→   519→                              basePrice: ${linkedProduct.basePricePerUnit}
+   520→   520→                            </div>
+   521→   521→                          </div>
+   522→   522→                        </TooltipContent>
+   523→   523→                      </Tooltip>
+   524→   524→                    ) : (
+   525→   525→                      <code className="font-mono text-xs text-rose-500">#{m.linkedProductID} (missing)</code>
+   526→   526→                    )}
+   527→   527→                  </div>
+   528→   528→                </div>
+   529→   529→              ))}
+   530→   530→            </div>
+   531→   531→          </CardContent>
+   532→   532→        </Card>
+   533→   533→
+   534→   534→        {/* Full product table */}
+   535→   535→        <SectionHeader
+   536→   536→          title="完整 30 個製造產品表"
+   537→   537→          description="所有欄位：id、名稱、基底商品、itemsPerBox、isStackable、size(x,y,z)、volume"
+   538→   538→          confidence="confirmed"
+   539→   539→          formula="encyclopedia.manufacturingProducts[]"
+   540→   540→        />
+   541→   541→        <Card>
+   542→   542→          <CardContent className="pt-2">
+   543→   543→            <div className="max-h-[600px] overflow-y-auto pr-1 scrollbar-thin">
+   544→   544→              <table className="w-full text-sm">
+   545→   545→                <thead className="sticky top-0 bg-background">
+   546→   546→                  <tr className="border-b text-left text-[11px] uppercase text-muted-foreground">
+   547→   547→                    <th className="py-2 pr-3 font-medium">id</th>
+   548→   548→                    <th className="py-2 pr-3 font-medium">名稱</th>
+   549→   549→                    <th className="py-2 pr-3 font-medium">基底商品</th>
+   550→   550→                    <th className="py-2 pr-3 font-medium">items/box</th>
+   551→   551→                    <th className="py-2 pr-3 font-medium">stackable</th>
+   552→   552→                    <th className="py-2 pr-3 font-medium">size (x,y,z)</th>
+   553→   553→                    <th className="py-2 pr-3 font-medium">volume (u³)</th>
+   554→   554→                    <th className="py-2 font-medium">density</th>
+   555→   555→                  </tr>
+   556→   556→                </thead>
+   557→   557→                <tbody>
+   558→   558→                  {enriched.map(({ m, vol, density, linkedProduct, linkedLabel }) => (
+   559→   559→                    <tr key={m.id} className="border-b last:border-0 hover:bg-accent/40">
+   560→   560→                      <td className="py-2 pr-3 font-mono text-xs">{m.id}</td>
+   561→   561→                      <td className="py-2 pr-3">
+   562→   562→                        <div className="font-medium">{manufacturingIdNameFor(m.id, lang)}</div>
+   563→   563→                        <div className="text-[10px] text-muted-foreground">{m.name.en}</div>
+   564→   564→                      </td>
+   565→   565→                      <td className="py-2 pr-3">
+   566→   566→                        <span className="font-mono text-xs">{m.linkedProductID}</span>
+   567→   567→                        {linkedProduct && (
+   568→   568→                          <span className="ml-1 text-[10px] text-muted-foreground">
+   569→   569→                            ({linkedLabel})
+   570→   570→                          </span>
+   571→   571→                        )}
+   572→   572→                      </td>
+   573→   573→                      <td className="py-2 pr-3 font-mono tabular-nums">{m.itemsPerBox}</td>
+   574→   574→                      <td className="py-2 pr-3">
+   575→   575→                        {m.isStackable ? (
+   576→   576→                          <Badge variant="outline" className="text-[10px] text-emerald-600">yes</Badge>
+   577→   577→                        ) : (
+   578→   578→                          <Badge variant="outline" className="text-[10px] text-muted-foreground">no</Badge>
+   579→   579→                        )}
+   580→   580→                      </td>
+   581→   581→                      <td className="py-2 pr-3 font-mono text-[10px] tabular-nums">
+   582→   582→                        {m.size.x},{m.size.y},{m.size.z}
+   583→   583→                      </td>
+   584→   584→                      <td className="py-2 pr-3 font-mono text-xs tabular-nums">{fmt(vol, 4)}</td>
+   585→   585→                      <td className="py-2 pr-3">
+   586→   586→                        <div className="flex items-center gap-2">
+   587→   587→                          <span className="font-mono text-xs tabular-nums">{fmt(density, 1)}</span>
+   588→   588→                          <MiniBar
+   589→   589→                            value={density}
+   590→   590→                            max={densityRanking[0]?.density ?? 1}
+   591→   591→                            color="bg-fuchsia-500"
+   592→   592→                          />
+   593→   593→                        </div>
+   594→   594→                      </td>
+   595→   595→                    </tr>
+   596→   596→                  ))}
+   597→   597→                </tbody>
+   598→   598→              </table>
+   599→   599→            </div>
+   600→   600→          </CardContent>
+   601→   601→        </Card>
+   602→   602→      </div>
+   603→   603→    </TooltipProvider>
+   604→   604→  )
+   605→   605→}
+   606→   606→
+   607→   607→function DensityRow({
+   608→   608→  rank,
+   609→   609→  row,
+   610→   610→  max,
+   611→   611→  lang,
+   612→   612→}: {
+   613→   613→  rank: number
+   614→   614→  row: { m: ManufacturingProduct; vol: number; density: number; linkedProduct: ReturnType<typeof productById.get>; label: string; linkedLabel: string }
+   615→   615→  max: number
+   616→   616→  lang: Lang
+   617→   617→}) {
+   618→   618→  const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : null
+   619→   619→  return (
+   620→   620→    <div
+   621→   621→      className={cn(
+   622→   622→        'flex items-center gap-2 rounded-md border bg-card px-3 py-2',
+   623→   623→        rank <= 3 && 'border-fuchsia-500/40 bg-fuchsia-500/5',
+   624→   624→      )}
+   625→   625→    >
+   626→   626→      <span className="w-8 text-center text-sm font-bold">{medal ?? rank}</span>
+   627→   627→      <div className="min-w-0 flex-1">
+   628→   628→        <div className="truncate text-sm font-medium">
+   629→   629→          {manufacturingIdNameFor(row.m.id, lang)}
+   630→   630→        </div>
+   631→   631→        <div className="text-[10px] text-muted-foreground">
+   632→   632→          #{row.m.id} · {row.m.itemsPerBox}/box · {fmt(row.vol, 3)}u³
+   633→   633→        </div>
+   634→   634→        <div className="mt-1">
+   635→   635→          <MiniBar value={row.density} max={max} color="bg-fuchsia-500" />
+   636→   636→        </div>
+   637→   637→      </div>
+   638→   638→      <div className="shrink-0 text-right">
+   639→   639→        <div className="font-mono text-sm font-bold tabular-nums">{fmt(row.density, 1)}</div>
+   640→   640→        <div className="text-[9px] text-muted-foreground">items/u³</div>
+   641→   641→      </div>
+   642→   642→    </div>
+   643→   643→  )
+   644→   644→}
+   645→   645→
+   646→   646→function fmtTime(seconds: number): string {
+   647→   647→  if (seconds <= 0) return '0s'
+   648→   648→  const m = Math.floor(seconds / 60)
+   649→   649→  const s = seconds % 60
+   650→   650→  if (m === 0) return `${s}s`
+   651→   651→  return `${m}m ${s}s`
+   652→   652→}
+   653→   653→

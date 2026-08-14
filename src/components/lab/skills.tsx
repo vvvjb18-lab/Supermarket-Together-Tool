@@ -65,7 +65,7 @@ import {
   CheckCircle2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { SkillTreeView, PerksTableView } from './skill-tree'
+import { SkillTreeView } from './skill-tree'
 import {
   getUnlockedSkillIndices,
   FP_COST_PER_SKILL,
@@ -78,6 +78,7 @@ import { BenefitComparator } from './skill-tools/BenefitComparator'
 import { FpInvestmentSimulator } from './skill-tools/FpInvestmentSimulator'
 import { SaveDiffAnalyzer } from './skill-tools/SaveDiffAnalyzer'
 import { StrategyPanel } from './skill-tools/StrategyPanel'
+import { SkillsDataTable } from './skill-tools/SkillsDataTable'
 
 // ============================================================
 // ROI tab (ported from old skills.tsx, room/voting UI removed)
@@ -266,9 +267,9 @@ export function Skills() {
             <SkillTreeView />
           </TabsContent>
 
-          {/* Table tab — reuse PerksTableView */}
+          {/* Table tab — enhanced SkillsDataTable */}
           <TabsContent value="table" className="mt-0">
-            <PerksTableView />
+            <SkillsDataTable />
           </TabsContent>
 
           {/* ROI tab — ported from old skills.tsx */}

@@ -61,7 +61,7 @@ export function Manufacturing() {
     { productId: 10, quantity: 5 }, // Muffin
     { productId: 29, quantity: 3 }, // Smoothies
   ])
-  const [addPick, setAddPick] = useState<string>('')
+  const [addPick, setAddPick] = useState<string | undefined>(undefined)
 
   const products = ENC.manufacturingProducts
 
@@ -378,7 +378,7 @@ export function Manufacturing() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__none__" className="text-xs">— 未指派 —</SelectItem>
-                    {members.map((m) => (
+                    {members.filter((m) => m.id).map((m) => (
                       <SelectItem key={m.id} value={m.id} className="text-xs">
                         <span className="flex items-center gap-1">
                           <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: m.color }} />

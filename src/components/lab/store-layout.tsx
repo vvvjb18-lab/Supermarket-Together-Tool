@@ -117,7 +117,7 @@ export function StoreLayout() {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null)
   const [sortKey, setSortKey] = useState<SortKey>('efficiency')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
-  const [assignPlayerId, setAssignPlayerId] = useState<string>('')
+  const [assignPlayerId, setAssignPlayerId] = useState<string | undefined>(undefined)
 
   // Map bounds (with padding) for the SVG viewBox.
   const bounds = useMemo(() => {
@@ -794,7 +794,7 @@ export function StoreLayout() {
                   <SelectValue placeholder="選擇玩家" />
                 </SelectTrigger>
                 <SelectContent>
-                  {room.members.map((m) => (
+                  {room.members.filter((m) => m.id).map((m) => (
                     <SelectItem key={m.id} value={m.id}>
                       <span className="flex items-center gap-2">
                         <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: m.color }} />

@@ -1,0 +1,842 @@
+     1→// Pure skill analytics engine for the Skill Lab (Task 11-b).
+     2→//
+     3→// The 44-skills system has NO prerequisites (per skill-graph.json _meta.note):
+     4→// every perk costs exactly 1000 FP and can be purchased independently.
+     5→// So this engine deliberately avoids prereq-path logic and focuses on:
+     6→//   - unlock-state queries
+     7→//   - category (perk_to_category) lookups
+     8→//   - regex-based effect parsing → structured metrics
+     9→//   - store profile / radar scoring
+    10→//   - mode-weighted "next best skill" recommendations
+    11→//
+    12→// All functions are pure (no React, no side effects) so they can be unit-tested
+    13→// and imported by any component.
+    14→
+    15→import type { Skill, SaveSnapshot, Confidence } from './types'
+    16→import { encyclopedia as ENC, skillGraph } from './data-loader'
+    17→
+    18→// ============================================================
+    19→// Constants
+    20→// ============================================================
+    21→
+    22→export const FP_COST_PER_SKILL = 1000
+    23→
+    24→/** Total skill count (44). Convenience constant. */
+    25→export const TOTAL_SKILLS = ENC.skills.length
+    26→
+    27→// ============================================================
+    28→// Lookup maps (built once)
+    29→// ============================================================
+    30→
+    31→const SKILL_BY_PERK = new Map<number, Skill>(
+    32→  ENC.skills.filter((s) => s.perk != null).map((s) => [s.perk as number, s]),
+    33→)
+    34→
+    35→const SKILL_BY_ID = new Map<string, Skill>(ENC.skills.map((s) => [s.id, s]))
+    36→
+    37→/** All perk indices 0..43 that exist in the encyclopedia (sorted). */
+    38→export const ALL_PERK_INDICES: number[] = (() => {
+    39→  const set = new Set<number>()
+    40→  for (const s of ENC.skills) {
+    41→    if (s.perk != null) set.add(s.perk)
+    42→  }
+    43→  // Also include graph perk node indices (44 perk nodes regardless of skill id).
+    44→  for (const n of skillGraph.nodes) {
+    45→    if (n.type === 'perk') set.add(n.index)
+    46→  }
+    47→  return Array.from(set).sort((a, b) => a - b)
+    48→})()
+    49→
+    50→// ============================================================
+    51→// Unlocked-skill state
+    52→// ============================================================
+    53→
+    54→/**
+    55→ * Normalized set of unlocked perk indices from a save snapshot.
+    56→ *
+    57→ * The save's `skillUnlocks` field is already an array of perk indices
+    58→ * (perkIndexToSkill maps perk → skill, but skillUnlocks uses perk indices).
+    59→ * If absent, returns an empty array.
+    60→ */
+    61→export function getUnlockedSkillIndices(snapshot: SaveSnapshot | null): number[] {
+    62→  if (!snapshot?.skillUnlocks) return []
+    63→  // Defensive: filter to valid integers and dedupe.
+    64→  const seen = new Set<number>()
+    65→  const out: number[] = []
+    66→  for (const idx of snapshot.skillUnlocks) {
+    67→    if (typeof idx === 'number' && Number.isFinite(idx) && !seen.has(idx)) {
+    68→      seen.add(idx)
+    69→      out.push(idx)
+    70→    }
+    71→  }
+    72→  return out
+    73→}
+    74→
+    75→/** Unlocked perk-index set as a Set<number> for O(1) lookups. */
+    76→export function getUnlockedSet(snapshot: SaveSnapshot | null): Set<number> {
+    77→  return new Set(getUnlockedSkillIndices(snapshot))
+    78→}
+    79→
+    80→/**
+    81→ * Is a given skill unlocked?
+    82→ *
+    83→ * Uses the skill's `perk` index. If the skill has perk=null (e.g. skill40-44
+    84→ * which have "(no matching perk in IL)"), this returns false — those skills
+    85→ * are not in the game's actual unlock array.
+    86→ */
+    87→export function isSkillUnlocked(skill: Skill, snapshot: SaveSnapshot | null): boolean {
+    88→  if (skill.perk == null) return false
+    89→  return getUnlockedSet(snapshot).has(skill.perk)
+    90→}
+    91→
+    92→// ============================================================
+    93→// Category (perk_to_category) helpers
+    94→// ============================================================
+    95→
+    96→export interface SkillCategory {
+    97→  id: string
+    98→  name: string
+    99→}
+   100→
+   101→/**
+   102→ * Look up the nearest category node for a perk index.
+   103→ * Returns null if the perk is not in skillGraph.perk_to_category.
+   104→ */
+   105→export function getSkillCategory(perkIndex: number): SkillCategory | null {
+   106→  // skillGraph.perk_to_category is keyed by node id like 'perk5'.
+   107→  const entry = skillGraph.perk_to_category[`perk${perkIndex}`]
+   108→  if (!entry) return null
+   109→  return { id: entry.category_id, name: entry.category_name }
+   110→}
+   111→
+   112→/** Look up the nearest category for a Skill (uses skill.perk). */
+   113→export function getSkillCategoryForSkill(skill: Skill): SkillCategory | null {
+   114→  if (skill.perk == null) return null
+   115→  return getSkillCategory(skill.perk)
+   116→}
+   117→
+   118→/**
+   119→ * Group an arbitrary list of skills by their perk_to_category category_name.
+   120→ * Skills with no category go under '__uncategorized__'.
+   121→ */
+   122→export function groupSkillsByCategory(skills: Skill[]): Map<string, Skill[]> {
+   123→  const m = new Map<string, Skill[]>()
+   124→  for (const s of skills) {
+   125→    const cat = getSkillCategoryForSkill(s)?.name ?? '__uncategorized__'
+   126→    const arr = m.get(cat)
+   127→    if (arr) arr.push(s)
+   128→    else m.set(cat, [s])
+   129→  }
+   130→  return m
+   131→}
+   132→
+   133→// ============================================================
+   134→// categoryColor helper — deterministic hash → HSL color
+   135→// ============================================================
+   136→
+   137→/** Generate a stable color for a category name (used for badges / dots). */
+   138→export function categoryColor(name: string): string {
+   139→  let hash = 0
+   140→  for (let i = 0; i < name.length; i++) {
+   141→    hash = (hash << 5) - hash + name.charCodeAt(i)
+   142→    hash |= 0
+   143→  }
+   144→  const hue = Math.abs(hash) % 360
+   145→  return `hsl(${hue} 65% 45%)`
+   146→}
+   147→
+   148→// ============================================================
+   149→// Effect-string parsing (regex) → structured metrics
+   150→// ============================================================
+   151→
+   152→/**
+   153→ * Parse a skill `effect` string (e.g. "NPC_Manager.extraEmployeeSpeedFactor += 0.2")
+   154→ * into a list of { metric, delta, raw } entries.
+   155→ *
+   156→ * Be generous with regex; label unverified when pattern is unknown.
+   157→ * Patterns we recognize (case-insensitive):
+   158→ *
+   159→ *   extraEmployeeSpeedFactor += X          → 員工移動速度  +X*100%
+   160→ *   maxEmployees += N                       → 最大員工數     +N
+   161→ *   extraCustomersPerk += N                 → 額外客流       +N
+   162→ *   allowedSimultaneousSales += N           → 同時結帳數     +N
+   163→ *   productCheckoutWait -= X                → 結帳等待時間   -X*100%
+   164→ *   employeeItemPlaceWait -= X              → 補貨等待       -X*100%
+   165→ *   selfcheckoutExtraProductsFromPerk += N  → 自助結帳商品數 +N
+   166→ *   minSelfCheckoutWait -= X                → 自助結帳最小等待 -X
+   167→ *   maxSelfCheckoutWait -= X                → 自助結帳最大等待 -X
+   168→ *   boxRecycleFactor = N                    → 回收倍率       ×N
+   169→ *   closestRecyclePerk = 1                  → 就近回收       enabled
+   170→ *   employeeRecycleBoxes = 1                → 員工回收箱     enabled
+   171→ *   electricFactor = 0.8                    → 電費           -20%
+   172→ *   autopayInvoices = 1                     → 自動付款       enabled
+   173→ *   rerollsPerDay += N                      → 每日重抽次數   +N
+   174→ *   extraCheckoutMoney += X                 → 結帳金額加成   +X*100%
+   175→ *   softwareUpgradePerk = 1                 → 軟體升級       enabled
+   176→ *   orderingExtraCrashOnBadWeather = 1      → 壞天氣額外訂單 enabled
+   177→ */
+   178→export interface ParsedEffect {
+   179→  metric: string
+   180→  delta: string
+   181→  raw: string
+   182→}
+   183→
+   184→const EFFECT_PATTERNS: { re: RegExp; metric: string; fmt: (m: RegExpMatchArray) => string }[] = [
+   185→  {
+   186→    re: /extraemployeespeedfactor\s*\+=\s*([0-9.]+)/i,
+   187→    metric: '員工移動速度',
+   188→    fmt: (m) => `+${(parseFloat(m[1]) * 100).toFixed(0)}%`,
+   189→  },
+   190→  {
+   191→    re: /maxemployees\s*\+=\s*(-?\d+)/i,
+   192→    metric: '最大員工數',
+   193→    fmt: (m) => `+${parseInt(m[1], 10)}`,
+   194→  },
+   195→  {
+   196→    re: /extracustomersperk\s*\+=\s*(-?\d+)/i,
+   197→    metric: '額外客流',
+   198→    fmt: (m) => `+${parseInt(m[1], 10)}`,
+   199→  },
+   200→  {
+   201→    re: /allowedsimultaneoussales\s*\+=\s*(-?\d+)/i,
+   202→    metric: '同時結帳數',
+   203→    fmt: (m) => `+${parseInt(m[1], 10)}`,
+   204→  },
+   205→  {
+   206→    re: /productcheckoutwait\s*-=\s*([0-9.]+)/i,
+   207→    metric: '結帳等待時間',
+   208→    fmt: (m) => `-${(parseFloat(m[1]) * 100).toFixed(0)}%`,
+   209→  },
+   210→  {
+   211→    re: /employeeitemplacewait\s*-=\s*([0-9.]+)/i,
+   212→    metric: '補貨等待',
+   213→    fmt: (m) => `-${(parseFloat(m[1]) * 100).toFixed(0)}%`,
+   214→  },
+   215→  {
+   216→    re: /selfcheckoutextraproductsfromperk\s*\+=\s*(-?\d+)/i,
+   217→    metric: '自助結帳商品數',
+   218→    fmt: (m) => `+${parseInt(m[1], 10)}`,
+   219→  },
+   220→  {
+   221→    re: /minselfcheckoutwait\s*-=\s*([0-9.]+)/i,
+   222→    metric: '自助結帳最小等待',
+   223→    fmt: (m) => `-${(parseFloat(m[1]) * 100).toFixed(0)}%`,
+   224→  },
+   225→  {
+   226→    re: /maxselfcheckoutwait\s*-=\s*([0-9.]+)/i,
+   227→    metric: '自助結帳最大等待',
+   228→    fmt: (m) => `-${(parseFloat(m[1]) * 100).toFixed(0)}%`,
+   229→  },
+   230→  {
+   231→    re: /boxrecyclefactor\s*=\s*([0-9.]+)/i,
+   232→    metric: '回收倍率',
+   233→    fmt: (m) => `×${parseFloat(m[1])}`,
+   234→  },
+   235→  {
+   236→    re: /closestrecycleperk\s*=\s*1/i,
+   237→    metric: '就近回收',
+   238→    fmt: () => 'enabled',
+   239→  },
+   240→  {
+   241→    re: /employeerecycleboxes\s*=\s*1/i,
+   242→    metric: '員工回收箱',
+   243→    fmt: () => 'enabled',
+   244→  },
+   245→  {
+   246→    re: /electricfactor\s*=\s*([0-9.]+)/i,
+   247→    metric: '電費',
+   248→    fmt: (m) => {
+   249→      const v = parseFloat(m[1])
+   250→      const pct = (1 - v) * 100
+   251→      return pct >= 0 ? `-${pct.toFixed(0)}%` : `+${(-pct).toFixed(0)}%`
+   252→    },
+   253→  },
+   254→  {
+   255→    re: /autopayinvoices\s*=\s*1/i,
+   256→    metric: '自動付款',
+   257→    fmt: () => 'enabled',
+   258→  },
+   259→  {
+   260→    re: /rerollsperday\s*\+=\s*(-?\d+)/i,
+   261→    metric: '每日重抽次數',
+   262→    fmt: (m) => `+${parseInt(m[1], 10)}`,
+   263→  },
+   264→  {
+   265→    re: /extracheckoutmoney\s*\+=\s*([0-9.]+)/i,
+   266→    metric: '結帳金額加成',
+   267→    fmt: (m) => `+${(parseFloat(m[1]) * 100).toFixed(0)}%`,
+   268→  },
+   269→  {
+   270→    re: /softwareupgradeperk\s*=\s*1/i,
+   271→    metric: '軟體升級',
+   272→    fmt: () => 'enabled',
+   273→  },
+   274→  {
+   275→    re: /orderingextracrashonbadweather\s*=\s*1/i,
+   276→    metric: '壞天氣額外訂單',
+   277→    fmt: () => 'enabled',
+   278→  },
+   279→  {
+   280→    re: /convertbystanderstriggerobj/i,
+   281→    metric: '路人轉顧客',
+   282→    fmt: () => 'enabled',
+   283→  },
+   284→  {
+   285→    re: /clockobj.*clockcontrolslateobj|時間加速/i,
+   286→    metric: '時間加速',
+   287→    fmt: () => 'enabled',
+   288→  },
+   289→  {
+   290→    re: /auxiliarsetuipallets|額外棧板/i,
+   291→    metric: '額外棧板',
+   292→    fmt: () => 'enabled',
+   293→  },
+   294→]
+   295→
+   296→/** Parse an effect string into structured metrics. */
+   297→export function parseEffectForMetric(effect: string): ParsedEffect[] {
+   298→  if (!effect || !effect.trim()) return []
+   299→  const out: ParsedEffect[] = []
+   300→  const seen = new Set<string>()
+   301→  for (const { re, metric, fmt } of EFFECT_PATTERNS) {
+   302→    const m = effect.match(re)
+   303→    if (m) {
+   304→      const key = metric + '|' + fmt(m)
+   305→      if (seen.has(key)) continue
+   306→      seen.add(key)
+   307→      out.push({ metric, delta: fmt(m), raw: m[0] })
+   308→    }
+   309→  }
+   310→  // If nothing matched and effect text is non-trivial, return a single
+   311→  // "未提取" entry so the UI can show something.
+   312→  if (out.length === 0 && effect.length > 0 && !effect.includes('no matching perk')) {
+   313→    out.push({ metric: '效果', delta: '未提取', raw: effect })
+   314→  }
+   315→  return out
+   316→}
+   317→
+   318→// ============================================================
+   319→// estimateSkillImpact — used by the Benefit Comparator (Tool 4)
+   320→// ============================================================
+   321→
+   322→export interface SkillImpact {
+   323→  metric: string
+   324→  value: string
+   325→  confidence: Confidence
+   326→}
+   327→
+   328→/**
+   329→ * Estimate the numerical impact of a skill, derived from its effect string.
+   330→ *
+   331→ * Confidence policy:
+   332→ *   - 'confirmed' — pattern matched and the effect text is direct IL code.
+   333→ *   - 'proxy'     — pattern matched but value is approximate (e.g. we
+   334→ *                   inferred -20% from electricFactor=0.8).
+   335→ *   - 'unverified'— no pattern matched (returned as '效果: 未提取').
+   336→ */
+   337→export function estimateSkillImpact(
+   338→  skill: Skill,
+   339→  _snapshot?: SaveSnapshot | null,
+   340→): SkillImpact[] {
+   341→  void _snapshot // currently unused; reserved for future context-aware estimates
+   342→  const parsed = parseEffectForMetric(skill.effect)
+   343→  if (parsed.length === 0) {
+   344→    return [{ metric: '效果', value: '未提取', confidence: 'unverified' }]
+   345→  }
+   346→  return parsed.map((p) => {
+   347→    // 'enabled' / '未提取' are soft — mark proxy; numeric deltas are confirmed
+   348→    // because they come straight from the IL effect string.
+   349→    const conf: Confidence =
+   350→      p.delta === 'enabled' || p.delta === '未提取' ? 'proxy' : 'confirmed'
+   351→    return { metric: p.metric, value: p.delta, confidence: conf }
+   352→  })
+   353→}
+   354→
+   355→// ============================================================
+   356→// Strategy mode weights (for NextStepRecommender Tool 3)
+   357→// ============================================================
+   358→
+   359→export type StrategyMode = 'employee' | 'customer' | 'checkout' | 'recycling'
+   360→
+   361→interface ModeWeight {
+   362→  /** Tag (matches computeSkillRecommendations synergyTags). */
+   363→  tag: string
+   364→  /** Multiplier applied to base ROI when the tag matches. */
+   365→  weight: number
+   366→}
+   367→
+   368→const MODE_WEIGHTS: Record<StrategyMode, ModeWeight[]> = {
+   369→  employee: [
+   370→    { tag: 'speed', weight: 3 },
+   371→    { tag: 'headcount', weight: 2.4 },
+   372→    { tag: 'automation', weight: 1.5 },
+   373→  ],
+   374→  customer: [{ tag: 'sales-cap', weight: 2.5 }, { tag: 'customer-volume', weight: 2 }],
+   375→  checkout: [
+   376→    { tag: 'throughput', weight: 3 },
+   377→    { tag: 'sales-cap', weight: 1.5 },
+   378→  ],
+   379→  recycling: [{ tag: 'recycling', weight: 3 }],
+   380→}
+   381→
+   382→// ============================================================
+   383→// Categorize a skill (mirrors engine.ts computeSkillRecommendations logic
+   384→// but kept here as a pure helper so we don't need to call the heavy ROI fn).
+   385→// ============================================================
+   386→
+   387→export interface SkillCategorization {
+   388→  category: string
+   389→  tags: string[]
+   390→}
+   391→
+   392→export function categorizeSkill(skill: Skill): SkillCategorization {
+   393→  const eff = skill.effect.toLowerCase()
+   394→  let category = 'other'
+   395→  if (eff.includes('speed')) category = 'employee-speed'
+   396→  else if (eff.includes('checkout') || eff.includes('selfcheckout') || eff.includes('productcheckout'))
+   397→    category = 'checkout'
+   398→  else if (eff.includes('customer') || eff.includes('extracustomers') || eff.includes('bystander'))
+   399→    category = 'customer-volume'
+   400→  else if (eff.includes('recycle')) category = 'recycling'
+   401→  else if (eff.includes('maxemployees') || eff.includes('employee')) category = 'employee-count'
+   402→  else if (eff.includes('manufacturing') || eff.includes('reroll') || eff.includes('ordering'))
+   403→    category = 'ordering'
+   404→  else if (eff.includes('debt') || eff.includes('electric') || eff.includes('autopay'))
+   405→    category = 'finance'
+   406→
+   407→  const tags: string[] = []
+   408→  if (eff.includes('extraemployeespeedfactor')) tags.push('speed', 'automation')
+   409→  if (eff.includes('maxemployees')) tags.push('headcount')
+   410→  if (
+   411→    eff.includes('productcheckoutwait') ||
+   412→    eff.includes('employeeitemplacewait') ||
+   413→    eff.includes('selfcheckoutwait')
+   414→  )
+   415→    tags.push('throughput')
+   416→  if (eff.includes('allowedsimultaneoussales')) tags.push('sales-cap')
+   417→  if (eff.includes('extracustomersperk') || eff.includes('bystander')) tags.push('customer-volume')
+   418→  if (eff.includes('recycle')) tags.push('recycling')
+   419→  if (eff.includes('electricfactor') || eff.includes('autopay')) tags.push('finance')
+   420→  if (eff.includes('rerollsperday')) tags.push('ordering')
+   421→
+   422→  return { category, tags }
+   423→}
+   424→
+   425→// ============================================================
+   426→// recommendNextSkills — for Tool 3
+   427→// ============================================================
+   428→
+   429→export interface NextSkillRecommendation {
+   430→  skill: Skill
+   431→  reason: string
+   432→  rank: number
+   433→  score: number
+   434→}
+   435→
+   436→/**
+   437→ * Recommend the next N best skills for a given strategy mode,
+   438→ * excluding already-unlocked skills.
+   439→ *
+   440→ * The reason text is generated in Traditional Chinese, referencing the
+   441→ * skill's effect and (when relevant) the current save context.
+   442→ */
+   443→export function recommendNextSkills(
+   444→  snapshot: SaveSnapshot | null,
+   445→  mode: StrategyMode,
+   446→  count: number,
+   447→): NextSkillRecommendation[] {
+   448→  const unlocked = getUnlockedSet(snapshot)
+   449→  const weights = MODE_WEIGHTS[mode]
+   450→  const employeeCount = snapshot?.employees?.length ?? 0
+   451→  const speedSkillsUnlocked = ENC.skills.filter(
+   452→    (s) => s.perk != null && unlocked.has(s.perk) && s.effect.toLowerCase().includes('speed'),
+   453→  ).length
+   454→  const checkoutSkillsUnlocked = ENC.skills.filter(
+   455→    (s) => s.perk != null && unlocked.has(s.perk) && /checkout|selfcheckout|productcheckout/.test(s.effect.toLowerCase()),
+   456→  ).length
+   457→  const customerSkillsUnlocked = ENC.skills.filter(
+   458→    (s) => s.perk != null && unlocked.has(s.perk) && /extracustomersperk|bystander/.test(s.effect.toLowerCase()),
+   459→  ).length
+   460→  const recycleSkillsUnlocked = ENC.skills.filter(
+   461→    (s) => s.perk != null && unlocked.has(s.perk) && s.effect.toLowerCase().includes('recycle'),
+   462→  ).length
+   463→
+   464→  const candidates = ENC.skills.filter((s) => s.perk != null && !unlocked.has(s.perk))
+   465→
+   466→  const scored = candidates.map((s) => {
+   467→    const { tags } = categorizeSkill(s)
+   468→    let score = 0.5 // base
+   469→    for (const w of weights) {
+   470→      if (tags.includes(w.tag)) score += w.weight
+   471→    }
+   472→    // Slight bonus for skills with concrete numeric effects.
+   473→    const parsed = parseEffectForMetric(s.effect)
+   474→    if (parsed.length > 0 && parsed[0].delta !== '未提取') score += 0.3
+   475→    return { skill: s, score, tags }
+   476→  })
+   477→  scored.sort((a, b) => b.score - a.score)
+   478→
+   479→  return scored.slice(0, count).map((x, i) => ({
+   480→    skill: x.skill,
+   481→    rank: i + 1,
+   482→    score: x.score,
+   483→    reason: generateReason(x.skill, mode, {
+   484→      employeeCount,
+   485→      speedSkillsUnlocked,
+   486→      checkoutSkillsUnlocked,
+   487→      customerSkillsUnlocked,
+   488→      recycleSkillsUnlocked,
+   489→    }),
+   490→  }))
+   491→}
+   492→
+   493→interface SaveContext {
+   494→  employeeCount: number
+   495→  speedSkillsUnlocked: number
+   496→  checkoutSkillsUnlocked: number
+   497→  customerSkillsUnlocked: number
+   498→  recycleSkillsUnlocked: number
+   499→}
+   500→
+   501→function generateReason(
+   502→  skill: Skill,
+   503→  mode: StrategyMode,
+   504→  ctx: SaveContext,
+   505→): string {
+   506→  const eff = skill.effect
+   507→  const parsed = parseEffectForMetric(eff)
+   508→  const delta = parsed[0]?.delta ?? ''
+   509→  const metric = parsed[0]?.metric ?? ''
+   510→  switch (mode) {
+   511→    case 'employee':
+   512→      if (eff.includes('extraemployeespeedfactor')) {
+   513→        return `你目前有 ${ctx.employeeCount} 名員工，此技能讓${metric} ${delta}，直接提升補貨與結帳效率，員工越多加成越大。`
+   514→      }
+   515→      if (eff.includes('maxemployees')) {
+   516→        return `目前員工 ${ctx.employeeCount} 名，此技能直接 +${eff.match(/maxemployees\s*\+=\s*(\d+)/i)?.[1] ?? 'N'} 最大員工數，擴編人力。`
+   517→      }
+   518→      if (eff.includes('employeeitemplacewait')) {
+   519→        return `降低員工補貨等待 ${delta}，補貨更順暢。`
+   520→      }
+   521→      return `${metric || '效果'} ${delta || eff} — 員工效率相關加成。`
+   522→    case 'customer':
+   523→      if (eff.includes('extracustomersperk')) {
+   524→        return `已解鎖 ${ctx.customerSkillsUnlocked} 個客流技能，再加一個 ${delta} 客流的技能可進一步放大來客數。`
+   525→      }
+   526→      if (eff.includes('allowedsimultaneoussales')) {
+   527→        return `客流增加後結帳壓力上升，此技能 ${delta} 同時結帳數避免塞車。`
+   528→      }
+   529→      if (eff.includes('bystander')) {
+   530→        return `將路人轉為顧客，直接擴大客流池。`
+   531→      }
+   532→      return `${metric || '效果'} ${delta || eff} — 客流相關加成。`
+   533→    case 'checkout':
+   534→      if (eff.includes('productcheckoutwait') || eff.includes('selfcheckoutwait')) {
+   535→        return `已解鎖 ${ctx.checkoutSkillsUnlocked} 個收銀技能，此技能降低結帳等待 ${delta}，吞吐量再升級。`
+   536→      }
+   537→      if (eff.includes('allowedsimultaneoussales')) {
+   538→        return `增加同時結帳數 ${delta}，分散尖峰壓力。`
+   539→      }
+   540→      if (eff.includes('extracheckoutmoney')) {
+   541→        return `每筆結帳金額 ${delta}，直接放大單客營收。`
+   542→      }
+   543→      return `${metric || '效果'} ${delta || eff} — 收銀相關加成。`
+   544→    case 'recycling':
+   545→      if (eff.includes('boxrecyclefactor')) {
+   546→        return `已解鎖 ${ctx.recycleSkillsUnlocked} 個回收技能，此技能將回收倍率設為 ${delta}，回收收益倍增。`
+   547→      }
+   548→      if (eff.includes('recycle')) {
+   549→        return `強化回收鏈（${metric} ${delta}），降低廢棄成本。`
+   550→      }
+   551→      return `${metric || '效果'} ${delta || eff} — 回收相關加成。`
+   552→  }
+   553→}
+   554→
+   555→// ============================================================
+   556→// Store profile + radar — for Tool 7 StrategyPanel
+   557→// ============================================================
+   558→
+   559→export interface StoreProfile {
+   560→  archetype: string
+   561→  icon: string // lucide icon name (caller maps to component)
+   562→  description: string
+   563→  metrics: Record<string, number | string>
+   564→}
+   565→
+   566→/**
+   567→ * Auto-detect a "store archetype" from the snapshot.
+   568→ *
+   569→ * Heuristics (deliberately simple — labelled proxy because real archetypes
+   570→ * depend on player style, not just numbers):
+   571→ *   - layout === 1     → 廣場佈局
+   572→ *   - employees >= 4   → 重員工
+   573→ *   - employees <= 2   → 精簡人力
+   574→ *   - storeLayout.length >= 40 → 大型店鋪
+   575→ *   - day >= 30        → 中後期
+   576→ */
+   577→export function computeStoreProfile(snapshot: SaveSnapshot | null): StoreProfile {
+   578→  if (!snapshot) {
+   579→    return {
+   580→      archetype: '未載入存檔',
+   581→      icon: 'FileQuestion',
+   582→      description: '載入存檔後將自動偵測店鋪型態。',
+   583→      metrics: {},
+   584→    }
+   585→  }
+   586→  const employeeCount = snapshot.employees?.length ?? 0
+   587→  const propCount = snapshot.storeLayout?.length ?? 0
+   588→  const layout = snapshot.layout
+   589→  const day = snapshot.day
+   590→  const money = snapshot.money
+   591→  const difficulty = snapshot.difficulty
+   592→
+   593→  const metrics: Record<string, number | string> = {
+   594→    employees: employeeCount,
+   595→    props: propCount,
+   596→    day,
+   597→    money: money.toFixed(0),
+   598→    difficulty: difficulty ?? '—',
+   599→    layout: layout === 1 ? '廣場' : layout === 0 ? '經典' : '—',
+   600→  }
+   601→
+   602→  // Priority: plaza → large+heavy-emp → small → mid-game → default.
+   603→  if (layout === 1) {
+   604→    return {
+   605→      archetype: '廣場佈局 · 大空間策略',
+   606→      icon: 'LayoutGrid',
+   607→      description:
+   608→        '廣場佈局空間大、貨架多，客流與補貨距離都拉長。建議投資員工速度 + 結帳吞吐量 + 客流技能。',
+   609→      metrics,
+   610→    }
+   611→  }
+   612→  if (employeeCount >= 4 && propCount >= 30) {
+   613→    return {
+   614→      archetype: '大型店鋪 · 重員工',
+   615→      icon: 'Users',
+   616→      description:
+   617→        '員工多、走動距離長，速度加成效益最大；客流與結帳壓力也大，建議投資員工速度 + 結帳吞吐量 + 客流。',
+   618→      metrics,
+   619→    }
+   620→  }
+   621→  if (employeeCount <= 2) {
+   622→    return {
+   623→      archetype: '小型店鋪 · 精簡人力',
+   624→      icon: 'User',
+   625→      description:
+   626→        '員工少，每位員工效率至關重要。建議優先投資員工速度、補貨等待降低、自助結帳商品數。',
+   627→      metrics,
+   628→    }
+   629→  }
+   630→  if (day >= 30) {
+   631→    return {
+   632→      archetype: '中後期 · 規模擴張',
+   633→      icon: 'TrendingUp',
+   634→      description:
+   635→        'Day 較高、應已進入規模化階段。建議補齊員工人數上限 + 回收鏈 + 自動付款以降低日常負擔。',
+   636→      metrics,
+   637→    }
+   638→  }
+   639→  return {
+   640→    archetype: '標準店鋪 · 均衡發展',
+   641→    icon: 'Store',
+   642→    description: '店鋪規模與人力適中。建議均衡投資員工速度、結帳吞吐量與客流提升。',
+   643→    metrics,
+   644→  }
+   645→}
+   646→
+   647→// ============================================================
+   648→// Strategy radar — 5 axes (0-100 score each)
+   649→// ============================================================
+   650→
+   651→export interface RadarAxis {
+   652→  axis: string
+   653→  score: number
+   654→  unlocked: number
+   655→  total: number
+   656→}
+   657→
+   658→/** Compute 5-axis strategy radar: 員工效率 / 客流 / 結帳 / 回收 / 財務. */
+   659→export function computeStrategyRadar(snapshot: SaveSnapshot | null): RadarAxis[] {
+   660→  const unlocked = getUnlockedSet(snapshot)
+   661→  const axes: { axis: string; predicate: (s: Skill) => boolean }[] = [
+   662→    {
+   663→      axis: '員工效率',
+   664→      predicate: (s) => /speed|maxemployees|employeeitemplacewait/i.test(s.effect),
+   665→    },
+   666→    {
+   667→      axis: '客流',
+   668→      predicate: (s) => /extracustomersperk|bystander|allowedsimultaneoussales/i.test(s.effect),
+   669→    },
+   670→    {
+   671→      axis: '結帳',
+   672→      predicate: (s) => /checkout|selfcheckout|productcheckout|extracheckoutmoney/i.test(s.effect),
+   673→    },
+   674→    {
+   675→      axis: '回收',
+   676→      predicate: (s) => /recycle/i.test(s.effect),
+   677→    },
+   678→    {
+   679→      axis: '財務',
+   680→      predicate: (s) => /debt|electric|autopay|extracheckoutmoney/i.test(s.effect),
+   681→    },
+   682→  ]
+   683→  return axes.map(({ axis, predicate }) => {
+   684→    const relevant = ENC.skills.filter((s) => s.perk != null && predicate(s))
+   685→    const total = relevant.length
+   686→    const unlockedCount = relevant.filter((s) => unlocked.has(s.perk as number)).length
+   687→    const score = total > 0 ? Math.round((unlockedCount / total) * 100) : 0
+   688→    return { axis, score, unlocked: unlockedCount, total }
+   689→  })
+   690→}
+   691→
+   692→// ============================================================
+   693→// Tailored recommendations for StrategyPanel (Tool 7)
+   694→// ============================================================
+   695→
+   696→export interface TailoredRecommendation {
+   697→  skill: Skill
+   698→  reason: string
+   699→  unlocked: boolean
+   700→}
+   701→
+   702→/**
+   703→ * Return 3-5 tailored skill recommendations based on the store profile.
+   704→ * Excludes already-unlocked skills (unless we don't have enough candidates).
+   705→ */
+   706→export function tailoredRecommendations(
+   707→  snapshot: SaveSnapshot | null,
+   708→  profile: StoreProfile,
+   709→  count = 5,
+   710→): TailoredRecommendation[] {
+   711→  const unlocked = getUnlockedSet(snapshot)
+   712→  const archetype = profile.archetype
+   713→  // Pick a tag-filter based on the archetype.
+   714→  let allowedTags: string[] = []
+   715→  if (archetype.includes('廣場') || archetype.includes('大型')) {
+   716→    allowedTags = ['speed', 'headcount', 'throughput', 'sales-cap']
+   717→  } else if (archetype.includes('小型') || archetype.includes('精簡')) {
+   718→    allowedTags = ['speed', 'throughput', 'automation']
+   719→  } else if (archetype.includes('中後期')) {
+   720→    allowedTags = ['headcount', 'recycling', 'finance']
+   721→  } else {
+   722→    allowedTags = ['speed', 'throughput', 'sales-cap', 'headcount']
+   723→  }
+   724→
+   725→  const candidates = ENC.skills
+   726→    .filter((s) => s.perk != null)
+   727→    .map((s) => {
+   728→      const { tags } = categorizeSkill(s)
+   729→      const matchingTags = tags.filter((t) => allowedTags.includes(t))
+   730→      return { skill: s, tags, matchingTags, unlocked: unlocked.has(s.perk as number) }
+   731→    })
+   732→    .filter((x) => x.matchingTags.length > 0)
+   733→
+   734→  // Prefer unlocked=false first, then by matchingTags count desc.
+   735→  candidates.sort((a, b) => {
+   736→    if (a.unlocked !== b.unlocked) return a.unlocked ? 1 : -1
+   737→    return b.matchingTags.length - a.matchingTags.length
+   738→  })
+   739→
+   740→  return candidates.slice(0, count).map((x) => ({
+   741→    skill: x.skill,
+   742→    unlocked: x.unlocked,
+   743→    reason: generateTailoredReason(x.skill, x.tags, archetype, profile.metrics),
+   744→  }))
+   745→}
+   746→
+   747→function generateTailoredReason(
+   748→  skill: Skill,
+   749→  tags: string[],
+   750→  archetype: string,
+   751→  metrics: Record<string, number | string>,
+   752→): string {
+   753→  const emp = metrics.employees ?? '?'
+   754→  if (tags.includes('speed')) {
+   755→    return `${archetype}：員工 ${emp} 名，速度加成效益最大（${skill.effect}）。`
+   756→  }
+   757→  if (tags.includes('headcount')) {
+   758→    return `${archetype}：擴編人力上限，配合現有 ${emp} 名員工再 +${skill.effect.match(/maxemployees\s*\+=\s*(\d+)/i)?.[1] ?? 'N'}。`
+   759→  }
+   760→  if (tags.includes('throughput')) {
+   761→    return `${archetype}：降低結帳/補貨等待，吞吐量提升。`
+   762→  }
+   763→  if (tags.includes('sales-cap')) {
+   764→    return `${archetype}：增加同時結帳數，分流尖峰壓力。`
+   765→  }
+   766→  if (tags.includes('recycling')) {
+   767→    return `${archetype}：強化回收鏈，降低廢棄成本。`
+   768→  }
+   769→  if (tags.includes('finance')) {
+   770→    return `${archetype}：自動付款 / 電費減免，降低日常營運負擔。`
+   771→  }
+   772→  return `${archetype}：${skill.effect || skill.id}。`
+   773→}
+   774→
+   775→// ============================================================
+   776→// Preset filters (for BuildPlanner Tool 2 quick presets)
+   777→// ============================================================
+   778→
+   779→export type PresetKey = 'employee' | 'checkout' | 'customer' | 'recycle'
+   780→
+   781→/** Return the skill ids matching a preset build line. */
+   782→export function presetSkillIds(preset: PresetKey): string[] {
+   783→  const filter: (s: Skill) => boolean = (() => {
+   784→    switch (preset) {
+   785→      case 'employee':
+   786→        return (s) =>
+   787→          /speed|maxemployees|employeeitemplacewait/i.test(s.effect) ||
+   788→          /employee/i.test(s.id)
+   789→      case 'checkout':
+   790→        return (s) =>
+   791→          /checkout|selfcheckout|productcheckout|allowedsimultaneoussales|extracheckoutmoney/i.test(
+   792→            s.effect,
+   793→          )
+   794→      case 'customer':
+   795→        return (s) => /extracustomersperk|bystander/i.test(s.effect)
+   796→      case 'recycle':
+   797→        return (s) => /recycle/i.test(s.effect)
+   798→    }
+   799→  })()
+   800→  return ENC.skills.filter(filter).map((s) => s.id)
+   801→}
+   802→
+   803→// ============================================================
+   804→// Misc helpers
+   805→// ============================================================
+   806→
+   807→/** Look up a skill by its id. */
+   808→export function getSkillById(id: string): Skill | undefined {
+   809→  return SKILL_BY_ID.get(id)
+   810→}
+   811→
+   812→/** Look up a skill by its perk index. */
+   813→export function getSkillByPerk(perk: number): Skill | undefined {
+   814→  return SKILL_BY_PERK.get(perk)
+   815→}
+   816→
+   817→/** Compute FP spent so far = unlockedCount × FP_COST_PER_SKILL. */
+   818→export function computeFpSpent(snapshot: SaveSnapshot | null): number {
+   819→  return getUnlockedSkillIndices(snapshot).length * FP_COST_PER_SKILL
+   820→}
+   821→
+   822→/**
+   823→ * Compute FP "still needed" for a build plan:
+   824→ *   (number of plan skills not yet unlocked) × 1000 − current unspent FP
+   825→ * (floored at 0 — if the user has enough, returns 0).
+   826→ */
+   827→export function computeFpNeededForPlan(
+   828→  planSkillIds: string[],
+   829→  snapshot: SaveSnapshot | null,
+   830→): number {
+   831→  const unlocked = getUnlockedSet(snapshot)
+   832→  let needBuy = 0
+   833→  for (const id of planSkillIds) {
+   834→    const s = SKILL_BY_ID.get(id)
+   835→    if (!s || s.perk == null) continue
+   836→    if (!unlocked.has(s.perk)) needBuy++
+   837→  }
+   838→  const cost = needBuy * FP_COST_PER_SKILL
+   839→  const available = snapshot?.franchisePoints ?? 0
+   840→  return Math.max(0, cost - available)
+   841→}
+   842→
