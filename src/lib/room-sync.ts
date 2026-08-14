@@ -16,7 +16,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRoomStore, useSaveStore } from './store'
 import type { Room, RoomMember, SaveSnapshot } from './types'
-import { isSupabaseConfigured } from './backend-config'
+import { getIsSupabaseConfigured } from './backend-config'
 import {
   createRoom as backendCreateRoom,
   joinRoom as backendJoinRoom,
@@ -118,7 +118,9 @@ export function useRoomSync() {
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [mounted, setMounted] = useState(false)
 
-  const mode: RoomSyncMode = isSupabaseConfigured ? 'backend' : 'local'
+  // Re-evaluate env config at render time inside the client component
+  // so Turbopack inlines NEXT_PUBLIC_* correctly into the client bundle.
+  const mode: RoomSyncMode = getIsSupabaseConfigured() ? 'backend' : 'local'
   const [transport, setTransport] = useState<RoomTransport>('offline')
   const [ready, setReady] = useState(false)
   const [lastError, setLastError] = useState<string | null>(null)

@@ -14,7 +14,7 @@
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import bcrypt from 'bcryptjs'
-import { supabaseUrl, supabaseAnonKey, isSupabaseConfigured } from './backend-config'
+import { getSupabaseUrl, getSupabaseAnonKey, getIsSupabaseConfigured } from './backend-config'
 import type { SaveSnapshot } from './types'
 
 // ---------- Row types (mirror supabase/schema.sql) ----------
@@ -57,9 +57,9 @@ let _client: SupabaseClient | null = null
 
 /** Returns the shared Supabase client, or null if env vars are not configured. */
 export function getSupabase(): SupabaseClient | null {
-  if (!isSupabaseConfigured) return null
+  if (!getIsSupabaseConfigured()) return null
   if (!_client) {
-    _client = createClient(supabaseUrl, supabaseAnonKey, {
+    _client = createClient(getSupabaseUrl(), getSupabaseAnonKey(), {
       auth: { persistSession: false, autoRefreshToken: false },
       realtime: { params: { eventsPerSecond: 5 } },
     })
