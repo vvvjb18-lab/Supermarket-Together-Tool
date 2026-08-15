@@ -605,7 +605,7 @@ export function Restock() {
                   <SelectContent>
                     {ENC.seasons.map((s) => (
                       <SelectItem key={s.index} value={String(s.index)}>
-                        {seasonIdNameFor(s.index, lang)} · {s.productIds.length} items
+                        {seasonIdNameFor(s.index, lang)} · {s.productIds.length} 件商品
                       </SelectItem>
                     ))}
                   </SelectContent>

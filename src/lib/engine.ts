@@ -934,38 +934,38 @@ export function computeRestockPlan(
       switch (strategy) {
         case 'demand-coverage':
           score = demand
-          reason = `demand proxy ${demand.toFixed(5)}; current ${current} units`
+          reason = `需求高 · 現有 ${current} 件`
           break
         case 'high-profit':
           score = demand * box
-          reason = `weighted box proxy ${(demand * box).toFixed(3)}`
+          reason = `好賣又值錢 · 現有 ${current} 件`
           break
         case 'high-density':
           score = density
-          reason = `value density ${density.toFixed(2)} $/unit³`
+          reason = `體積小價值高 · 現有 ${current} 件`
           break
         case 'premium-push':
           score = (isPremium ? 2 : 0.1) * box
-          reason = isPremium ? 'premium product, high box value' : 'filler'
+          reason = isPremium ? '高價 3C 商品' : '填充商品'
           break
         case 'seasonal-prep':
           score = (isSeasonal ? 3 : 0.05) * demand * box
-          reason = isSeasonal ? `in-season (${ENC.seasons[options.season!].name.en})` : 'off-season filler'
+          reason = isSeasonal ? '當季商品' : '非當季填充'
           break
         case 'early-game-cheap-fill':
           score = p.tier <= 5 ? (1 / (p.basePricePerUnit + 0.1)) * (demand + 0.01) : -1
-          reason = `tier ${p.tier} cheap fill, base $${p.basePricePerUnit}`
+          reason = `低階便宜貨 · 現有 ${current} 件`
           break
         case 'balanced':
         default:
           score = demand * box * 0.5 + density * 0.2 + (current < 10 ? 5 : 0)
-          reason = `balanced: demand×box ${(demand * box).toFixed(3)}, density ${density.toFixed(1)}, stock ${current}`
+          reason = current < 10 ? `庫存偏低（現有 ${current} 件）` : `綜合高分 · 現有 ${current} 件`
           break
       }
       // urgency boost if low stock & has demand
       if (current < 5 && demand > 0.001) {
         score *= 1.5
-        reason += '; LOW STOCK urgency ×1.5'
+        reason += ' · 缺貨急補'
       }
       return { p, demand, box, vol, current, score, reason }
     })
