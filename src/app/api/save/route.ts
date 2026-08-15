@@ -166,6 +166,31 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: `寫入存檔失敗：${upErr.message}` }, { status: 500 })
   }
 
+  // 3.5 Append a history point for the growth curve (best-effort, non-fatal —
+  //     table may not exist until the schema.sql migration has been run).
+  try {
+    await supabase.from('save_history').insert({
+      room_code: code,
+      day: snapshot.day,
+      money: snapshot.money,
+      kpis: {
+        level: snapshot.lastAwardedLevel ?? null,
+        fp: snapshot.franchisePoints ?? null,
+        xp: snapshot.franchiseExperience ?? null,
+        spaceBought: snapshot.spaceBought ?? null,
+        storageBought: snapshot.storageBought ?? null,
+        skillCount: snapshot.skillUnlocks?.length ?? 0,
+        employeeCount: snapshot.employees?.length ?? 0,
+        storeName: snapshot.storeName ?? null,
+        supermarketName: snapshot.supermarketName ?? null,
+      },
+      uploaded_by: 'autosync',
+      uploaded_at: uploadedAt,
+    })
+  } catch (e) {
+    console.warn('[save] history insert failed (table not migrated?):', e)
+  }
+
   // 4. Append a save-updated event (best-effort, non-fatal).
   try {
     await supabase.from('events').insert({

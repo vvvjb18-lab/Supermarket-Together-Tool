@@ -40,6 +40,16 @@ import {
   LayoutGrid,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { fetchSaveHistory, subscribeSaveHistory, type SaveHistoryRow } from '@/lib/backend-sync'
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip as ChartTooltip,
+} from 'recharts'
 import type { Room, RoomMember } from '@/lib/types'
 
 // ============================================================
@@ -569,6 +579,9 @@ function RoomWorkspace({ sync }: { sync: ReturnType<typeof useRoomSync> }) {
             <ActivityCard events={room.events} members={room.members} />
           </div>
         </div>
+
+        {/* Growth curve (backend only — history lives in save_history) */}
+        {sync.mode === 'backend' && <GrowthCurveCard roomCode={room.code} />}
       </div>
     </TooltipProvider>
   )
@@ -748,6 +761,161 @@ function SnapshotTile({
       </div>
     </div>
   )
+}
+
+// ============================================================
+// Growth curve card — append-only save_history line chart
+// ============================================================
+function GrowthCurveCard({ roomCode }: { roomCode: string }) {
+  const [rows, setRows] = useState<SaveHistoryRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Dedup to the latest upload per in-game Day, then sort ascending by Day.
+  const points = useMemo(() => {
+    const byDay = new Map<number, SaveHistoryRow>()
+    for (const r of rows) byDay.set(r.day, r)
+    return [...byDay.values()].sort((a, b) => a.day - b.day)
+  }, [rows])
+
+  useEffect(() => {
+    let active = true
+    setLoading(true)
+    setError(null)
+
+    fetchSaveHistory(roomCode)
+      .then((data) => {
+        if (!active) return
+        setRows(data)
+      })
+      .catch((e) => {
+        if (!active) return
+        setError(e instanceof Error ? e.message : '讀取成長紀錄失敗')
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+
+    const unsub = subscribeSaveHistory(roomCode, (row) => {
+      setRows((prev) => [...prev, row])
+    })
+
+    return () => {
+      active = false
+      unsub()
+    }
+  }, [roomCode])
+
+  const chartData = useMemo(
+    () => points.map((p) => ({ day: p.day, money: Math.round(p.money * 100) / 100 })),
+    [points],
+  )
+
+  const latest = points.length ? points[points.length - 1] : null
+
+  // The table may not exist yet (schema.sql not run) — surface a clear hint.
+  const needsMigration = error != null && /does not exist|save_history|relation/i.test(error)
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center justify-between text-base">
+          <span className="flex items-center gap-2">
+            <History className="h-4 w-4 text-primary" />
+            成長曲線
+          </span>
+          {latest && (
+            <Badge variant="outline" className="text-xs">
+              {points.length} 個天數
+            </Badge>
+          )}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {loading ? (
+          <div className="flex items-center justify-center gap-2 py-16 text-xs text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            載入成長紀錄…
+          </div>
+        ) : needsMigration ? (
+          <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs leading-relaxed text-amber-700 dark:text-amber-300">
+            成長曲線需要建立 <code className="font-mono">save_history</code> 資料表。請到 Supabase
+            Dashboard → SQL Editor 重新執行一次{' '}
+            <code className="font-mono">supabase/schema.sql</code>（會自動建立表格 + RLS +
+            Realtime），之後每次上傳存檔都會自動累積紀錄。
+          </div>
+        ) : error ? (
+          <div className="flex items-start gap-2 rounded-md border border-rose-500/30 bg-rose-500/5 p-3 text-xs text-rose-700 dark:text-rose-300">
+            <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <span className="leading-relaxed">{error}</span>
+          </div>
+        ) : points.length === 0 ? (
+          <div className="py-12 text-center text-xs text-muted-foreground">
+            尚無成長紀錄。Host 上傳存檔後，每個遊戲日會自動累積一個資料點。
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-3 gap-2">
+              <SnapshotTile label="最新 Day" value={latest ? String(latest.day) : '—'} />
+              <SnapshotTile
+                label="最新資金"
+                value={latest ? `$${Math.round(latest.money).toLocaleString()}` : '—'}
+              />
+              <SnapshotTile label="記錄點數" value={String(points.length)} />
+            </div>
+            {points.length >= 2 ? (
+              <div className="h-[260px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData} margin={{ top: 8, right: 16, bottom: 0, left: 8 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis
+                      dataKey="day"
+                      type="number"
+                      domain={['dataMin', 'dataMax']}
+                      tickFormatter={(v) => `D${v}`}
+                      tick={{ fontSize: 11 }}
+                      stroke="currentColor"
+                      allowDecimals={false}
+                    />
+                    <YAxis
+                      tickFormatter={(v) => `$${compactMoney(Number(v))}`}
+                      tick={{ fontSize: 11 }}
+                      stroke="currentColor"
+                      width={76}
+                    />
+                    <ChartTooltip
+                      formatter={(value) => [`$${Number(value).toLocaleString()}`, '資金']}
+                      labelFormatter={(label) => `Day ${label}`}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="money"
+                      stroke="#10b981"
+                      strokeWidth={2}
+                      dot={points.length <= 30 ? { r: 3 } : false}
+                      activeDot={{ r: 5 }}
+                      isAnimationActive={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="rounded-md border bg-muted/30 p-4 text-center text-xs text-muted-foreground">
+                目前只有 1 個資料點，再多上傳幾次存檔即可畫出成長曲線。
+              </div>
+            )}
+          </>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+function compactMoney(v: number): string {
+  const abs = Math.abs(v)
+  if (abs >= 1000000) return `${(v / 1000000).toFixed(1)}M`
+  if (abs >= 1000) return `${(v / 1000).toFixed(1)}K`
+  return `${Math.round(v)}`
 }
 
 // ============================================================

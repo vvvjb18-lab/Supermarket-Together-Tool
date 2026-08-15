@@ -38,6 +38,21 @@ create table if not exists saves (
 );
 
 -- ----------------------------------------------------------------
+-- save_history: append-only growth curve (one row per save upload)
+-- ----------------------------------------------------------------
+create table if not exists save_history (
+  id          bigserial primary key,
+  room_code   text not null references rooms(code) on delete cascade,
+  day         integer not null,                           -- game day (x-axis)
+  money       double precision not null,                  -- funds (y-axis)
+  kpis        jsonb not null default '{}'::jsonb,         -- lightweight extra KPIs
+  uploaded_by text not null,
+  uploaded_at timestamptz not null default now()
+);
+
+create index if not exists idx_save_history_room on save_history(room_code, uploaded_at);
+
+-- ----------------------------------------------------------------
 -- members: who's currently in each room (for presence/roster)
 -- ----------------------------------------------------------------
 create table if not exists members (
@@ -75,6 +90,7 @@ alter table rooms   enable row level security;
 alter table saves   enable row level security;
 alter table members enable row level security;
 alter table events  enable row level security;
+alter table save_history enable row level security;
 
 drop policy if exists "rooms_public_insert" on rooms;
 drop policy if exists "rooms_public_select" on rooms;
@@ -93,6 +109,9 @@ create policy "members_public_all" on members for all using (true) with check (t
 
 drop policy if exists "events_public_all" on events;
 create policy "events_public_all" on events for all using (true) with check (true);
+
+drop policy if exists "save_history_public_all" on save_history;
+create policy "save_history_public_all" on save_history for all using (true) with check (true);
 
 -- ----------------------------------------------------------------
 -- RPC: verify a room password against the stored bcrypt hash.
@@ -148,6 +167,12 @@ begin
     where pubname = 'supabase_realtime' and tablename = 'events'
   ) then
     alter publication supabase_realtime add table events;
+  end if;
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and tablename = 'save_history'
+  ) then
+    alter publication supabase_realtime add table save_history;
   end if;
 exception when others then
   raise notice 'Realtime publication tweak skipped: %', sqlerrm;

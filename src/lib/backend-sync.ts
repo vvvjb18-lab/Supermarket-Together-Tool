@@ -37,6 +37,28 @@ export interface SaveRow {
   uploaded_at: string
 }
 
+export interface SaveHistoryKpis {
+  level?: number | null
+  fp?: number | null
+  xp?: number | null
+  spaceBought?: number | null
+  storageBought?: number | null
+  skillCount?: number | null
+  employeeCount?: number | null
+  storeName?: string | null
+  supermarketName?: string | null
+}
+
+export interface SaveHistoryRow {
+  id: number
+  room_code: string
+  day: number
+  money: number
+  kpis: SaveHistoryKpis | null
+  uploaded_by: string
+  uploaded_at: string
+}
+
 export interface MemberRow {
   room_code: string
   member_id: string
@@ -225,6 +247,12 @@ export async function uploadSave(opts: {
   )
   if (error) throw new Error(`上傳存檔失敗：${error.message}`)
 
+  // Append a history point for the growth curve (non-fatal — table may not
+  // exist until the schema.sql migration has been run).
+  await insertHistoryPoint(opts.roomCode, opts.snapshot, opts.uploaderId).catch(() => {
+    /* non-fatal */
+  })
+
   await insertEvent(opts.roomCode, opts.uploaderId, 'save-updated', {
     day: opts.snapshot.day,
     money: opts.snapshot.money,
@@ -262,6 +290,18 @@ export async function fetchSaveRow(
     uploadedAt: data.uploaded_at as string,
     uploadedBy: data.uploaded_by as string,
   }
+}
+
+export async function fetchSaveHistory(roomCode: string, limit = 500): Promise<SaveHistoryRow[]> {
+  const supabase = requireClient()
+  const { data, error } = await supabase
+    .from('save_history')
+    .select('*')
+    .eq('room_code', roomCode)
+    .order('uploaded_at', { ascending: true })
+    .limit(limit)
+  if (error) throw new Error(`讀取成長紀錄失敗：${error.message}`)
+  return (data ?? []) as unknown as SaveHistoryRow[]
 }
 
 export async function fetchMembers(roomCode: string): Promise<MemberRow[]> {
@@ -321,6 +361,29 @@ export async function leaveRoom(opts: {
   if (error) {
     console.warn('[backend-sync] leaveRoom delete failed:', error.message)
   }
+}
+
+// ---------- Internal: append a history point ----------
+async function insertHistoryPoint(roomCode: string, snap: SaveSnapshot, uploaderId: string): Promise<void> {
+  const supabase = requireClient()
+  const { error } = await supabase.from('save_history').insert({
+    room_code: roomCode,
+    day: snap.day,
+    money: snap.money,
+    kpis: {
+      level: snap.lastAwardedLevel ?? null,
+      fp: snap.franchisePoints ?? null,
+      xp: snap.franchiseExperience ?? null,
+      spaceBought: snap.spaceBought ?? null,
+      storageBought: snap.storageBought ?? null,
+      skillCount: snap.skillUnlocks?.length ?? 0,
+      employeeCount: snap.employees?.length ?? 0,
+      storeName: snap.storeName ?? null,
+      supermarketName: snap.supermarketName ?? null,
+    },
+    uploaded_by: uploaderId,
+  })
+  if (error) throw error
 }
 
 // ---------- Internal: insert event ----------
@@ -387,6 +450,33 @@ export function subscribeMembers(
         filter: `room_code=eq.${roomCode}`,
       },
       () => onUpdate(),
+    )
+    .subscribe()
+  return () => {
+    supabase.removeChannel(channel)
+  }
+}
+
+export function subscribeSaveHistory(
+  roomCode: string,
+  onInsert: (row: SaveHistoryRow) => void,
+): () => void {
+  const supabase = getSupabase()
+  if (!supabase) return () => {}
+  const channel = supabase
+    .channel(`save_history:room_code=eq.${roomCode}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'save_history',
+        filter: `room_code=eq.${roomCode}`,
+      },
+      (payload) => {
+        const row = payload.new as SaveHistoryRow
+        if (row?.id != null) onInsert(row)
+      },
     )
     .subscribe()
   return () => {
