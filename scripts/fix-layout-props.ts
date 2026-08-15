@@ -133,8 +133,8 @@ function patchFile(relPath: string, posIndex: Map<string, { zoneCode: number; co
   // Write back with 2-space indent to match existing style.
   fs.writeFileSync(abs, JSON.stringify(data, null, 2) + '\n', 'utf8')
 
-  const distBefore = before.reduce<Record<string, number>>((a, id) => { a[id] = (a[id] ?? 0) + 1; return a }, {})
-  const distAfter = after.reduce<Record<string, number>>((a, id) => { a[id] = (a[id] ?? 0) + 1; return a }, {})
+  const distBefore = before.reduce<Record<string, number>>((a, id) => { if (id == null) return a; a[id] = (a[id] ?? 0) + 1; return a }, {})
+  const distAfter = after.reduce<Record<string, number>>((a, id) => { if (id == null) return a; a[id] = (a[id] ?? 0) + 1; return a }, {})
   console.log(`✓ ${relPath}: ${patched}/${props.length} props matched, ${unmatched} unmatched`)
   console.log(`    buildableId BEFORE:`, JSON.stringify(distBefore))
   console.log(`    containerID  AFTER:`, JSON.stringify(distAfter))
