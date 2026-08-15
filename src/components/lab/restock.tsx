@@ -485,8 +485,8 @@ export function Restock() {
               <StatCard
                 label="庫存市值"
                 value={fmtMoney(smartInventory.totalMarketValue)}
-                confidence="proxy"
-                formula="Σ count × marketPrice"
+                confidence="confirmed"
+                formula="Σ count × marketPrice（count 準確、marketPrice=base×tierInflation 已確認）"
                 accent="good"
               />
               <StatCard
