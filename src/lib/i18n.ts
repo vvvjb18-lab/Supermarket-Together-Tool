@@ -7,6 +7,7 @@
 
 import { useUIStore } from './store'
 import type { Lang } from './store'
+export type { Lang }
 import type {
   Product,
   Skill,
