@@ -2,7 +2,8 @@
 import encyclopediaJson from './data/encyclopedia.json'
 import demoSaveJson from './data/demo-save.json'
 import skillGraphJson from './data/skill-graph.json'
-import type { Encyclopedia, SaveSnapshot, Product, Tier, ProductGroup, Buildable, Container, SkillTreeGraph, LayoutProp } from './types'
+import exploitsJson from './data/exploits.json'
+import type { Encyclopedia, SaveSnapshot, Product, Tier, ProductGroup, Buildable, Container, SkillTreeGraph, LayoutProp, ExploitCandidate } from './types'
 
 /**
  * Ensure every LayoutProp carries the canonical `containerID` + `zoneCode`
@@ -30,6 +31,8 @@ _demoSave.storeLayout = normalizeLayoutProps(_demoSave.storeLayout ?? [])
 export const demoSave = _demoSave
 
 export const skillGraph = skillGraphJson as unknown as SkillTreeGraph
+
+export const exploits = exploitsJson as unknown as ExploitCandidate[]
 
 // pre-indexed maps for fast lookup
 export const productById = new Map<number, Product>(encyclopedia.products.map((p) => [p.id, p]))

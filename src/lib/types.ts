@@ -346,6 +346,21 @@ export interface CalcResult<T> {
   note?: string
 }
 
+// ---------- exploit candidate (analyst-curated; lives in data/exploits.json) ----------
+export type ExploitCategory = 'confirmed-monster' | 'proxy-strong' | 'suspicious' | 'meme-trap'
+
+export interface ExploitCandidate {
+  id: string
+  title: string
+  category: ExploitCategory
+  confidence: Confidence
+  evidence: string[]
+  formula: string
+  recommendation: string
+  risk: string
+  productIds?: number[]
+}
+
 // ---------- room sync ----------
 export type RoomRole = 'host' | 'member'
 

@@ -1443,3 +1443,40 @@ Phase 3 — UI 同步:
 - src/lib/engine.ts.bak
 - scripts/patch_encyclopedia.py
 - scripts/patch_engine.py
+
+---
+Task ID: 7
+Agent: orchestrator (main)
+Task: v2.1 — Engine optimization: move static analyst data to JSON, memoize pure product functions, document sources.
+
+Context:
+- v2.0 已在 commit 588bffe 推上 origin/main,所有問題已修補
+- 使用者進一步要求:把提取文件已有的算法 / 資料從 TS 仿寫改為 JSON 讀取,以縮小 bundle、提升性能
+
+Work Log:
+- 新增 src/lib/data/exploits.json (6.4KB, 10 個分析評論) — 原本是 engine.ts:classifyExploitCandidates() 130 行 TS 物件陣列
+- src/lib/types.ts: 加入 ExploitCategory / ExploitCandidate 介面 (從 engine.ts 搬出來,給 data-loader 跟 engine 共用)
+- src/lib/data-loader.ts: 從 './data/exploits.json' 載入,export const exploits
+- src/lib/engine.ts:
+  - classifyExploitCandidates() 函式本體 (130 行) 縮成 3 行 re-export: `export const EXPLOIT_CANDIDATES = EXPLOITS; export function classifyExploitCandidates() { return EXPLOIT_CANDIDATES }` (保留向後相容)
+  - 為 computeBoxValue / computeColliderVolume / computeValueDensity / computeBoxValueDensity 加入 WeakMap memoization (同一個 Product 物件重複計算時直接 cache 命中)
+  - 引擎檔從 1505 行縮到 1312 行 (-193 行)
+- src/components/lab/exploits.tsx: 改從 @/lib/types 引入 ExploitCategory / ExploitCandidate (向後相容,UI 0 變動)
+- src/lib/data/*.bak.mine 4 個備份檔 (合計 565KB) 已在 .gitignore 排除,磁碟上仍保留 (沙箱禁止 Remove-Item)
+- 跑 npx tsc --noEmit: 0 errors (預存在的 scripts/fix-layout-props.ts 2 errors 不在本範圍)
+- 跑 npx eslint: changed files 0 errors
+- 跑 npx next build: ✓ Compiled successfully, 5 static pages generated
+
+Stage Summary:
+- 「分析師評論」(exploit candidates) 與「純算法」(computeBoxValue) 分離:前者是資料,後者是邏輯
+- 資料從 TS literal 搬到 JSON,未來從 supermarket-tool-temp 提取器可一鍵 update 不動 TS
+- WeakMap memoization 讓 shelf efficiency / store optimization 兩個最熱路徑省下重複乘法
+- 向後相容:classifyExploitCandidates() 仍可用,exploits.tsx 跟 exportMarkdownReport() 都無需改動
+
+Files changed:
+- src/lib/data/exploits.json (new, 6.4KB)
+- src/lib/data-loader.ts (+3 lines: import + export)
+- src/lib/engine.ts (-193 lines net: 130 removed, 40 added for memo, 23 added for type/imports)
+- src/lib/types.ts (+13 lines: ExploitCategory + ExploitCandidate)
+- src/components/lab/exploits.tsx (4 lines: type import path)
+- worklog.md (this entry)
