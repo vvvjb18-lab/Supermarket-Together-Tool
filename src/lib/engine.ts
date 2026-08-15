@@ -1009,6 +1009,108 @@ export function computeRestockPlan(
 }
 
 // ============================================================
+// Smart inventory (stock × per-visit demand → run-out horizon)
+// ------------------------------------------------------------
+// Converts a raw unit count into a decision-useful "how many customer
+// visits until this runs out" signal. `visitsRemaining` is expressed in
+// customer-visits (NOT days) to avoid inventing a customers/day constant;
+// the caller can divide by its own assumed daily traffic.
+// ============================================================
+
+export type StockStatus = 'critical' | 'low' | 'healthy' | 'overstocked' | 'dead'
+
+export interface SmartInventoryItem {
+  productId: number
+  /** Current total units across all props (selling + storage). */
+  current: number
+  /** Expected units sold per customer visit (proxy). */
+  demandPerVisit: number
+  /** current × market price — capital tied up in this product. */
+  marketValue: number
+  /** current / demandPerVisit. Infinity when demandPerVisit ≈ 0. */
+  visitsRemaining: number
+  status: StockStatus
+}
+
+export interface SmartInventory {
+  totalUnits: number
+  distinctProducts: number
+  totalMarketValue: number
+  totalBaseCost: number
+  items: SmartInventoryItem[]
+  counts: Record<StockStatus, number>
+  topUrgent: SmartInventoryItem[]
+  deadStock: SmartInventoryItem[]
+}
+
+export function computeSmartInventory(snapshot: SaveSnapshot | null): SmartInventory | null {
+  if (!snapshot || Object.keys(snapshot.inventoryByProduct).length === 0) return null
+  const inv = snapshot.inventoryByProduct
+
+  const items: SmartInventoryItem[] = []
+  let totalUnits = 0
+  let totalMarketValue = 0
+  let totalBaseCost = 0
+
+  for (const p of ENC.products) {
+    const current = (inv[p.id] as number) ?? 0
+    if (current <= 0) continue
+    const demandPerVisit = computeDemandPerVisit(p.id).value
+    const market = computeMarketPrice(p).value
+    const visitsRemaining = demandPerVisit > 1e-9 ? current / demandPerVisit : Infinity
+
+    let status: StockStatus
+    if (demandPerVisit <= 1e-9) status = 'dead'
+    else if (current < 5) status = 'critical'
+    else if (visitsRemaining < 12) status = 'low'
+    else if (current >= 100) status = 'overstocked'
+    else status = 'healthy'
+
+    totalUnits += current
+    totalMarketValue += current * market
+    totalBaseCost += current * p.basePricePerUnit
+    items.push({
+      productId: p.id,
+      current,
+      demandPerVisit,
+      marketValue: current * market,
+      visitsRemaining,
+      status,
+    })
+  }
+
+  const counts: Record<StockStatus, number> = {
+    critical: 0,
+    low: 0,
+    healthy: 0,
+    overstocked: 0,
+    dead: 0,
+  }
+  for (const it of items) counts[it.status]++
+
+  const topUrgent = items
+    .filter((it) => it.demandPerVisit > 1e-9)
+    .sort((a, b) => a.visitsRemaining - b.visitsRemaining)
+    .slice(0, 12)
+
+  const deadStock = items
+    .filter((it) => it.status === 'dead')
+    .sort((a, b) => b.marketValue - a.marketValue)
+    .slice(0, 12)
+
+  return {
+    totalUnits,
+    distinctProducts: items.length,
+    totalMarketValue,
+    totalBaseCost,
+    items,
+    counts,
+    topUrgent,
+    deadStock,
+  }
+}
+
+// ============================================================
 // Exploit classification
 // ============================================================
 

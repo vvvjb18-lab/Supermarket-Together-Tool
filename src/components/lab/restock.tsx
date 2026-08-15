@@ -6,9 +6,11 @@ import { encyclopedia as ENC } from '@/lib/data-loader'
 import { productById } from '@/lib/data-loader'
 import {
   computeRestockPlan,
-  computeDemandProxy,
+  computeDemandPerVisit,
+  computeSmartInventory,
   type RestockStrategy,
   type RestockRecommendation,
+  type StockStatus,
 } from '@/lib/engine'
 import { useSaveStore, useRoomStore } from '@/lib/store'
 import type { RestockItem, Product } from '@/lib/types'
@@ -59,7 +61,24 @@ import {
   ShoppingCart,
   Users,
   Receipt,
+  Boxes,
 } from 'lucide-react'
+
+/**
+ * Per-visit demand threshold for "high demand" in the detection panel.
+ * demandPerVisit ≈ expected units sold per customer visit. The distribution
+ * tops out around 0.044 and ~128/339 products exceed 0.01; 0.02 selects the
+ * genuinely top tier (≈ "sells in ≥1 of every 50 customer visits").
+ */
+const HIGH_DEMAND_THRESHOLD = 0.02
+
+const STOCK_STATUS_META: Record<StockStatus, { label: string; color: string; bar: string }> = {
+  critical: { label: '急缺', color: 'text-rose-600', bar: 'bg-rose-500' },
+  low: { label: '偏低', color: 'text-amber-600', bar: 'bg-amber-500' },
+  healthy: { label: '健康', color: 'text-emerald-600', bar: 'bg-emerald-500' },
+  overstocked: { label: '過量', color: 'text-sky-600', bar: 'bg-sky-500' },
+  dead: { label: '滯銷', color: 'text-zinc-500', bar: 'bg-zinc-400' },
+}
 
 const STRATEGIES: { id: RestockStrategy; label: string; desc: string }[] = [
   { id: 'balanced', label: 'Balanced', desc: '需求×箱值 + 密度 + 低庫存加權' },
@@ -141,12 +160,16 @@ export function Restock() {
   const detection = useMemo(() => {
     if (!snapshot) return null
     const inv = snapshot.inventoryByProduct ?? {}
-    // low stock
+    const unlockedSet = new Set(snapshot.unlockedProducts ?? [])
+    const demandOf = (id: number) => computeDemandPerVisit(id, ENC.necessities, ENC.customerTypes).value
+
+    // low stock (absolute units, >0 and <5)
     const lowStock = ENC.products
       .map((p) => ({ p, count: (inv[p.id] as number) ?? 0 }))
       .filter((x) => x.count > 0 && x.count < 5)
       .sort((a, b) => a.count - b.count)
       .slice(0, 10)
+
     // negative / invalid inventory entries from storeLayout
     const negativeEntries: { propIndex: number; product: number; count: number }[] = []
     for (const prop of snapshot.storeLayout ?? []) {
@@ -160,30 +183,36 @@ export function Restock() {
         }
       }
     }
-    // unlocked but never stocked (count 0 or absent)
-    const unlockedSet = new Set(snapshot.unlockedProducts ?? [])
+
+    // unlocked but never stocked (count 0 or absent), ranked by demand
     const neverStocked = ENC.products
       .filter((p) => unlockedSet.has(p.id) && ((inv[p.id] as number) ?? 0) === 0)
-      .map((p: Product) => ({
-        p,
-        demand: computeDemandProxy(p.id, ENC.necessities, ENC.customerTypes).value,
-      }))
+      .map((p: Product) => ({ p, demand: demandOf(p.id) }))
       .sort((a, b) => b.demand - a.demand)
       .slice(0, 10)
-    // high demand absent (demand>0.002 and count==0)
-    const highDemandAbsent = neverStocked
-      .filter((x) => x.demand > 0.002)
+
+    // high demand absent = unlocked + count 0 + per-visit demand above a real
+    // top-tier threshold. Computed over the FULL catalog (NOT derived from the
+    // sliced `neverStocked` list) so the count matches the list.
+    const highDemandAbsent = ENC.products
+      .filter((p) => unlockedSet.has(p.id) && ((inv[p.id] as number) ?? 0) === 0)
+      .map((p: Product) => ({ p, demand: demandOf(p.id) }))
+      .filter((x) => x.demand > HIGH_DEMAND_THRESHOLD)
+      .sort((a, b) => b.demand - a.demand)
       .slice(0, 10)
+
     return {
-      lowStockCount: Object.entries(inv).filter(([, c]) => (c as number) > 0 && (c as number) < 5).length,
+      lowStockCount: ENC.products.filter((p) => {
+        const c = (inv[p.id] as number) ?? 0
+        return c > 0 && c < 5
+      }).length,
       negativeCount: negativeEntries.length,
       neverStockedCount: ENC.products.filter(
         (p) => unlockedSet.has(p.id) && ((inv[p.id] as number) ?? 0) === 0,
       ).length,
       highDemandAbsentCount: ENC.products.filter((p) => {
         const c = (inv[p.id] as number) ?? 0
-        const d = computeDemandProxy(p.id, ENC.necessities, ENC.customerTypes).value
-        return c === 0 && d > 0.002
+        return unlockedSet.has(p.id) && c === 0 && demandOf(p.id) > HIGH_DEMAND_THRESHOLD
       }).length,
       lowStock,
       negativeEntries,
@@ -191,6 +220,9 @@ export function Restock() {
       highDemandAbsent,
     }
   }, [snapshot])
+
+  // Smart inventory: stock × per-visit demand → run-out horizon + dead stock.
+  const smartInventory = useMemo(() => computeSmartInventory(snapshot), [snapshot])
 
   const compute = () => {
     const opts = strategy === 'seasonal-prep' ? { season } : {}
@@ -343,7 +375,7 @@ export function Restock() {
               <DetectionStat
                 id="high"
                 label="高需求缺貨"
-                sub="demand>0.002 且 count=0"
+                sub="per-visit demand>0.02 且 count=0"
                 count={detection.highDemandAbsentCount}
                 accent="bad"
                 expanded={expandedDetection}
@@ -385,7 +417,7 @@ export function Restock() {
                   <DataRow
                     key={x.p.id}
                     title={productNameFor(x.p.id, lang)}
-                    subtitle={`#${x.p.id} · tier ${x.p.tier} · demand ${x.demand.toFixed(5)}`}
+                    subtitle={`#${x.p.id} · tier ${x.p.tier} · per-visit ${x.demand.toFixed(5)}`}
                     right={
                       <div className="flex w-24 flex-col items-end gap-0.5">
                         <span className="font-mono text-[10px]">{x.demand.toFixed(5)}</span>
@@ -403,7 +435,7 @@ export function Restock() {
                   <DataRow
                     key={x.p.id}
                     title={productNameFor(x.p.id, lang)}
-                    subtitle={`#${x.p.id} · tier ${x.p.tier}`}
+                    subtitle={`#${x.p.id} · tier ${x.p.tier} · per-visit ${x.demand.toFixed(5)}`}
                     right={
                       <div className="flex w-24 flex-col items-end gap-0.5">
                         <span className="font-mono text-[10px] text-rose-600">{x.demand.toFixed(5)}</span>
@@ -415,6 +447,105 @@ export function Restock() {
                 {detection.highDemandAbsent.length === 0 && <EmptyList />}
               </DetectionList>
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Smart inventory panel */}
+      {smartInventory && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center justify-between text-base">
+              <span className="flex items-center gap-2">
+                <Boxes className="h-4 w-4 text-primary" /> 智能庫存面板
+              </span>
+              <ConfidenceBadge
+                confidence="proxy"
+                formula="visitsRemaining = current / demandPerVisit（demandPerVisit 為 proxy）"
+              />
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {/* summary */}
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <StatCard
+                label="總件數"
+                value={smartInventory.totalUnits.toLocaleString()}
+                confidence="confirmed"
+                formula="Σ count"
+                accent="neutral"
+              />
+              <StatCard
+                label="庫存品項"
+                value={smartInventory.distinctProducts.toLocaleString()}
+                confidence="confirmed"
+                formula="count>0 的商品數"
+                accent="neutral"
+              />
+              <StatCard
+                label="庫存市值"
+                value={fmtMoney(smartInventory.totalMarketValue)}
+                confidence="proxy"
+                formula="Σ count × marketPrice"
+                accent="good"
+              />
+              <StatCard
+                label="滯銷品項"
+                value={smartInventory.counts.dead.toLocaleString()}
+                confidence="proxy"
+                formula="demandPerVisit≈0 且有庫存"
+                accent={smartInventory.counts.dead > 0 ? 'warn' : 'neutral'}
+              />
+            </div>
+
+            {/* status buckets */}
+            <div className="flex flex-wrap gap-2">
+              {(Object.keys(STOCK_STATUS_META) as StockStatus[]).map((s) => (
+                <div key={s} className="flex items-center gap-1.5 rounded-md border bg-card px-2 py-1 text-[11px]">
+                  <span className={`h-2 w-2 rounded-full ${STOCK_STATUS_META[s].bar}`} />
+                  <span className="text-muted-foreground">{STOCK_STATUS_META[s].label}</span>
+                  <span className={`font-bold tabular-nums ${STOCK_STATUS_META[s].color}`}>
+                    {smartInventory.counts[s]}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* two lists */}
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+              <div>
+                <div className="mb-1 text-xs font-semibold">最急補貨（還剩最少顧客造訪）</div>
+                <div className="max-h-72 space-y-1 overflow-y-auto scrollbar-thin pr-1">
+                  {smartInventory.topUrgent.map((it) => (
+                    <DataRow
+                      key={it.productId}
+                      title={productNameFor(it.productId, lang)}
+                      subtitle={`stock ${it.current} · per-visit ${it.demandPerVisit.toFixed(5)}`}
+                      right={
+                        <Badge variant="outline" className="text-[10px] text-rose-600">
+                          ≈{Number.isFinite(it.visitsRemaining) ? Math.max(1, Math.round(it.visitsRemaining)) : '∞'} 造訪
+                        </Badge>
+                      }
+                    />
+                  ))}
+                  {smartInventory.topUrgent.length === 0 && <EmptyList />}
+                </div>
+              </div>
+              <div>
+                <div className="mb-1 text-xs font-semibold">滯銷庫存（無需求仍佔倉）</div>
+                <div className="max-h-72 space-y-1 overflow-y-auto scrollbar-thin pr-1">
+                  {smartInventory.deadStock.map((it) => (
+                    <DataRow
+                      key={it.productId}
+                      title={productNameFor(it.productId, lang)}
+                      subtitle={`stock ${it.current} · 市值 ${fmtMoney(it.marketValue)}`}
+                      right={<Badge variant="outline" className="text-[10px] text-zinc-500">dead</Badge>}
+                    />
+                  ))}
+                  {smartInventory.deadStock.length === 0 && <EmptyList />}
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
