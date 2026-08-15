@@ -791,19 +791,32 @@ export function computeStoreOptimization(
 // ============================================================
 // Store health / dashboard scores
 // ============================================================
+// Every dimension returns null (= no data) when the snapshot lacks the
+// inputs needed to compute it honestly. The dashboard UI renders "—" with a
+// `needs-save` confidence badge for null values instead of faking 30/60/50
+// defaults that lie about a "Store Health 75" with no data behind it.
 
 export interface DashboardScores {
-  storeHealth: CalcResult<number> // 0..100
-  demandCoverage: CalcResult<number>
-  stockRisk: CalcResult<number>
-  shelfEfficiency: CalcResult<number>
-  employeeEfficiency: CalcResult<number>
+  /** Composite 0..100, or null if any input sub-score is null. */
+  storeHealth: CalcResult<number | null>
+  demandCoverage: CalcResult<number | null>
+  stockRisk: CalcResult<number | null>
+  shelfEfficiency: CalcResult<number | null>
+  employeeEfficiency: CalcResult<number | null>
+}
+
+function _wrap<T>(value: T | null, formula: string, confidence: Confidence, sources: string[] = []): CalcResult<T | null> {
+  return { value, formula, sources, confidence: confidence === 'confirmed' && value === null ? 'needs-save' : confidence }
 }
 
 export function computeDashboardScores(snapshot: SaveSnapshot | null): DashboardScores {
-  // demand coverage
-  let demandCov = 0
-  if (snapshot && Object.keys(snapshot.inventoryByProduct).length > 0) {
+  const hasInv = !!(snapshot && Object.keys(snapshot.inventoryByProduct).length > 0)
+  const hasLayout = !!(snapshot && snapshot.storeLayout.length > 0)
+  const hasEmployees = !!(snapshot && snapshot.employees.length > 0)
+
+  // demand coverage: null unless inventory exists
+  let demandCov: number | null = null
+  if (hasInv && snapshot) {
     const stocked = new Set(
       Object.entries(snapshot.inventoryByProduct)
         .filter(([, c]) => (c as number) > 0)
@@ -813,32 +826,29 @@ export function computeDashboardScores(snapshot: SaveSnapshot | null): Dashboard
     const totalWeight = cov.reduce((s, c) => s + c.totalWeight, 0)
     const coveredWeight = cov.reduce((s, c) => s + c.coverage * c.totalWeight, 0)
     demandCov = totalWeight > 0 ? (coveredWeight / totalWeight) * 100 : 0
-  } else {
-    // demo: assume all products stocked
-    demandCov = 100
   }
 
-  // stock risk: % of stocked products with very low units (<5)
-  let stockRisk = 30
-  if (snapshot && Object.keys(snapshot.inventoryByProduct).length > 0) {
+  // stock risk: null unless inventory exists
+  let stockRisk: number | null = null
+  if (hasInv && snapshot) {
     const entries = Object.entries(snapshot.inventoryByProduct)
     const low = entries.filter(([, c]) => (c as number) > 0 && (c as number) < 5).length
     const total = entries.filter(([, c]) => (c as number) > 0).length
     stockRisk = total > 0 ? (low / total) * 100 : 0
   }
 
-  // shelf efficiency
-  let shelfEff = 60
-  if (snapshot && snapshot.storeLayout.length > 0) {
+  // shelf efficiency: null if no layout; if layout has zero inventory it's 0% (not 60)
+  let shelfEff: number | null = null
+  if (hasLayout && snapshot) {
     const eff = computeShelfEfficiency(snapshot.storeLayout).value
     const emptyTotal = eff.reduce((s, p) => s + p.emptySlots, 0)
     const slotTotal = eff.reduce((s, p) => s + (p.emptySlots + p.distinctProducts), 0)
     shelfEff = slotTotal > 0 ? Math.max(0, 100 - (emptyTotal / slotTotal) * 100) : 0
   }
 
-  // employee efficiency (demo: based on employee count & avg level)
-  let empEff = 50
-  if (snapshot && snapshot.employees.length > 0) {
+  // employee efficiency: null unless employees exist
+  let empEff: number | null = null
+  if (hasEmployees && snapshot) {
     const avgLevel = snapshot.employees.reduce((s, e) => {
       const levels = Object.values(e.skills).map((sk) => sk.level)
       return s + (levels.reduce((a, b) => a + b, 0) / (levels.length || 1))
@@ -846,19 +856,28 @@ export function computeDashboardScores(snapshot: SaveSnapshot | null): Dashboard
     empEff = Math.min(100, 30 + avgLevel * 14)
   }
 
-  const storeHealth = Math.max(0, Math.min(100, demandCov * 0.35 + (100 - stockRisk) * 0.25 + shelfEff * 0.25 + empEff * 0.15))
+  // composite: only valid when ALL four sub-scores are present
+  let storeHealth: number | null = null
+  if (demandCov != null && stockRisk != null && shelfEff != null && empEff != null) {
+    storeHealth = Math.max(
+      0,
+      Math.min(
+        100,
+        demandCov * 0.35 + (100 - stockRisk) * 0.25 + shelfEff * 0.25 + empEff * 0.15,
+      ),
+    )
+  }
 
   return {
-    storeHealth: {
-      value: storeHealth,
-      formula: 'storeHealth = 0.35×demandCov + 0.25×(100-stockRisk) + 0.25×shelfEff + 0.15×empEff',
-      sources: [],
-      confidence: 'proxy',
-    },
-    demandCoverage: { value: demandCov, formula: 'Σ(nec.coverage × nec.totalWeight) / Σ nec.totalWeight × 100', sources: [], confidence: 'proxy' },
-    stockRisk: { value: stockRisk, formula: '(lowStockProducts / totalStockedProducts) × 100, low=<5 units', sources: [], confidence: 'proxy' },
-    shelfEfficiency: { value: shelfEff, formula: '100 − (emptySlots/totalSlots)×100', sources: [], confidence: 'proxy' },
-    employeeEfficiency: { value: empEff, formula: 'min(100, 30 + avgLevel×14)', sources: [], confidence: 'proxy' },
+    storeHealth: _wrap(
+      storeHealth,
+      'storeHealth = 0.35×demandCov + 0.25×(100−stockRisk) + 0.25×shelfEff + 0.15×empEff (null if any sub-score missing)',
+      'proxy',
+    ),
+    demandCoverage: _wrap(demandCov, 'Σ(nec.coverage × nec.totalWeight) / Σ nec.totalWeight × 100', 'proxy'),
+    stockRisk: _wrap(stockRisk, '(lowStockProducts / totalStockedProducts) × 100, low=<5 units', 'proxy'),
+    shelfEfficiency: _wrap(shelfEff, '100 − (emptySlots/totalSlots)×100', 'proxy'),
+    employeeEfficiency: _wrap(empEff, 'min(100, 30 + avgLevel×14)', 'proxy'),
   }
 }
 
@@ -1384,11 +1403,12 @@ export function exportMarkdownReport(snapshot: SaveSnapshot | null): string {
   let md = '# Supermarket Together Lab — 報告\n\n'
   md += `生成時間: ${new Date().toISOString()}\n\n`
   md += '## Dashboard 分數\n\n'
-  md += `- Store Health: ${scores.storeHealth.value.toFixed(1)} (${scores.storeHealth.confidence})\n`
-  md += `- Demand Coverage: ${scores.demandCoverage.value.toFixed(1)}%\n`
-  md += `- Stock Risk: ${scores.stockRisk.value.toFixed(1)}%\n`
-  md += `- Shelf Efficiency: ${scores.shelfEfficiency.value.toFixed(1)}\n`
-  md += `- Employee Efficiency: ${scores.employeeEfficiency.value.toFixed(1)}\n\n`
+  const fmtScore = (v: number | null, d = 1): string => (v == null ? '—' : v.toFixed(d))
+  md += `- Store Health: ${fmtScore(scores.storeHealth.value)} (${scores.storeHealth.confidence})\n`
+  md += `- Demand Coverage: ${fmtScore(scores.demandCoverage.value)}%\n`
+  md += `- Stock Risk: ${fmtScore(scores.stockRisk.value)}%\n`
+  md += `- Shelf Efficiency: ${fmtScore(scores.shelfEfficiency.value, 0)}\n`
+  md += `- Employee Efficiency: ${fmtScore(scores.employeeEfficiency.value, 0)}\n\n`
   md += '## Salt Monopoly Probe\n\n'
   md += `- Route 9 (Salt necessity): ${salt.saltRoute9.value.toFixed(6)}\n`
   md += `- Route 10 (Staple): ${salt.saltRoute10.value.toFixed(6)}\n`

@@ -168,12 +168,13 @@ export function MiniBar({ value, max, color = 'bg-primary' }: { value: number; m
   )
 }
 
-export function ScoreRing({ value, label, sublabel }: { value: number; label: string; sublabel?: string }) {
-  const v = Math.max(0, Math.min(100, value))
+export function ScoreRing({ value, label, sublabel }: { value: number | null; label: string; sublabel?: string }) {
   const r = 28
   const c = 2 * Math.PI * r
-  const dash = (v / 100) * c
-  const color = v >= 70 ? '#10b981' : v >= 40 ? '#f59e0b' : '#f43f5e'
+  const hasValue = typeof value === 'number'
+  const v = hasValue ? Math.max(0, Math.min(100, value as number)) : 0
+  const dash = hasValue ? (v / 100) * c : 0
+  const color = hasValue ? (v >= 70 ? '#10b981' : v >= 40 ? '#f59e0b' : '#f43f5e') : '#71717a'
   return (
     <div className="flex flex-col items-center gap-1">
       <svg width="72" height="72" viewBox="0 0 72 72" className="-rotate-90">
@@ -189,7 +190,7 @@ export function ScoreRing({ value, label, sublabel }: { value: number; label: st
           strokeDasharray={`${dash} ${c - dash}`}
         />
         <text x="36" y="36" textAnchor="middle" dominantBaseline="central" className="rotate-90 fill-foreground text-sm font-bold" style={{ transform: 'rotate(90deg)', transformOrigin: '36px 36px' }}>
-          {Math.round(v)}
+          {hasValue ? Math.round(v) : '—'}
         </text>
       </svg>
       <div className="text-center">

@@ -140,7 +140,7 @@ export function Dashboard() {
         view: 'upload',
       })
     } else {
-      if (scores.stockRisk.value > 40) {
+      if (scores.stockRisk.value != null && scores.stockRisk.value > 40) {
         actions.push({
           id: 'a2',
           label: `${Math.round(scores.stockRisk.value)}% 商品庫存過低，前往補貨規劃`,
@@ -149,7 +149,7 @@ export function Dashboard() {
           view: 'restock',
         })
       }
-      if (scores.demandCoverage.value < 70) {
+      if (scores.demandCoverage.value != null && scores.demandCoverage.value < 70) {
         actions.push({
           id: 'a3',
           label: `需求覆蓋僅 ${scores.demandCoverage.value.toFixed(0)}%，補齊缺失品類`,
@@ -158,7 +158,7 @@ export function Dashboard() {
           view: 'restock',
         })
       }
-      if (scores.shelfEfficiency.value < 60) {
+      if (scores.shelfEfficiency.value != null && scores.shelfEfficiency.value < 60) {
         actions.push({
           id: 'a4',
           label: '店面有空貨架，前往平面圖檢視',
@@ -195,6 +195,11 @@ export function Dashboard() {
   }, [snapshot, scores])
 
   const hasData = snapshot != null
+  // Helper: render null scores as "—" (honest, not faked to 30/60/50/100).
+  const scoreOrDash = (v: number | null, digits = 0): string =>
+    v == null ? '—' : fmt(v, digits)
+  const scoreConfidence = (v: number | null): 'proxy' | 'needs-save' =>
+    v == null ? 'needs-save' : 'proxy'
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-4 p-4">
@@ -224,12 +229,46 @@ export function Dashboard() {
       {/* Score row */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <Card className="flex items-center justify-center p-3">
-          <ScoreRing value={scores.storeHealth.value} label="Store Health" sublabel="綜合" />
+          <ScoreRing
+            value={scores.storeHealth.value}
+            label="Store Health"
+            sublabel={scores.storeHealth.value == null ? '需存檔' : '綜合'}
+          />
         </Card>
-        <StatCard label="Demand Coverage" value={fmt(scores.demandCoverage.value, 0)} unit="%" confidence="proxy" formula={scores.demandCoverage.formula} accent={scores.demandCoverage.value > 70 ? 'good' : 'warn'} />
-        <StatCard label="Stock Risk" value={fmt(scores.stockRisk.value, 0)} unit="%" confidence="proxy" formula={scores.stockRisk.formula} accent={scores.stockRisk.value < 30 ? 'good' : 'bad'} />
-        <StatCard label="Shelf Efficiency" value={fmt(scores.shelfEfficiency.value, 0)} confidence="proxy" formula={scores.shelfEfficiency.formula} accent={scores.shelfEfficiency.value > 60 ? 'good' : 'warn'} />
-        <StatCard label="Employee Eff." value={fmt(scores.employeeEfficiency.value, 0)} confidence="proxy" formula={scores.employeeEfficiency.formula} accent="neutral" />
+        <StatCard
+          label="Demand Coverage"
+          value={scoreOrDash(scores.demandCoverage.value, 0)}
+          unit="%"
+          confidence={scoreConfidence(scores.demandCoverage.value)}
+          formula={scores.demandCoverage.formula}
+          hint={scores.demandCoverage.value == null ? '需存檔內 inventoryByProduct' : undefined}
+          accent={scores.demandCoverage.value == null ? 'neutral' : scores.demandCoverage.value > 70 ? 'good' : 'warn'}
+        />
+        <StatCard
+          label="Stock Risk"
+          value={scoreOrDash(scores.stockRisk.value, 0)}
+          unit="%"
+          confidence={scoreConfidence(scores.stockRisk.value)}
+          formula={scores.stockRisk.formula}
+          hint={scores.stockRisk.value == null ? '需存檔內 inventoryByProduct' : undefined}
+          accent={scores.stockRisk.value == null ? 'neutral' : scores.stockRisk.value < 30 ? 'good' : 'bad'}
+        />
+        <StatCard
+          label="Shelf Efficiency"
+          value={scoreOrDash(scores.shelfEfficiency.value, 0)}
+          confidence={scoreConfidence(scores.shelfEfficiency.value)}
+          formula={scores.shelfEfficiency.formula}
+          hint={scores.shelfEfficiency.value == null ? '需存檔內 storeLayout' : undefined}
+          accent={scores.shelfEfficiency.value == null ? 'neutral' : scores.shelfEfficiency.value > 60 ? 'good' : 'warn'}
+        />
+        <StatCard
+          label="Employee Eff."
+          value={scoreOrDash(scores.employeeEfficiency.value, 0)}
+          confidence={scoreConfidence(scores.employeeEfficiency.value)}
+          formula={scores.employeeEfficiency.formula}
+          hint={scores.employeeEfficiency.value == null ? '需存檔內 employees' : undefined}
+          accent="neutral"
+        />
         <StatCard
           label="Money / FP"
           value={hasData && snapshot!.money > 0 ? fmtMoney(snapshot!.money) : '—'}

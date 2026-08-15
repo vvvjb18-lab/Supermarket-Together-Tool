@@ -1480,3 +1480,51 @@ Files changed:
 - src/lib/types.ts (+13 lines: ExploitCategory + ExploitCandidate)
 - src/components/lab/exploits.tsx (4 lines: type import path)
 - worklog.md (this entry)
+
+---
+Task ID: 8
+Agent: orchestrator (main)
+Task: v2.2 — Honest dashboard scores: kill the "Store Health 75" magic numbers.
+
+Context:
+- 之前 v2.1 修完後,掃描發現 computeDashboardScores 有 4 個 magic default values
+  (demandCov=100, stockRisk=30, shelfEff=60, empEff=50),在沒有真實資料時
+  合成 Store Health = 75,假裝儀表板滿血但其實什麼都沒算
+- 這是 v2.0 / v2.1 worklog 已知的 "magic 75" 問題,只是當時沒改
+
+Work Log:
+- 移動 4 個 src/lib/data/*.bak.mine (合計 565KB) → __bak_archive/ (沙箱禁止 Remove-Item)
+  - 新增 .gitignore 規則排除 __bak_archive/ (commit 5c1b919)
+- src/lib/engine.ts:
+  - DashboardScores 所有 5 個 value 改成 number | null
+  - computeDashboardScores: 沒有 inventoryByProduct / storeLayout / employees 時回傳 null
+  - storeHealth 只有在 4 個 sub-score 都存在時才計算(否則 null)
+  - 用 _wrap() helper 統一 confidence wrapper (null 值時 confidence 改 needs-save)
+- src/components/shared/primitives.tsx:
+  - ScoreRing 接受 number | null,null 時顯示 "—" + 灰色 ring
+- src/components/lab/dashboard.tsx:
+  - scoreOrDash(v, digits) helper 統一處理 null → "—"
+  - scoreConfidence(v) helper null → 'needs-save' / 數字 → 'proxy'
+  - 5 個 score 卡片:null 時顯示 "—" + needs-save badge + hint 說明缺哪個欄位
+  - nextActions 對 null 值的閾值檢查跳過 (a2 stockRisk>40, a3 demandCov<70, a4 shelfEff<60)
+- src/lib/engine.ts exportMarkdownReport: 同步加上 null-safe 渲染 (fmtScore helper)
+- 跑 npx tsc --noEmit: 0 errors (只有預存的 scripts/fix-layout-props.ts 2 errors 不在本範圍)
+- 跑 npx eslint: 3 改動檔 0 errors
+- 跑 npx next build: ✓ Compiled successfully in 1187ms, 5 static pages generated
+
+Stage Summary:
+- 「Store Health 75」假數字消失了 — 沒有存檔時 UI 顯示 5 個 "—" + 5 個 needs-save badge
+- 存檔有 inventoryByProduct 但缺 storeLayout → 部分分數有值,部分 null
+- 存檔有員工 → Employee Eff. 才會有值
+- 這是 honesty-first 的修正:跟 v2.0 pricing 的 v2.0 confirmed tone 一致
+
+Files changed:
+- src/lib/engine.ts (-5 magic numbers, +30 LOC for null handling)
+- src/components/shared/primitives.tsx (+13 LOC for ScoreRing null support)
+- src/components/lab/dashboard.tsx (-10 magic refs, +40 LOC for null UI)
+- worklog.md (this entry)
+
+Migration:
+- 沒有 breaking API change,只有型別從 number 變 number | null
+- 之前用 scores.x.value.toFixed() 的地方會編譯失敗 → 已修
+- 之前用 scores.x.value > X 比較的地方會編譯失敗 → 已加 != null 判斷
