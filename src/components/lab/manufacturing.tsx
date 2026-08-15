@@ -482,11 +482,11 @@ export function Manufacturing() {
 
         {/* Required input products / recipe note */}
         <SectionHeader
-          title="基底商品（linkedProductID）"
-          description="每個製造品有一個 linkedProductID 指向基底商品。配方為基底+任意可組合一般商品，無固定配方表。"
+          title="配方分類（linkedProductID）"
+          description="manufacturingProducts.linkedProductID 是製造配方的 category index（0=麵包/烘焙類、1=蛋糕類）。遊戲內配方是「基底商品 + 任意可組合一般商品」自由組合，無固定配方表。"
           confidence="unverified"
-          formula="linkedProductID = 基底商品（productsData）"
-          note="食譜 = 基底 + 任意 combinable 一般商品（未提取固定表）"
+          formula="linkedProductID = 製造 category index (0/1)"
+          note="食譜 = 基底 + 任意 combinable 一般商品（未提取固定表）。linkedProductID 不直接是商品 id。"
         />
         <Card>
           <CardContent className="pt-2">
@@ -508,21 +508,21 @@ export function Manufacturing() {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <code className="cursor-help font-mono text-xs underline decoration-dotted">
-                            #{m.linkedProductID}
+                            cat={m.linkedProductID}
                           </code>
                         </TooltipTrigger>
                         <TooltipContent side="top" className="max-w-xs">
                           <div className="text-xs">
-                            <div className="font-semibold">{linkedLabel}</div>
-                            <div className="text-muted-foreground">{linkedProduct.name.en}</div>
-                            <div className="mt-1 font-mono text-[10px]">
-                              basePrice: ${linkedProduct.basePricePerUnit}
+                            <div className="font-semibold">category id = {m.linkedProductID}</div>
+                            <div className="text-muted-foreground">first product in this category: {linkedLabel} (#{m.linkedProductID})</div>
+                            <div className="mt-1 font-mono text-[10px] text-amber-600">
+                              注意：linkedProductID 是 category index，不是「基底商品」id。遊戲允許任意可組合 ingredient 自由配方。
                             </div>
                           </div>
                         </TooltipContent>
                       </Tooltip>
                     ) : (
-                      <code className="font-mono text-xs text-rose-500">#{m.linkedProductID} (missing)</code>
+                      <code className="font-mono text-xs text-rose-500">cat={m.linkedProductID} (no product)</code>
                     )}
                   </div>
                 </div>
@@ -563,7 +563,7 @@ export function Manufacturing() {
                         <div className="text-[10px] text-muted-foreground">{m.name.en}</div>
                       </td>
                       <td className="py-2 pr-3">
-                        <span className="font-mono text-xs">{m.linkedProductID}</span>
+                        <span className="font-mono text-xs">cat={m.linkedProductID}</span>
                         {linkedProduct && (
                           <span className="ml-1 text-[10px] text-muted-foreground">
                             ({linkedLabel})

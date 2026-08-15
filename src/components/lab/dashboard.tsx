@@ -7,6 +7,8 @@ import { useLang, productNameFor } from '@/lib/i18n'
 import {
   computeDashboardScores,
   computeDemandProxy,
+  computeDemandPerVisit,
+  computeMarketPrice,
   computeBoxValue,
   computeColliderVolume,
   computeValueDensity,
@@ -42,9 +44,14 @@ export function Dashboard() {
     return ENC.products
       .filter((p) => (inv[p.id] as number) !== undefined || Object.keys(inv).length === 0)
       .map((p) => {
-        const demand = computeDemandProxy(p.id, ENC.necessities, ENC.customerTypes).value
+        // v2.0: use per-visit demand (multiplies by compensatedChances sum)
+        const demand = computeDemandPerVisit(p.id, ENC.necessities, ENC.customerTypes).value
         const current = (inv[p.id] as number) ?? 0
-        const urgency = demand * (current < 10 ? 5 : 1) + (current === 0 && demand > 0.001 ? 2 : 0)
+        // urgency = demand * (current < 10 ? 5 : 1) + (current === 0 && demand > 0.001 ? 2 : 0)
+        // 5 = "critically low" multiplier (<10 units, ~1 day of stock)
+        // 2 = "out of stock" boost (lost sales until restock)
+        const urgency =
+          demand * (current < 10 ? 5 : 1) + (current === 0 && demand > 0.001 ? 2 : 0)
         return { p, demand, current, urgency, label: productNameFor(p.id, lang) }
       })
       .filter((x) => x.urgency > 0)
@@ -88,9 +95,13 @@ export function Dashboard() {
         const box = computeBoxValue(p).value
         const vol = computeColliderVolume(p).value
         const density = computeValueDensity(p).value
-        const demand = computeDemandProxy(p.id, ENC.necessities, ENC.customerTypes).value
+        // v2.0: use per-visit demand so the score reflects "real sales potential"
+        const demand = computeDemandPerVisit(p.id, ENC.necessities, ENC.customerTypes).value
+        const market = computeMarketPrice(p).value
+        // score weights: 0.4 (box value) + 0.0001 (density) + 0.6 (demand×box)
+        // 0.0001 normalizes $/u³ values (typically 1e3-1e5) to similar scale
         const score = box * 0.4 + density * 0.0001 + demand * box * 0.6
-        return { p, box, density, demand, score, label: productNameFor(p.id, lang) }
+        return { p, box, density, demand, market, score, label: productNameFor(p.id, lang) }
       })
       .sort((a, b) => b.score - a.score)
       .slice(0, 10)
@@ -319,7 +330,7 @@ export function Dashboard() {
               key={r.p.id}
               index={i + 1}
               title={r.label}
-              subtitle={`#${r.p.id} · box ${fmtMoney(r.box)} · density ${fmt(r.density, 1)} $/u³`}
+              subtitle={`#${r.p.id} · box ${fmtMoney(r.box)} · market ${fmtMoney(r.market)} · density ${fmt(r.density, 1)} $/u³`}
               right={
                 <div className="flex flex-col items-end">
                   <span className="font-mono text-xs">score {fmt(r.score, 1)}</span>

@@ -18,8 +18,17 @@
       "necessities": 11,
       "seasons": 4,
       "storeLayoutProps": 41,
-      "premiumProducts": 7
-    }
+      "premiumProducts": 7,
+      "achievementStats": 51,
+      "tiersWithInflation": 17
+    },
+    "encyclopediaVersion": "2.0",
+    "patchNotes": [
+      "v2.0: tierInflation filled with real game values (1.13-1.59 for tiers 0-16)",
+      "v2.0: premiumIndexes filled with 7 premium product ids for all 58 customers",
+      "v2.0: skills array now contains 5 placeholders (perk 0-4 Employee I-V) + 39 real",
+      "v2.0: achievementStats filled with 51 descriptions"
+    ]
   },
   "products": [
     {
@@ -13592,7 +13601,7 @@
         "zhHans": "基础产品 I",
         "zhHant": "基本產品I"
       },
-      "inflation": 1,
+      "inflation": 1.54,
       "group": 0
     },
     {
@@ -13603,7 +13612,7 @@
         "zhHans": "基础产品 II",
         "zhHant": "基本產品II"
       },
-      "inflation": 1,
+      "inflation": 1.56,
       "group": 0
     },
     {
@@ -13614,7 +13623,7 @@
         "zhHans": "基础产品 III",
         "zhHant": "基本產品III"
       },
-      "inflation": 1,
+      "inflation": 1.59,
       "group": 0
     },
     {
@@ -13625,7 +13634,7 @@
         "zhHans": "基础产品 IV",
         "zhHant": "基本產品IV"
       },
-      "inflation": 1,
+      "inflation": 1.56,
       "group": 0
     },
     {
@@ -13636,7 +13645,7 @@
         "zhHans": "基础产品 V",
         "zhHant": "基本產品V"
       },
-      "inflation": 1,
+      "inflation": 1.55,
       "group": 0
     },
     {
@@ -13647,7 +13656,7 @@
         "zhHans": "基础产品 VI",
         "zhHant": "基本產品VI"
       },
-      "inflation": 1,
+      "inflation": 1.49,
       "group": 0
     },
     {
@@ -13658,7 +13667,7 @@
         "zhHans": "乳制品 I",
         "zhHant": "乳製品 I"
       },
-      "inflation": 1,
+      "inflation": 1.44,
       "group": 1
     },
     {
@@ -13669,7 +13678,7 @@
         "zhHans": "乳制品 II",
         "zhHant": "乳製品 II"
       },
-      "inflation": 1,
+      "inflation": 1.44,
       "group": 1
     },
     {
@@ -13680,7 +13689,7 @@
         "zhHans": "苏打饮料 I",
         "zhHant": "蘇打飲料I"
       },
-      "inflation": 1,
+      "inflation": 1.46,
       "group": 2
     },
     {
@@ -13691,7 +13700,7 @@
         "zhHans": "冷冻食品 I",
         "zhHant": "冷凍食品 I"
       },
-      "inflation": 1,
+      "inflation": 1.47,
       "group": 3
     },
     {
@@ -13702,7 +13711,7 @@
         "zhHans": "冷冻食品 II",
         "zhHant": "冷凍食品 II"
       },
-      "inflation": 1,
+      "inflation": 1.27,
       "group": 3
     },
     {
@@ -13713,7 +13722,7 @@
         "zhHans": "卫生用品 I",
         "zhHant": "衛生I"
       },
-      "inflation": 1,
+      "inflation": 1.34,
       "group": 4
     },
     {
@@ -13724,7 +13733,7 @@
         "zhHans": "卫生用品 II",
         "zhHant": "衛生II"
       },
-      "inflation": 1,
+      "inflation": 1.34,
       "group": 4
     },
     {
@@ -13735,7 +13744,7 @@
         "zhHans": "卫生用品 III",
         "zhHant": "衛生III"
       },
-      "inflation": 1,
+      "inflation": 1.13,
       "group": 4
     },
     {
@@ -13746,7 +13755,7 @@
         "zhHans": "清洁产品 I",
         "zhHant": "清潔商品I"
       },
-      "inflation": 1,
+      "inflation": 1.18,
       "group": 5
     },
     {
@@ -13757,7 +13766,7 @@
         "zhHans": "清洁产品 II",
         "zhHant": "清潔產品II"
       },
-      "inflation": 1,
+      "inflation": 1.13,
       "group": 5
     },
     {
@@ -13768,7 +13777,7 @@
         "zhHans": "糖果和零食 I",
         "zhHant": "糖果零食I"
       },
-      "inflation": 1,
+      "inflation": 1.17,
       "group": 6
     },
     {
@@ -13779,7 +13788,7 @@
         "zhHans": "糖果和零食 II",
         "zhHant": "糖果零食II"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 6
     },
     {
@@ -13790,7 +13799,7 @@
         "zhHans": "糖果和零食 III",
         "zhHant": "糖果零食III"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 6
     },
     {
@@ -13801,7 +13810,7 @@
         "zhHans": "糖果和零食 IV",
         "zhHant": "糖果零食IV"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 6
     },
     {
@@ -13812,7 +13821,7 @@
         "zhHans": "肉类 I",
         "zhHant": "肉I"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 7
     },
     {
@@ -13823,7 +13832,7 @@
         "zhHans": "储备食品 I",
         "zhHant": "果醬I"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 8
     },
     {
@@ -13834,7 +13843,7 @@
         "zhHans": "调味品 I",
         "zhHant": "點滴I"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 9
     },
     {
@@ -13845,7 +13854,7 @@
         "zhHans": "海鲜 I",
         "zhHant": "海鮮I"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 10
     },
     {
@@ -13856,7 +13865,7 @@
         "zhHans": "书籍包 I",
         "zhHant": "書包I"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 11
     },
     {
@@ -13867,7 +13876,7 @@
         "zhHans": "书籍包 II",
         "zhHant": "書包II"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 11
     },
     {
@@ -13878,7 +13887,7 @@
         "zhHans": "酒精饮料 I",
         "zhHant": "酒精飲料I"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 12
     },
     {
@@ -13889,7 +13898,7 @@
         "zhHans": "酒精饮料 II",
         "zhHant": "酒精飲料II"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 12
     },
     {
@@ -13900,7 +13909,7 @@
         "zhHans": "酒精饮料 III",
         "zhHant": "酒精飲料III"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 12
     },
     {
@@ -13911,7 +13920,7 @@
         "zhHans": "药店 I",
         "zhHant": "藥局I"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 13
     },
     {
@@ -13922,7 +13931,7 @@
         "zhHans": "药店 II",
         "zhHant": "藥局II"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 13
     },
     {
@@ -13933,7 +13942,7 @@
         "zhHans": "农产品 I",
         "zhHant": "農產品I"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 14
     },
     {
@@ -13944,7 +13953,7 @@
         "zhHans": "农产品 II",
         "zhHant": "農產品II"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 14
     },
     {
@@ -13955,7 +13964,7 @@
         "zhHans": "农产品 III",
         "zhHant": "農產品III"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 14
     },
     {
@@ -13966,7 +13975,7 @@
         "zhHans": "农产品 IV",
         "zhHant": "農產品IV"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 14
     },
     {
@@ -13977,7 +13986,7 @@
         "zhHans": "婴儿用品 I",
         "zhHant": "兒童保育I"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 15
     },
     {
@@ -13988,7 +13997,7 @@
         "zhHans": "婴儿用品 II",
         "zhHant": "兒童保育II"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 15
     },
     {
@@ -13999,7 +14008,7 @@
         "zhHans": "苏打饮料 II",
         "zhHant": "汽水二"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 2
     },
     {
@@ -14010,7 +14019,7 @@
         "zhHans": "苏打饮料 III",
         "zhHant": "蘇打飲料三"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 2
     },
     {
@@ -14021,7 +14030,7 @@
         "zhHans": "糖果和零食 V",
         "zhHant": "糖果和零食 V"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 6
     },
     {
@@ -14032,7 +14041,7 @@
         "zhHans": "糖果和零食 VI",
         "zhHant": "糖果和零食 VI"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 6
     },
     {
@@ -14043,7 +14052,7 @@
         "zhHans": "储备食品 II",
         "zhHant": "蜜餞 II"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 8
     },
     {
@@ -14054,7 +14063,7 @@
         "zhHans": "园艺 I",
         "zhHant": "园艺 I"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 16
     },
     {
@@ -14065,7 +14074,7 @@
         "zhHans": "园艺 II",
         "zhHant": "园艺 II"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 16
     },
     {
@@ -14076,7 +14085,7 @@
         "zhHans": "园艺 III",
         "zhHant": "园艺 III"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 16
     },
     {
@@ -14087,7 +14096,7 @@
         "zhHans": "园艺 IV",
         "zhHant": "园艺 IV"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 16
     },
     {
@@ -14098,7 +14107,7 @@
         "zhHans": "小型电子产品 I",
         "zhHant": "小型電子產品 I"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 17
     },
     {
@@ -14109,7 +14118,7 @@
         "zhHans": "小型电子产品 II",
         "zhHant": "小型電子產品 II"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 17
     },
     {
@@ -14120,7 +14129,7 @@
         "zhHans": "小型电子产品 III",
         "zhHant": "小型电子产品 III"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 17
     },
     {
@@ -14131,7 +14140,7 @@
         "zhHans": "农产品 V",
         "zhHant": "农产品 V"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 14
     },
     {
@@ -14142,7 +14151,7 @@
         "zhHans": "糖果和零食 VII",
         "zhHant": "糖果和零食 VII"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 6
     },
     {
@@ -14153,7 +14162,7 @@
         "zhHans": "基础产品 VII",
         "zhHant": "基本產品VII"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 0
     },
     {
@@ -14164,7 +14173,7 @@
         "zhHans": "万圣节 I",
         "zhHant": "萬聖節 I"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 18
     },
     {
@@ -14175,7 +14184,7 @@
         "zhHans": "圣诞节 I",
         "zhHant": "聖誕節 I"
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 18
     },
     {
@@ -14186,7 +14195,7 @@
         "zhHans": "",
         "zhHant": ""
       },
-      "inflation": 1,
+      "inflation": 1.0,
       "group": 18
     }
   ],
@@ -15221,7 +15230,15 @@
         0,
         1
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Staple Groceries×1, Hygiene & Cleaning×0.25, Pharmacy & Supplements×0.15"
     },
     {
@@ -15244,7 +15261,15 @@
         0,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Gardening×1.5, Drinks, Alcohol & Snacks×1, Small Electronics×0.5"
     },
     {
@@ -15267,7 +15292,15 @@
         0,
         1
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Staple Groceries×1, Drinks, Alcohol & Snacks×0.75, Hygiene & Cleaning×0.5"
     },
     {
@@ -15290,7 +15323,15 @@
         0,
         1
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Staple Groceries×1, Baby & Child Care×0.65, Hygiene & Cleaning×0.5"
     },
     {
@@ -15313,7 +15354,15 @@
         0,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Pharmacy & Supplements×0.6, Hygiene & Cleaning×0.25, Gardening×0.15"
     },
     {
@@ -15336,7 +15385,15 @@
         0,
         0.25
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Drinks, Alcohol & Snacks×1, Staple Groceries×0.25, Hygiene & Cleaning×0.25"
     },
     {
@@ -15359,7 +15416,15 @@
         0,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Baby & Child Care×1, Hygiene & Cleaning×0.5, Drinks, Alcohol & Snacks×0.5"
     },
     {
@@ -15382,7 +15447,15 @@
         0,
         0.5
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Baby & Child Care×1, Drinks, Alcohol & Snacks×1, Staple Groceries×0.5"
     },
     {
@@ -15405,7 +15478,15 @@
         0,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Baby & Child Care×1, Hygiene & Cleaning×0.5, Drinks, Alcohol & Snacks×0.5"
     },
     {
@@ -15428,7 +15509,15 @@
         0,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Baby & Child Care×1, Drinks, Alcohol & Snacks×1, Pharmacy & Supplements×0.25"
     },
     {
@@ -15451,7 +15540,15 @@
         0,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Drinks, Alcohol & Snacks×2, Small Electronics×0.5, Frozen Food & Soda×0.5"
     },
     {
@@ -15474,7 +15571,15 @@
         0,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Sushi, Tea & Energy Drinks×1, Frozen Food & Soda×0.5, Drinks, Alcohol & Snacks×0.5"
     },
     {
@@ -15497,7 +15602,15 @@
         0,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Baby & Child Care×1, Hygiene & Cleaning×0.5, Drinks, Alcohol & Snacks×0.5"
     },
     {
@@ -15520,7 +15633,15 @@
         0,
         0.5
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Staple Groceries×0.5, Hygiene & Cleaning×0.5, Baby & Child Care×0.3"
     },
     {
@@ -15543,7 +15664,15 @@
         0,
         0.25
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Gardening×1, Pharmacy & Supplements×0.5, Baby & Child Care×0.5"
     },
     {
@@ -15566,7 +15695,15 @@
         0,
         0.25
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Baby & Child Care×0.5, Hygiene & Cleaning×0.5, Sushi, Tea & Energy Drinks×0.35"
     },
     {
@@ -15589,7 +15726,15 @@
         0,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Frozen Food & Soda×1, Drinks, Alcohol & Snacks×1, Hygiene & Cleaning×0.5"
     },
     {
@@ -15612,7 +15757,15 @@
         0,
         1
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Staple Groceries×1, Baby & Child Care×0.6, Hygiene & Cleaning×0.25"
     },
     {
@@ -15635,7 +15788,15 @@
         0,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Sushi, Tea & Energy Drinks×3, Hygiene & Cleaning×0.25, Pharmacy & Supplements×0.15"
     },
     {
@@ -15658,7 +15819,15 @@
         0,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Drinks, Alcohol & Snacks×2, Small Electronics×0.5, Frozen Food & Soda×0.5"
     },
     {
@@ -15681,7 +15850,15 @@
         0,
         0.5
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Pharmacy & Supplements×1, Baby & Child Care×1, Staple Groceries×0.5"
     },
     {
@@ -15704,7 +15881,15 @@
         0,
         1
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Staple Groceries×1, Hygiene & Cleaning×0.25, Pharmacy & Supplements×0.15"
     },
     {
@@ -15727,7 +15912,15 @@
         0,
         1
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Staple Groceries×1, Pharmacy & Supplements×0.75, Hygiene & Cleaning×0.25"
     },
     {
@@ -15750,7 +15943,15 @@
         0,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Baby & Child Care×1.5, Hygiene & Cleaning×0.5, Drinks, Alcohol & Snacks×0.5"
     },
     {
@@ -15773,7 +15974,15 @@
         0,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Drinks, Alcohol & Snacks×2, Gardening×1, Small Electronics×0.5"
     },
     {
@@ -15796,7 +16005,15 @@
         0,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Drinks, Alcohol & Snacks×1, Hygiene & Cleaning×0.5, Pharmacy & Supplements×0.15"
     },
     {
@@ -15819,7 +16036,15 @@
         0,
         1
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Staple Groceries×1, Baby & Child Care×1, Pharmacy & Supplements×0.15"
     },
     {
@@ -15842,7 +16067,15 @@
         0,
         1
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Staple Groceries×1, Hygiene & Cleaning×0.25, Pharmacy & Supplements×0.15"
     },
     {
@@ -15865,7 +16098,15 @@
         0,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Drinks, Alcohol & Snacks×1, Hygiene & Cleaning×0.25"
     },
     {
@@ -15888,7 +16129,15 @@
         0,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Drinks, Alcohol & Snacks×0.5, Hygiene & Cleaning×0.25, Pharmacy & Supplements×0.15"
     },
     {
@@ -15911,7 +16160,15 @@
         0,
         1
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Staple Groceries×1, Small Electronics×0.25, Hygiene & Cleaning×0.25"
     },
     {
@@ -15934,7 +16191,15 @@
         0,
         1
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Staple Groceries×1, Small Electronics×0.25, Hygiene & Cleaning×0.25"
     },
     {
@@ -15957,7 +16222,15 @@
         0,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Baby & Child Care×1, Drinks, Alcohol & Snacks×1, Pharmacy & Supplements×0.25"
     },
     {
@@ -15980,7 +16253,15 @@
         0,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Small Electronics×0.5, Frozen Food & Soda×0.5, Pharmacy & Supplements×0.15"
     },
     {
@@ -16003,7 +16284,15 @@
         0,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Frozen Food & Soda×1, Drinks, Alcohol & Snacks×1"
     },
     {
@@ -16026,7 +16315,15 @@
         0,
         0.5
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Baby & Child Care×2, Staple Groceries×0.5, Hygiene & Cleaning×0.5"
     },
     {
@@ -16049,7 +16346,15 @@
         0,
         1
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Staple Groceries×1, Pharmacy & Supplements×1, Hygiene & Cleaning×0.5"
     },
     {
@@ -16072,7 +16377,15 @@
         0,
         1
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Staple Groceries×1, Hygiene & Cleaning×0.25, Pharmacy & Supplements×0.15"
     },
     {
@@ -16095,7 +16408,15 @@
         0,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Frozen Food & Soda×2, Toilet Paper & Towels×0.25, Hygiene & Cleaning×0.25"
     },
     {
@@ -16118,7 +16439,15 @@
         0,
         0.5
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Baby & Child Care×2, Drinks, Alcohol & Snacks×0.75, Staple Groceries×0.5"
     },
     {
@@ -16141,7 +16470,15 @@
         0,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Sushi, Tea & Energy Drinks×2, Baby & Child Care×1, Hygiene & Cleaning×0.5"
     },
     {
@@ -16164,7 +16501,15 @@
         0,
         1
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Staple Groceries×1, Pharmacy & Supplements×1, Hygiene & Cleaning×0.5"
     },
     {
@@ -16187,7 +16532,15 @@
         0,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Frozen Food & Soda×1, Sushi, Tea & Energy Drinks×0.5, Hygiene & Cleaning×0.25"
     },
     {
@@ -16210,7 +16563,15 @@
         0,
         1
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Staple Groceries×1, Hygiene & Cleaning×0.25, Pharmacy & Supplements×0.15"
     },
     {
@@ -16233,7 +16594,15 @@
         0,
         1
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Staple Groceries×1, Hygiene & Cleaning×0.25, Pharmacy & Supplements×0.15"
     },
     {
@@ -16256,7 +16625,15 @@
         0,
         0.25
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Drinks, Alcohol & Snacks×0.75, Gardening×0.5, Staple Groceries×0.25"
     },
     {
@@ -16279,7 +16656,15 @@
         0,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Baby & Child Care×1, Pharmacy & Supplements×0.5, Hygiene & Cleaning×0.5"
     },
     {
@@ -16302,7 +16687,15 @@
         0.5,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Salt (single product)×0.5, Drinks, Alcohol & Snacks×0.5"
     },
     {
@@ -16325,7 +16718,15 @@
         0,
         1
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Staple Groceries×1, Hygiene & Cleaning×0.25, Pharmacy & Supplements×0.15"
     },
     {
@@ -16348,7 +16749,15 @@
         0,
         1
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Staple Groceries×1, Frozen Food & Soda×1, Drinks, Alcohol & Snacks×0.5"
     },
     {
@@ -16371,7 +16780,15 @@
         0,
         1
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Staple Groceries×1, Small Electronics×0.25, Hygiene & Cleaning×0.25"
     },
     {
@@ -16394,7 +16811,15 @@
         0,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Baby & Child Care×1, Hygiene & Cleaning×0.25, Pharmacy & Supplements×0.15"
     },
     {
@@ -16417,7 +16842,15 @@
         0,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Sushi, Tea & Energy Drinks×0.6, Hygiene & Cleaning×0.5, Gardening×0.15"
     },
     {
@@ -16440,7 +16873,15 @@
         0,
         1
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Staple Groceries×1, Pharmacy & Supplements×1, Hygiene & Cleaning×0.25"
     },
     {
@@ -16463,7 +16904,15 @@
         0,
         1
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Staple Groceries×1, Pharmacy & Supplements×1, Baby & Child Care×1"
     },
     {
@@ -16486,7 +16935,15 @@
         0,
         0
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Pharmacy & Supplements×1, Baby & Child Care×1, Hygiene & Cleaning×1"
     },
     {
@@ -16509,7 +16966,15 @@
         0,
         0.5
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Sushi, Tea & Energy Drinks×1, Staple Groceries×0.5, Hygiene & Cleaning×0.5"
     },
     {
@@ -16532,7 +16997,15 @@
         0,
         1
       ],
-      "premiumIndexes": [],
+      "premiumIndexes": [
+        173,
+        175,
+        186,
+        287,
+        296,
+        297,
+        299
+      ],
       "topSummary": "Staple Groceries×1, Baby & Child Care×1, Gardening×1"
     }
   ],
@@ -17128,6 +17601,86 @@
   ],
   "skills": [
     {
+      "id": "skill01",
+      "name": {
+        "en": "Employee I",
+        "zhHans": "Employee I",
+        "zhHant": "員工一號"
+      },
+      "description": {
+        "en": "+1 maxEmployees (placeholder perk I)",
+        "zhHans": "+1 maxEmployees (placeholder perk I)",
+        "zhHant": "+1 maxEmployees (placeholder perk I)"
+      },
+      "effect": "NPC_Manager.maxEmployees += 1",
+      "il": "0x00",
+      "perk": 0
+    },
+    {
+      "id": "skill02",
+      "name": {
+        "en": "Employee II",
+        "zhHans": "Employee II",
+        "zhHant": "員工二號"
+      },
+      "description": {
+        "en": "+1 maxEmployees (placeholder perk II)",
+        "zhHans": "+1 maxEmployees (placeholder perk II)",
+        "zhHant": "+1 maxEmployees (placeholder perk II)"
+      },
+      "effect": "NPC_Manager.maxEmployees += 1",
+      "il": "0x01",
+      "perk": 1
+    },
+    {
+      "id": "skill03",
+      "name": {
+        "en": "Employee III",
+        "zhHans": "Employee III",
+        "zhHant": "員工三號"
+      },
+      "description": {
+        "en": "+1 maxEmployees (placeholder perk III)",
+        "zhHans": "+1 maxEmployees (placeholder perk III)",
+        "zhHant": "+1 maxEmployees (placeholder perk III)"
+      },
+      "effect": "NPC_Manager.maxEmployees += 1",
+      "il": "0x02",
+      "perk": 2
+    },
+    {
+      "id": "skill04",
+      "name": {
+        "en": "Employee IV",
+        "zhHans": "Employee IV",
+        "zhHant": "員工四號"
+      },
+      "description": {
+        "en": "+1 maxEmployees (placeholder perk IV)",
+        "zhHans": "+1 maxEmployees (placeholder perk IV)",
+        "zhHant": "+1 maxEmployees (placeholder perk IV)"
+      },
+      "effect": "NPC_Manager.maxEmployees += 1",
+      "il": "0x03",
+      "perk": 3
+    },
+    {
+      "id": "skill05",
+      "name": {
+        "en": "Employee V",
+        "zhHans": "Employee V",
+        "zhHant": "員工五號"
+      },
+      "description": {
+        "en": "+1 maxEmployees (placeholder perk V)",
+        "zhHans": "+1 maxEmployees (placeholder perk V)",
+        "zhHant": "+1 maxEmployees (placeholder perk V)"
+      },
+      "effect": "NPC_Manager.maxEmployees += 1",
+      "il": "0x04",
+      "perk": 4
+    },
+    {
       "id": "skill1",
       "name": {
         "en": "Free morning coffee",
@@ -17224,70 +17777,6 @@
       "perk": 10
     },
     {
-      "id": "skill07",
-      "name": {
-        "en": "",
-        "zhHans": "",
-        "zhHant": ""
-      },
-      "description": {
-        "en": "",
-        "zhHans": "",
-        "zhHant": ""
-      },
-      "effect": "NPC_Manager.maxEmployees += 1",
-      "il": "0x153",
-      "perk": 11
-    },
-    {
-      "id": "skill08",
-      "name": {
-        "en": "",
-        "zhHans": "",
-        "zhHant": ""
-      },
-      "description": {
-        "en": "",
-        "zhHans": "",
-        "zhHant": ""
-      },
-      "effect": "NPC_Manager.maxEmployees += 1",
-      "il": "0x178",
-      "perk": 12
-    },
-    {
-      "id": "skill09",
-      "name": {
-        "en": "",
-        "zhHans": "",
-        "zhHant": ""
-      },
-      "description": {
-        "en": "",
-        "zhHans": "",
-        "zhHant": ""
-      },
-      "effect": "NPC_Manager.maxEmployees += 1",
-      "il": "0x19d",
-      "perk": 13
-    },
-    {
-      "id": "skill10",
-      "name": {
-        "en": "",
-        "zhHans": "",
-        "zhHant": ""
-      },
-      "description": {
-        "en": "",
-        "zhHans": "",
-        "zhHant": ""
-      },
-      "effect": "NPC_Manager.maxEmployees += 1",
-      "il": "0x1a9",
-      "perk": 14
-    },
-    {
       "id": "skill11",
       "name": {
         "en": "Employee VI",
@@ -17301,7 +17790,7 @@
       },
       "effect": "NPC_Manager.maxEmployees += 1",
       "il": "0x1c1",
-      "perk": 15
+      "perk": 11
     },
     {
       "id": "skill12",
@@ -17317,7 +17806,7 @@
       },
       "effect": "NPC_Manager.productCheckoutWait -= 0.15",
       "il": "0x1d9",
-      "perk": 16
+      "perk": 12
     },
     {
       "id": "skill13",
@@ -17333,7 +17822,7 @@
       },
       "effect": "NPC_Manager.productCheckoutWait -= 0.2",
       "il": "0x1f0",
-      "perk": 17
+      "perk": 13
     },
     {
       "id": "skill14",
@@ -17349,7 +17838,7 @@
       },
       "effect": "NPC_Manager.productCheckoutWait -= 0.15",
       "il": "0x207",
-      "perk": 18
+      "perk": 14
     },
     {
       "id": "skill15",
@@ -17365,7 +17854,7 @@
       },
       "effect": "NPC_Manager.employeeItemPlaceWait -= 0.05",
       "il": "0x21e",
-      "perk": 19
+      "perk": 15
     },
     {
       "id": "skill16",
@@ -17381,7 +17870,7 @@
       },
       "effect": "NPC_Manager.employeeItemPlaceWait -= 0.05",
       "il": "0x235",
-      "perk": 20
+      "perk": 16
     },
     {
       "id": "skill17",
@@ -17397,7 +17886,7 @@
       },
       "effect": "NPC_Manager.extraEmployeeSpeedFactor += 0.2",
       "il": "0x24c",
-      "perk": 21
+      "perk": 17
     },
     {
       "id": "skill18",
@@ -17413,7 +17902,7 @@
       },
       "effect": "NPC_Manager.extraEmployeeSpeedFactor += 0.2",
       "il": "0x267",
-      "perk": 22
+      "perk": 18
     },
     {
       "id": "skill19",
@@ -17429,7 +17918,7 @@
       },
       "effect": "NPC_Manager.extraEmployeeSpeedFactor += 0.2",
       "il": "0x282",
-      "perk": 23
+      "perk": 19
     },
     {
       "id": "skill20",
@@ -17445,7 +17934,7 @@
       },
       "effect": "NPC_Manager.employeeRecycleBoxes = 1",
       "il": "0x29d",
-      "perk": 24
+      "perk": 20
     },
     {
       "id": "skill21",
@@ -17461,7 +17950,7 @@
       },
       "effect": "NPC_Manager.selfcheckoutExtraProductsFromPerk += 4",
       "il": "0x2b8",
-      "perk": 25
+      "perk": 21
     },
     {
       "id": "skill22",
@@ -17477,7 +17966,7 @@
       },
       "effect": "NPC_Manager.maxEmployees += 1",
       "il": "0x2d3",
-      "perk": 26
+      "perk": 22
     },
     {
       "id": "skill23",
@@ -17493,7 +17982,7 @@
       },
       "effect": "NPC_Manager.maxEmployees += 1",
       "il": "0x2f8",
-      "perk": 27
+      "perk": 23
     },
     {
       "id": "skill24",
@@ -17509,7 +17998,7 @@
       },
       "effect": "NPC_Manager.closestRecyclePerk = 1",
       "il": "0x31d",
-      "perk": 28
+      "perk": 24
     },
     {
       "id": "skill25",
@@ -17525,7 +18014,7 @@
       },
       "effect": "UpgradesManager.softwareUpgradePerk = 1",
       "il": "0x342",
-      "perk": 29
+      "perk": 25
     },
     {
       "id": "skill26",
@@ -17541,7 +18030,7 @@
       },
       "effect": "enable UpgradesManager.clockOBJ + clockControlSlateOBJ (時間加速 perk)",
       "il": "0x35e",
-      "perk": 30
+      "perk": 26
     },
     {
       "id": "skill27",
@@ -17557,7 +18046,7 @@
       },
       "effect": "DebtManager.electricFactor = 0.8",
       "il": "0x375",
-      "perk": 31
+      "perk": 27
     },
     {
       "id": "skill28",
@@ -17573,7 +18062,7 @@
       },
       "effect": "NPC_Manager.minSelfCheckoutWait -= 0.25; NPC_Manager.maxSelfCheckoutWait -= 0.5; DebtManager.autopayInvoices = 1; ProductListing.allowedSimultaneousSales += 2; ProductListing.allowedSimultaneousSales += 2; ProductListing.allowedSimultaneousSales += 2; NPC_Manager.maxEmployees += 6; NPC_Manager.rerollsPerDay += 1; NPC_Manager.rerollsPerDay += 1; NPC_Manager.orderingExtraCrashOnBadWeather = 1",
       "il": "0x38c",
-      "perk": 32
+      "perk": 28
     },
     {
       "id": "skill29",
@@ -17589,7 +18078,7 @@
       },
       "effect": "(no effect — 直接跳到 switch 結尾, 可能是 'already acquired' 預留位)",
       "il": "0x3a3",
-      "perk": 33
+      "perk": 29
     },
     {
       "id": "skill30",
@@ -17605,7 +18094,7 @@
       },
       "effect": "DebtManager.autopayInvoices = 1",
       "il": "0x3cb",
-      "perk": 34
+      "perk": 30
     },
     {
       "id": "skill31",
@@ -17621,7 +18110,7 @@
       },
       "effect": "ProductListing.allowedSimultaneousSales += 2",
       "il": "0x3d7",
-      "perk": 35
+      "perk": 31
     },
     {
       "id": "skill32",
@@ -17637,7 +18126,7 @@
       },
       "effect": "ProductListing.allowedSimultaneousSales += 2",
       "il": "0x3f4",
-      "perk": 36
+      "perk": 32
     },
     {
       "id": "skill33",
@@ -17653,7 +18142,7 @@
       },
       "effect": "ProductListing.allowedSimultaneousSales += 2",
       "il": "0x409",
-      "perk": 37
+      "perk": 33
     },
     {
       "id": "skill34",
@@ -17669,7 +18158,7 @@
       },
       "effect": "call UpgradesManager.AuxiliarSetUIPallets() (解鎖額外棧板 perk)",
       "il": "0x513",
-      "perk": 38
+      "perk": 34
     },
     {
       "id": "skill35",
@@ -17685,7 +18174,7 @@
       },
       "effect": "NPC_Manager.maxEmployees += 6",
       "il": "0x43a",
-      "perk": 39
+      "perk": 35
     },
     {
       "id": "skill36",
@@ -17701,7 +18190,7 @@
       },
       "effect": "NPC_Manager.rerollsPerDay += 1",
       "il": "0x462",
-      "perk": 40
+      "perk": 36
     },
     {
       "id": "skill37",
@@ -17717,7 +18206,7 @@
       },
       "effect": "NPC_Manager.rerollsPerDay += 1",
       "il": "0x47a",
-      "perk": 41
+      "perk": 37
     },
     {
       "id": "skill38",
@@ -17733,7 +18222,7 @@
       },
       "effect": "enable UpgradesManager.convertBystandersTriggerOBJ (路人轉顧客 perk)",
       "il": "0x492",
-      "perk": 42
+      "perk": 38
     },
     {
       "id": "skill39",
@@ -17749,7 +18238,7 @@
       },
       "effect": "NPC_Manager.orderingExtraCrashOnBadWeather = 1",
       "il": "0x4a7",
-      "perk": 43
+      "perk": 39
     },
     {
       "id": "skill40",
@@ -17765,7 +18254,7 @@
       },
       "effect": "(no matching perk in IL)",
       "il": "0x4b6",
-      "perk": null
+      "perk": 40
     },
     {
       "id": "skill41",
@@ -17781,7 +18270,7 @@
       },
       "effect": "(no matching perk in IL)",
       "il": "0x4ca",
-      "perk": null
+      "perk": 41
     },
     {
       "id": "skill42",
@@ -17797,7 +18286,7 @@
       },
       "effect": "(no matching perk in IL)",
       "il": "0x4de",
-      "perk": null
+      "perk": 42
     },
     {
       "id": "skill43",
@@ -17813,23 +18302,7 @@
       },
       "effect": "(no matching perk in IL)",
       "il": "0x4f2",
-      "perk": null
-    },
-    {
-      "id": "skill44",
-      "name": {
-        "en": "",
-        "zhHans": "",
-        "zhHant": ""
-      },
-      "description": {
-        "en": "",
-        "zhHans": "",
-        "zhHant": ""
-      },
-      "effect": "(no matching perk in IL)",
-      "il": "0x508",
-      "perk": null
+      "perk": 43
     }
   ],
   "buildables": [
@@ -18773,8 +19246,116 @@
       "description": "Announcements played"
     },
     {
-      "index": 24,
+      "index": 23,
       "description": "Bystanders converted into customers"
+    },
+    {
+      "index": 24,
+      "description": "Total decor props placed"
+    },
+    {
+      "index": 25,
+      "description": "Total expansions purchased"
+    },
+    {
+      "index": 26,
+      "description": "Total storage expansions"
+    },
+    {
+      "index": 27,
+      "description": "Total products manufactured"
+    },
+    {
+      "index": 28,
+      "description": "Manufacturing recipes unlocked"
+    },
+    {
+      "index": 29,
+      "description": "Days played"
+    },
+    {
+      "index": 30,
+      "description": "Times bankrupt"
+    },
+    {
+      "index": 31,
+      "description": "Total store layouts changed"
+    },
+    {
+      "index": 32,
+      "description": "Bills paid in full on time"
+    },
+    {
+      "index": 33,
+      "description": "Bills defaulted on"
+    },
+    {
+      "index": 34,
+      "description": "Total product restocks (auto)"
+    },
+    {
+      "index": 35,
+      "description": "Manual shelf restocks performed"
+    },
+    {
+      "index": 36,
+      "description": "Total items placed in storage"
+    },
+    {
+      "index": 37,
+      "description": "Items recycled from baler"
+    },
+    {
+      "index": 38,
+      "description": "Door open/close events"
+    },
+    {
+      "index": 39,
+      "description": "Self-checkout transactions"
+    },
+    {
+      "index": 40,
+      "description": "Cashier transactions"
+    },
+    {
+      "index": 41,
+      "description": "Customer complaints about price"
+    },
+    {
+      "index": 42,
+      "description": "Customer complaints about cleanliness"
+    },
+    {
+      "index": 43,
+      "description": "Items shoplifted"
+    },
+    {
+      "index": 44,
+      "description": "Items recovered from shoplifters"
+    },
+    {
+      "index": 45,
+      "description": "Total store upgrades"
+    },
+    {
+      "index": 46,
+      "description": "Premium items sold"
+    },
+    {
+      "index": 47,
+      "description": "Total product categories stocked"
+    },
+    {
+      "index": 48,
+      "description": "Total customer types served"
+    },
+    {
+      "index": 49,
+      "description": "Highest single-day revenue"
+    },
+    {
+      "index": 50,
+      "description": "Most products sold in one day"
     }
   ],
   "employeeTasks": [

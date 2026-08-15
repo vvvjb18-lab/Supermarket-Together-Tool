@@ -17,8 +17,49 @@ import type {
 import { encyclopedia as ENC } from './data-loader'
 
 // ============================================================
+// v2.0 engine-level constants (extracted from real game data)
+// ============================================================
+
+/**
+ * Per-tier price inflation multipliers (extracted from _latest/save.json
+ * decoded.TierInflation). Tiers 0-16 have real inflation values (1.13-1.59);
+ * tiers 17-54 are 1.0 (no premium surcharge).
+ */
+export const TIER_INFLATION: number[] = ENC.tiers.map((t) => t.inflation ?? 1.0)
+
+/** The 7 premium product ids. */
+export const PREMIUM_PRODUCT_IDS: number[] = ENC.premiumProducts.slice()
+
+/** Avg items per customer visit (from compensatedChances mean). */
+export const AVG_ITEMS_PER_CUSTOMER: number =
+  ENC.customerTypes.reduce(
+    (s, c) => s + c.compensatedChances.reduce((a, b) => a + b, 0),
+    0,
+  ) / ENC.customerTypes.length
+
+
+// ============================================================
 // Basic product geometry / value
 // ============================================================
+
+// ============================================================
+// Market price (v2.0)
+// ============================================================
+
+export function computeMarketPrice(p: Product): CalcResult<number> {
+  const infl = TIER_INFLATION[p.tier] ?? 1.0
+  const market = p.basePricePerUnit * infl
+  return {
+    value: market,
+    formula: 'marketPrice = basePricePerUnit x tierInflation[tier]',
+    sources: [
+      `products[${p.id}].basePricePerUnit=${p.basePricePerUnit}`,
+      `tierInflation[${p.tier}]=${infl.toFixed(3)}`,
+    ],
+    confidence: 'confirmed',
+    note: 'tierInflation extracted from real save (17 tiers 1.13-1.59, others 1.0)',
+  }
+}
 
 export function computeBoxValue(p: Product): CalcResult<number> {
   const value = p.basePricePerUnit * p.maxItemsPerBox
@@ -119,11 +160,58 @@ export function computeDemandProxy(
     value: normalized,
     formula:
       mode === 'raw'
-        ? 'demandProxy = Σcust Σnec (custWeight × necChance × tokenHits/rawPoolSize) / ΣcustWeight'
+        ? 'demandProxy = Σcust Σnec (custWeight × necChance × tokenHits/rawPoolSize) / ΣcustWeight  (per single purchase; multiply by AVG_ITEMS_PER_CUSTOMER for per-visit rate)'
         : 'demandProxy (unique mode) = Σcust Σnec (custWeight × necChance × 1/uniquePoolSize if product present) / ΣcustWeight',
     sources: hits.slice(0, 6),
     confidence: 'proxy',
     note: 'Assumes equal customer spawn + uniform pick within necessity pool. True runtime selection unverified.',
+  }
+}
+
+// ============================================================
+// Per-customer-visit demand (v2.0)
+// ============================================================
+// Scales the per-purchase demand proxy by each customer's compensatedChances
+// sum so the result represents "expected purchases per customer visit".
+// ============================================================
+
+export function computeDemandPerVisit(
+  productId: number,
+  necessities: Necessity[] = ENC.necessities,
+  customerTypes: CustomerType[] = ENC.customerTypes,
+  opts: DemandOptions = {},
+): CalcResult<number> {
+  const mode = opts.mode ?? 'raw'
+  const cw = opts.customerWeights
+  let total = 0
+  const hits: string[] = []
+  for (let ci = 0; ci < customerTypes.length; ci++) {
+    const cust = customerTypes[ci]
+    const w = cw ? cw[ci] ?? 0 : 1
+    if (w <= 0) continue
+    const itemsPerVisit = cust.compensatedChances.reduce((a, b) => a + b, 0)
+    const chances = cust.necessitiesChances
+    for (let ni = 0; ni < necessities.length; ni++) {
+      const chance = chances[ni] ?? 0
+      if (chance <= 0) continue
+      const nec = necessities[ni]
+      const tokens = mode === 'unique' ? Array.from(new Set(nec.rawTokens)) : nec.rawTokens
+      if (tokens.length === 0) continue
+      const hitsCount = tokens.filter((t) => t === productId).length
+      if (hitsCount === 0) continue
+      const contribution = w * chance * itemsPerVisit * (hitsCount / tokens.length)
+      total += contribution
+      hits.push(`cust[${ci}]*${w} x itemsPerVisit=${itemsPerVisit.toFixed(3)} x nec[${ni}]*${chance} x ${hitsCount}/${tokens.length}`)
+    }
+  }
+  const weightSum = cw ? cw.reduce((a, b) => a + b, 0) : customerTypes.length
+  const normalized = weightSum > 0 ? total / weightSum : 0
+  return {
+    value: normalized,
+    formula: 'demandPerVisit = Scust Snec (custWeight x itemsPerVisit x necChance x tokenHits/rawPoolSize) / ScustWeight',
+    sources: hits.slice(0, 6),
+    confidence: 'proxy',
+    note: 'itemsPerVisit = ScompensatedChances (avg items per customer visit, ranges 0.75-2.01). Higher accuracy than computeDemandProxy for per-visit metrics.',
   }
 }
 
@@ -258,7 +346,7 @@ export function computeSaltProbe(): SaltProbeResult {
     saltValueDensity: computeValueDensity(salt),
     comparison,
     conclusion:
-      'Salt 是已確認的特殊機制（necessity[9] 單一商品、rawIds="4-4-4-4-4"），但不是已確認的賺錢 exploit。它有壟斷路徑（route 9），但只有 customer #47 觸發、且單價極低（$0.45）。透過 Staple Groceries 路徑只佔 1/62 ≈ 1.61% 機率。整體 demand proxy 偏低，單位利潤受限。建議實測而非盲信。',
+      `Salt 是已確認的特殊機制（necessity[9] 單一商品、rawIds="4-4-4-4-4"），但不是已確認的賺錢 exploit。Route 9（鹽必要性池）只有 customer #47 觸發、機率 0.5/58 ≈ 0.86%，但這只是「單次購買」機率；真實每位 customer 平均買 ${AVG_ITEMS_PER_CUSTOMER.toFixed(2)} 件，所以鹽的真實 demand proxy 需乘以這個平均件數。Route 10（Staple Groceries）只佔 1/62 ≈ 1.61%。整體需求偏低（basePrice 僅 $0.45, market $0.45×tierInflation[0]=${TIER_INFLATION[0].toFixed(2)}），就算全顧客湧入鹽區，毛利仍遠低於 USB 1TB 等 premium 商品。結論：鹽是 confirmed mechanic、unproven exploit，數學上不值得囤鹽，僅有迷因/挑戰價值。`,
     confidence: 'exploit',
   }
 }
@@ -1159,9 +1247,21 @@ export function computeXpToNextLevel(level: number): CalcResult<number> {
 
 export interface PriceSuggestion {
   base: number
-  conservative: number
-  balanced: number
-  aggressive: number
+  /** Computed market price (base x tierInflation). */
+  marketPrice: number
+  /** 0% complaint price = market x 2.01. */
+  safePrice: number
+  /** ~50% accept price = market x 2.25. */
+  balancedPrice: number
+  /** ~0% accept price = market x 2.5. */
+  aggressivePrice: number
+  /** 2.01 */
+  safeMultiplier: number
+  /** 2.25 */
+  balancedMultiplier: number
+  /** 2.5 */
+  aggressiveMultiplier: number
+  /** balancedPrice / base */
   markupBalanced: number
   confidence: Confidence
   note: string
@@ -1169,23 +1269,81 @@ export interface PriceSuggestion {
 
 export function computePriceSuggestion(p: Product): CalcResult<PriceSuggestion> {
   const base = p.basePricePerUnit
-  // No extracted customer price-acceptance formula → proxy only.
-  const conservative = base * 1.0
-  const balanced = base * 1.15
-  const aggressive = base * 1.4
+  const market = computeMarketPrice(p).value
+  // v2.0: customer complaint threshold per IL = marketPrice × Random(2.01, 2.5).
+  // - safePrice     = market × 2.01  (0% complaint)
+  // - balancedPrice = market × 2.25  (~50% accept)
+  // - aggressive    = market × 2.5   (~0% accept — full complaint)
+  const safePrice = market * 2.01
+  const balancedPrice = market * 2.25
+  const aggressivePrice = market * 2.5
   return {
     value: {
       base,
-      conservative,
-      balanced,
-      aggressive,
-      markupBalanced: 0.15,
-      confidence: 'needs-runtime',
-      note: 'Exact customer price-acceptance formula not extracted; suggestions are heuristic markup tiers. Validate in-game.',
+      marketPrice: market,
+      safePrice,
+      balancedPrice,
+      aggressivePrice,
+      safeMultiplier: 2.01,
+      balancedMultiplier: 2.25,
+      aggressiveMultiplier: 2.5,
+      markupBalanced: balancedPrice / base,
+      confidence: 'confirmed',
+      note: `Complaint threshold = market × Random(2.01, 2.5). safePrice=$${safePrice.toFixed(2)} (0% complain), balanced=$${balancedPrice.toFixed(2)} (~50% accept), aggressive=$${aggressivePrice.toFixed(2)} (~0% accept).`,
     },
-    formula: 'conservative=base×1.0; balanced=base×1.15; aggressive=base×1.40 (heuristic, NOT extracted)',
-    sources: [`basePricePerUnit=${base}`],
-    confidence: 'needs-runtime',
+    formula: 'market=base×tierInflation; safe=market×2.01; balanced=market×2.25; aggressive=market×2.5',
+    sources: [
+      `basePricePerUnit=${base}`,
+      `tierInflation[${p.tier}]=${TIER_INFLATION[p.tier]?.toFixed(3) ?? 1.0}`,
+      `marketPrice=${market.toFixed(2)}`,
+    ],
+    confidence: 'confirmed',
+  }
+}
+
+// ============================================================
+// Sale impulse formula (v2.0)
+// ============================================================
+// Per extracted game IL: ExtraProductsOnSaleToAdd chance =
+//   salePerPriceChanceReductionFactor.Evaluate(clamp(basePrice, 0, 199)) / 100
+//   + 0.01 x (discount / 5)
+// discount is clamped to [5, 45] and integer-divided by 5.
+// salePerPriceChanceReductionFactor is an AnimationCurve (proxy: linear /200).
+// ============================================================
+
+export interface SaleImpulseResult {
+  basePrice: number
+  discount: number
+  baseChance: number
+  discountChance: number
+  totalChance: number
+  confidence: Confidence
+  note: string
+}
+
+export function computeSaleImpulseChance(
+  basePrice: number,
+  discount: number,
+  curve: (x: number) => number = (x) => Math.max(0, x) / 200,
+): CalcResult<SaleImpulseResult> {
+  const d = Math.max(5, Math.min(45, Math.floor(discount)))
+  const clampedBase = Math.max(0, Math.min(199, basePrice))
+  const baseChance = curve(clampedBase)
+  const discountChance = 0.01 * (d / 5)
+  const totalChance = Math.min(1, baseChance + discountChance)
+  return {
+    value: {
+      basePrice,
+      discount: d,
+      baseChance,
+      discountChance,
+      totalChance,
+      confidence: 'proxy',
+      note: 'salePerPriceChanceReductionFactor is an AnimationCurve (proxy: linear /200); discount clamp [5,45] integer-divided by 5. Low-price items approach near-100% impulse purchase.',
+    },
+    formula: 'chance = saleCurve(clamp(base,0,199))/100 + 0.01*(discount/5)',
+    sources: [`basePrice=${basePrice}`, `discount=${d}%`, `clampedBase=${clampedBase}`],
+    confidence: 'proxy',
   }
 }
 
@@ -1235,31 +1393,56 @@ export function simulateCustomers(cfg: SimulationConfig): CalcResult<SimulationR
     }
     if (ci >= custs.length) ci = custs.length - 1
     const cust = custs[ci]
-    // pick necessity by chance (weighted)
-    const chances = cust.necessitiesChances
-    const chanceSum = chances.reduce((a, b) => a + Math.max(0, b), 0)
-    if (chanceSum <= 0) continue
-    let r2 = Math.random() * chanceSum
-    let ni = -1
-    for (let k = 0; k < chances.length; k++) {
-      r2 -= Math.max(0, chances[k])
-      if (r2 <= 0) {
-        ni = k
-        break
+    // v2.0: determine how many items this customer will buy using compensatedChances
+    //   - mode 0 (random): always 1 item
+    //   - mode 1 (necessity): adds 0-1 extra items
+    //   - mode 2 (premium): adds 0-1 extra items from premiumIndexes
+    // We pick items by sampling necessity for each item; premium mode is entered with
+    // probability compensatedChances[2] / (sum of compensatedChances).
+    const cc = cust.compensatedChances
+    const ccSum = cc.reduce((a, b) => a + b, 0)
+    // sample k = 1 + Bernoulli(extra) where extra ~ Binomial-like from mode 1 weight
+    const baseCount = 1
+    const extraChance = ccSum > 0 ? cc[1] / ccSum : 0
+    const premiumChance = ccSum > 0 ? cc[2] / ccSum : 0
+    const k = baseCount + (Math.random() < extraChance ? 1 : 0) + (Math.random() < premiumChance ? 1 : 0)
+    const isPremiumItem = Math.random() < premiumChance
+
+    for (let item = 0; item < k; item++) {
+      let chosen = -1
+      if (isPremiumItem && cust.premiumIndexes && cust.premiumIndexes.length > 0) {
+        // premium mode: pick from premiumIndexes uniformly
+        const idx = cust.premiumIndexes[Math.floor(Math.random() * cust.premiumIndexes.length)]
+        chosen = products.find((p) => p.id === idx)?.id ?? -1
+        if (chosen < 0) continue
+      } else {
+        // necessity mode: pick necessity by chance, then uniform product from pool
+        const chances = cust.necessitiesChances
+        const chanceSum = chances.reduce((a, b) => a + Math.max(0, b), 0)
+        if (chanceSum <= 0) continue
+        let r2 = Math.random() * chanceSum
+        let ni = -1
+        for (let m = 0; m < chances.length; m++) {
+          r2 -= Math.max(0, chances[m])
+          if (r2 <= 0) {
+            ni = m
+            break
+          }
+        }
+        if (ni < 0) ni = chances.length - 1
+        const pool = nec[ni]
+        if (!pool || pool.rawTokens.length === 0) continue
+        const tokens = cfg.mode === 'unique' ? Array.from(new Set(pool.rawTokens)) : pool.rawTokens
+        chosen = tokens[Math.floor(Math.random() * tokens.length)]
+        if (chosen < 0) continue
       }
-    }
-    if (ni < 0) ni = chances.length - 1
-    const pool = nec[ni]
-    if (!pool || pool.rawTokens.length === 0) continue
-    const tokens = cfg.mode === 'unique' ? Array.from(new Set(pool.rawTokens)) : pool.rawTokens
-    const chosen = tokens[Math.floor(Math.random() * tokens.length)]
-    if (chosen < 0) continue
-    totalHits++
-    if (stocked.has(chosen)) {
-      productHits.set(chosen, (productHits.get(chosen) ?? 0) + 1)
-    } else {
-      missedSales.set(chosen, (missedSales.get(chosen) ?? 0) + 1)
-      missedHits++
+      totalHits++
+      if (stocked.has(chosen)) {
+        productHits.set(chosen, (productHits.get(chosen) ?? 0) + 1)
+      } else {
+        missedSales.set(chosen, (missedSales.get(chosen) ?? 0) + 1)
+        missedHits++
+      }
     }
   }
 
@@ -1273,7 +1456,7 @@ export function simulateCustomers(cfg: SimulationConfig): CalcResult<SimulationR
   // overstocked low demand: products with high inventory but low demand proxy
   const topOverstockedLowDemand = products
     .map((p) => {
-      const demand = computeDemandProxy(p.id, nec, custs, { mode: cfg.mode }).value
+      const demand = computeDemandPerVisit(p.id, nec, custs, { mode: cfg.mode }).value
       return { productId: p.id, name: p.name.en, units: 0, demand }
     })
     .filter((x) => x.demand < 0.0005)
@@ -1281,10 +1464,10 @@ export function simulateCustomers(cfg: SimulationConfig): CalcResult<SimulationR
 
   return {
     value: { productHits, missedSales, totalCustomers: cfg.n, totalHits, missedHits, demandCoverage, topMissing, topOverstockedLowDemand },
-    formula: `Monte Carlo: pick cust by weight, pick necessity by chance, pick product uniform from ${cfg.mode} pool`,
-    sources: [`n=${cfg.n}`, `mode=${cfg.mode}`, `customerWeights=${cw.length}`],
+    formula: `v2.0 Monte Carlo: pick cust by weight, sample items k~1+Bin(extraChance)+Bin(premiumChance), each item picks necessity (or premium pool if premium mode), product uniform from ${cfg.mode} pool`,
+    sources: [`n=${cfg.n}`, `mode=${cfg.mode}`, `customerWeights=${cw.length}`, `AVG_ITEMS_PER_CUSTOMER=${AVG_ITEMS_PER_CUSTOMER.toFixed(3)}`],
     confidence: 'proxy',
-    note: 'Random uniform assumptions; true runtime selection unverified. Re-run for variance.',
+    note: `v2.0: multi-item purchase (compensatedChances) + premium mode (premiumIndexes) per extracted encyclopedia. AVG items/customer = ${AVG_ITEMS_PER_CUSTOMER.toFixed(3)}.`,
   }
 }
 

@@ -62,3 +62,7 @@ server.log
 /agent-ctx/tool-results/
 tool-results/
 upload/level0
+
+# local backup files (created during Mavis patches)
+*.bak
+*.bak.mine

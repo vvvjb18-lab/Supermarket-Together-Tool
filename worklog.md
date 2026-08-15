@@ -1373,3 +1373,73 @@ Stage Summary:
 - 操作列表可點擊跳轉貨架，5 種動作類型各有顏色標識
 - 容器分佈標註倉庫/售賣區分離
 - 所有修改 0 lint errors, 0 TS errors, 0 runtime errors
+
+---
+
+Task ID: 6
+Agent: mavis (orchestrator)
+Task: 站點 v2.0 演算法升級 + 資料修補 + 推上 GitHub
+
+Source-of-truth: F:\游戲副本\save-analyzer\_latest\save.json (Day 32 真實存檔) +
+                  F:\游戲副本\save-analyzer\game_encyclopedia.md (96KB IL 提取百科)
+
+Phase 1 — 資料修補（encyclopedia.json v1.0 → v2.0）:
+- 從 _latest.json decoded.TierInflation 提取真實 55 個 tier 通脹值：
+  tier 0-16 真實值 1.13-1.59，tier 17-54 = 1.0。
+  站上之前 55 個 tier 全部 = 1.0，Pricing Lab 市價全錯。v2.0 補完。
+- 從 perks.tsv 重整 skills 陣列：刪除 4 個空名 skill07-10 + skill44 (null perk)，
+  加入 5 個 placeholder skill01-05 (Employee I-V)，renumber perk 11-43 → 7-39。
+  最終：perk 0-4 連續 5 個 placeholder + perk 5-43 連續 39 個 real，共 44 個。
+- customerTypes[].premiumIndexes 從全空 → 填入 7 個 premium product ids
+  (173, 175, 186, 287, 296, 297, 299)，全部 58 個 customer 都會在 premium 模式從
+  這 7 個 ID 中抽樣。
+- achievementStats 從 24/51 填到 51/51（遊戲百科推論 + 已知 indices）。
+
+Phase 2 — engine.ts 升級:
+- 新增 module-level 常數:
+  - TIER_INFLATION[55]: 真實 per-tier 通脹
+  - PREMIUM_PRODUCT_IDS[7]: 7 個 premium 商品
+  - AVG_ITEMS_PER_CUSTOMER ≈ 1.325: compensatedChances 平均
+- 新增 computeMarketPrice(p) = basePrice × tierInflation[tier]
+- 重寫 computePriceSuggestion 使用真實公式:
+  complaint threshold = market × Random(2.01, 2.5)
+  - safePrice = market × 2.01 (0% 客訴)
+  - balancedPrice = market × 2.25 (~50% 接受)
+  - aggressivePrice = market × 2.5 (~0% 接受)
+  站上之前用 magic 1.0/1.15/1.4 是低估 ~50%，玩家應該可以漲 2× 不被客訴。
+- 新增 computeSaleImpulseChance(basePrice, discount):
+  chance = salePerPriceChanceReductionFactor.Evaluate(clamp(base,0,199))/100 + 0.01*(discount/5)
+  discount clamp [5,45] integer-divided by 5 → 5%→+1%, 45%→+9%。
+- 新增 computeDemandPerVisit(productId): 對每個 customer 把 compensatedChances
+  sum 乘進 chance × tokenHits/poolSize — 給「每位 customer 一趟逛多少件」的真實 rate。
+  取代 computeDemandProxy 在 dashboard/simulator 的位置。
+- 重寫 simulateCustomers: 支援多件購買 (compensatedChances 抽 k) +
+  premium 模式 (premiumIndexes 抽樣)。
+- Salt probe 結論: 加入 compensatedChances 1.325× 的現實校正，明確說鹽數學
+  上不值得囤，只剩迷因/挑戰價值。
+
+Phase 3 — UI 同步:
+- pricing.tsx: 大改 StatCards 顯示 (Base/Market/Safe/Balanced/Aggressive)，
+  公式說明改為 "market=base×tierInflation; safe=market×2.01..."，
+  honesty callout 從 rose 改為 emerald 標 "v2.0 confirmed formula"。
+  BulkPricingView 改用 computePriceSuggestion 取代 magic 1.15。
+- dashboard.tsx: Top 10 高價值解鎖機會 subtitle 加上 "market $X.XX" 顯示真實市價。
+  Urgent restocks + Opportunities 改用 computeDemandPerVisit 取代 computeDemandProxy。
+- manufacturing.tsx: linkedProductID 標籤從 "#0" 改為 "cat=0"，並加 tooltip 解釋
+  這是 category index 不是基底商品 id（避免誤導玩家）。
+- simulator.tsx: 自動隨 engine 更新而獲得多件+premium 模式。
+
+驗證:
+- npx tsc --noEmit: 0 errors (預存在的 scripts/fix-layout-props.ts 2 errors 與此無關)
+- npx eslint: 0 errors on all changed files
+- npx next build: ✓ Compiled successfully in 645ms, 5 static pages generated
+- 升級後資料庫總量: encyclopedia.json 466KB → 487KB (+21KB, 主要來自
+  achievementStats 補完 + tier inflation 真實值)
+
+備份:
+- src/lib/data/encyclopedia.json.bak
+- src/lib/data/demo-save.json.bak
+- src/lib/data/perks.tsv.bak
+- src/lib/engine.ts.bak
+- scripts/patch_encyclopedia.py
+- scripts/patch_engine.py

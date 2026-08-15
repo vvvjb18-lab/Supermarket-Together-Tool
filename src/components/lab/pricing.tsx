@@ -93,17 +93,18 @@ export function Pricing() {
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-500" />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-semibold">顧客價格接受公式未從 IL 提取</span>
+              <span className="font-semibold">v2.0 真實定價公式已上線</span>
               <ConfidenceBadge
-                confidence="needs-runtime"
+                confidence="confirmed"
                 formula={suggestion?.formula}
                 note={suggestion?.value.note}
                 className="text-sm"
               />
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
-              所有建議為啟發式 markup（conservative ×1.0 / balanced ×1.15 / aggressive ×1.40），必須在遊戲內實測。
-              使用下方的「實驗追蹤器」記錄觀察結果以收斂到最佳價格。
+              complaint threshold = market × Random(2.01, 2.5)。
+              safe = market×2.01（0% 客訴）、balanced = market×2.25（約 50% 接受）、aggressive = market×2.5（0% 接受）。
+              使用「實驗追蹤器」微調你的本地數值（curved salePerPrice 跟 difficulty 還會再微調）。
             </p>
           </div>
         </CardContent>
@@ -166,48 +167,52 @@ export function Pricing() {
                     accent="neutral"
                   />
                   <StatCard
-                    label="Conservative ×1.0"
-                    value={fmtMoney(suggestion.value.conservative)}
-                    confidence="needs-runtime"
-                    formula="base × 1.0"
-                    hint="不漲價，最大客群接受"
+                    label="Market (市價)"
+                    value={fmtMoney(suggestion.value.marketPrice)}
+                    confidence="confirmed"
+                    formula="base × tierInflation[tier]"
+                    hint="遊戲 Pricing Machine 顯示的價格"
+                    accent="neutral"
+                  />
+                  <StatCard
+                    label="Safe ×2.01"
+                    value={fmtMoney(suggestion.value.safePrice)}
+                    confidence="confirmed"
+                    formula="market × 2.01"
+                    hint="0% 客訴 — 最大安全利潤"
                     accent="good"
                   />
                   <StatCard
-                    label="Balanced ×1.15"
-                    value={fmtMoney(suggestion.value.balanced)}
-                    confidence="needs-runtime"
-                    formula="base × 1.15"
-                    hint="推薦起點：15% markup"
+                    label="Balanced ×2.25"
+                    value={fmtMoney(suggestion.value.balancedPrice)}
+                    confidence="confirmed"
+                    formula="market × 2.25"
+                    hint="~50% 接受率"
                     accent="warn"
                   />
                   <StatCard
-                    label="Aggressive ×1.40"
-                    value={fmtMoney(suggestion.value.aggressive)}
-                    confidence="needs-runtime"
-                    formula="base × 1.40"
-                    hint="高風險，客訴可能上升"
+                    label="Aggressive ×2.50"
+                    value={fmtMoney(suggestion.value.aggressivePrice)}
+                    confidence="confirmed"
+                    formula="market × 2.50"
+                    hint="~0% 接受 — 僅有數學意義"
                     accent="bad"
                   />
-                  <StatCard
-                    label="Markup %"
-                    value={fmt(suggestion.value.markupBalanced * 100, 0)}
-                    unit="%"
-                    confidence="needs-runtime"
-                    formula="markupBalanced = 0.15"
-                    hint="balanced 建議的 markup"
-                    accent="neutral"
-                  />
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  effective markup vs base = {fmt((suggestion.value.balancedPrice / Math.max(suggestion.value.base, 0.01) - 1) * 100, 0)}%
+                  (vs market × 2.25)
                 </div>
                 {/* BIG callout badge */}
-                <div className="flex items-start gap-3 rounded-md border border-rose-500/30 bg-rose-500/5 p-3">
-                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rose-500" />
+                <div className="flex items-start gap-3 rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                   <div className="text-xs text-muted-foreground">
-                    <span className="font-semibold text-rose-700 dark:text-rose-300">
-                      Needs Runtime Validation
+                    <span className="font-semibold text-emerald-700 dark:text-emerald-300">
+                      v2.0 confirmed formula
                     </span>
                     {' '}
-                    — Exact customer price-acceptance formula not extracted; heuristic markup tiers. Validate in-game.
+                    — Customer complaint threshold = market × Random(2.01, 2.5) per extracted IL.
+                    Local tuning may apply (difficulty, customer-specific bias); use the experiment tracker to fine-tune.
                   </div>
                 </div>
               </div>
@@ -225,7 +230,7 @@ export function Pricing() {
         product={product}
         playerPrice={playerPrice}
         base={product?.basePricePerUnit ?? 0}
-        balanced={suggestion?.value.balanced ?? 0}
+        balanced={suggestion?.value.balancedPrice ?? 0}
         hasSnapshot={!!snapshot}
         onApply={updatePricing}
         onLoadDemo={loadDemo}
@@ -235,7 +240,7 @@ export function Pricing() {
       {room && product && suggestion && (
         <RoomVotePanel
           product={product}
-          balancedPrice={suggestion.value.balanced}
+          balancedPrice={suggestion.value.balancedPrice}
           oldPrice={playerPrice}
           members={room.members}
           selfId={selfId}
@@ -247,7 +252,7 @@ export function Pricing() {
       <BulkPricingView
         snapshotPricing={snapshot?.productPlayerPricing ?? {}}
         hasSnapshot={!!snapshot}
-        onApplyBalanced={(productId, balanced) => updatePricing(productId, balanced)}
+        onApplyBalanced={(productId, balancedPrice) => updatePricing(productId, balancedPrice)}
       />
 
       {/* Experiment tracker */}
@@ -256,7 +261,7 @@ export function Pricing() {
         selfName={selfName}
         selfId={selfId}
         selectedProduct={product}
-        balancedPrice={suggestion?.value.balanced ?? 0}
+        balancedPrice={suggestion?.value.balancedPrice ?? 0}
         oldPrice={playerPrice}
         onUpsert={(exp) => addPriceExperiment(exp)}
       />
@@ -675,7 +680,7 @@ function BulkPricingView({
 }: {
   snapshotPricing: Record<number, number>
   hasSnapshot: boolean
-  onApplyBalanced: (productId: number, balanced: number) => void
+  onApplyBalanced: (productId: number, balancedPrice: number) => void
 }) {
   const lang = useLang()
   const rows = useMemo(() => {
@@ -684,8 +689,9 @@ function BulkPricingView({
         const box = computeBoxValue(p).value
         const playerPrice = (snapshotPricing[p.id] as number | undefined) ?? p.playerPrice
         const markup = p.basePricePerUnit > 0 ? (playerPrice - p.basePricePerUnit) / p.basePricePerUnit : 0
-        const balanced = p.basePricePerUnit * 1.15
-        return { p, box, playerPrice, markup, balanced }
+        // v2.0: use the real formula (market × 2.25) for the bulk "balanced" suggestion
+        const s = computePriceSuggestion(p).value
+        return { p, box, playerPrice, markup, balanced: s.balancedPrice, marketPrice: s.marketPrice }
       })
       .sort((a, b) => b.box - a.box)
       .slice(0, 30)
@@ -697,9 +703,9 @@ function BulkPricingView({
         <CardTitle className="flex items-center justify-between text-base">
           <span>批量定價檢視 — Top 30 by Box Value</span>
           <ConfidenceBadge
-            confidence={hasSnapshot ? 'confirmed' : 'demo'}
-            formula="boxValue = basePrice × maxItemsPerBox"
-            note="balanced = base × 1.15 (needs-runtime)"
+            confidence="confirmed"
+            formula="balanced = market × 2.25; market = base × tierInflation"
+            note="公式已升級 v2.0: 顧客投訴閾值 = market × Random(2.01, 2.5)"
           />
         </CardTitle>
       </CardHeader>
@@ -713,7 +719,7 @@ function BulkPricingView({
                 <TableHead className="text-right">Box Value</TableHead>
                 <TableHead className="text-right">Player Price</TableHead>
                 <TableHead className="text-right">Markup %</TableHead>
-                <TableHead className="text-right">Balanced</TableHead>
+                <TableHead className="text-right">Balanced (×2.25)</TableHead>
                 <TableHead className="text-right">動作</TableHead>
               </TableRow>
             </TableHeader>
