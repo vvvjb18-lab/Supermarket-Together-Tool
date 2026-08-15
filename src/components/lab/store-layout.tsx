@@ -544,18 +544,40 @@ export function StoreLayout() {
 
   const layoutSource = snapshot ? `save (${snapshot.source})` : 'encyclopedia (demo)'
 
+  // Layout type from save: 0 = Classic, 1 = Plaza
+  const layoutType = snapshot?.layout ?? null
+  const layoutTypeName = layoutType === 1
+    ? (lang === 'en' ? 'Plaza' : '廣場')
+    : layoutType === 0
+      ? (lang === 'en' ? 'Classic' : '經典')
+      : null
+
+  // Unique container class count for header
+  const uniqueClasses = useMemo(() => {
+    const s = new Set<ContainerClassKey>()
+    for (const prop of layout) s.add(containerClassKeyFor(prop.containerID))
+    return s.size
+  }, [layout])
+
   return (
     <div className="mx-auto max-w-[1600px] space-y-4 p-4">
       <SectionHeader
         title="店面平面圖分析"
-        description={`來源: ${layoutSource} · ${layout.length} props · ${aggregates.totalUnits} units`}
+        description={`來源: ${layoutSource} · ${layout.length} props · ${aggregates.totalUnits} units · ${uniqueClasses} container types`}
         confidence={snapshot ? 'confirmed' : 'demo'}
         formula="snapshot.storeLayout ?? encyclopedia.storeLayout"
         note={snapshot ? '從存檔讀取之實際店面配置' : '未上傳存檔 — 顯示百科 demo 配置（41 props）'}
         right={
-          <Badge variant="outline" className="text-xs">
-            <Layers className="mr-1 h-3 w-3" /> {layout.length} props
-          </Badge>
+          <div className="flex items-center gap-2">
+            {layoutTypeName && (
+              <Badge variant="secondary" className="text-xs">
+                {layoutTypeName}
+              </Badge>
+            )}
+            <Badge variant="outline" className="text-xs">
+              <Layers className="mr-1 h-3 w-3" /> {layout.length} props
+            </Badge>
+          </div>
         }
       />
 
@@ -1133,6 +1155,99 @@ export function StoreLayout() {
               formula="Σ demandCoverage / totalUnits × 1000"
               accent={aggregates.demandCoveragePct > 30 ? 'good' : 'warn'}
             />
+          </div>
+
+          {/* Container class distribution + Zone distribution */}
+          <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {/* Container class breakdown */}
+            <div>
+              <h4 className="mb-2 text-sm font-semibold">
+                {lang === 'en' ? 'Container Type Distribution' : '容器類型分佈'}
+              </h4>
+              <div className="space-y-1.5">
+                {(() => {
+                  const classCounts = new Map<ContainerClassKey, { count: number; units: number; value: number }>()
+                  for (const prop of layout) {
+                    const key = containerClassKeyFor(prop.containerID)
+                    const prev = classCounts.get(key) ?? { count: 0, units: 0, value: 0 }
+                    const eff = efficiencies.find((e) => e.propIndex === prop.index)
+                    classCounts.set(key, {
+                      count: prev.count + 1,
+                      units: prev.units + (eff?.totalUnits ?? 0),
+                      value: prev.value + (eff?.shelfValue ?? 0),
+                    })
+                  }
+                  const totalProps = layout.length || 1
+                  const entries = (Object.keys(CONTAINER_CLASS_META) as ContainerClassKey[])
+                    .map((k) => ({ key: k, ...classCounts.get(k)! }))
+                    .filter((e) => e.count > 0)
+                    .sort((a, b) => b.count - a.count)
+                  return entries.map(({ key, count, units, value }) => {
+                    const meta = CONTAINER_CLASS_META[key]
+                    const pct = ((count / totalProps) * 100).toFixed(1)
+                    return (
+                      <div key={key} className="flex items-center gap-2 rounded border bg-card px-3 py-1.5 text-xs">
+                        <span
+                          className="inline-block h-3 w-3 shrink-0 rounded-sm"
+                          style={{ backgroundColor: meta.color }}
+                        />
+                        <span className="min-w-0 flex-1">
+                          <span className="font-medium">{lang === 'en' ? meta.labelEn : meta.labelZh}</span>
+                          <span className="ml-1 text-muted-foreground">{pct}%</span>
+                        </span>
+                        <span className="shrink-0 font-mono text-muted-foreground">{count}× {units}u</span>
+                        <span className="shrink-0 font-mono text-emerald-600 dark:text-emerald-400">{fmtMoney(value)}</span>
+                      </div>
+                    )
+                  })
+                })()}
+              </div>
+            </div>
+            {/* Zone distribution */}
+            <div>
+              <h4 className="mb-2 text-sm font-semibold">
+                {lang === 'en' ? 'Zone Distribution' : '區域分佈'}
+              </h4>
+              <div className="space-y-1.5">
+                {(() => {
+                  const zoneCounts = new Map<number, { count: number; units: number }>()
+                  for (const prop of layout) {
+                    const z = prop.zoneCode ?? 0
+                    const prev = zoneCounts.get(z) ?? { count: 0, units: 0 }
+                    const eff = efficiencies.find((e) => e.propIndex === prop.index)
+                    zoneCounts.set(z, {
+                      count: prev.count + 1,
+                      units: prev.units + (eff?.totalUnits ?? 0),
+                    })
+                  }
+                  const totalProps = layout.length || 1
+                  const ZONE_COLORS: Record<number, string> = {
+                    0: '#10b981', // emerald — main store
+                    1: '#f59e0b', // amber — warehouse
+                    2: '#a855f7', // purple — checkout
+                    3: '#06b6d4', // cyan — self-checkout
+                  }
+                  return [...zoneCounts.entries()]
+                    .sort((a, b) => a[0] - b[0])
+                    .map(([z, { count, units }]) => {
+                      const pct = ((count / totalProps) * 100).toFixed(1)
+                      return (
+                        <div key={z} className="flex items-center gap-2 rounded border bg-card px-3 py-1.5 text-xs">
+                          <span
+                            className="inline-block h-3 w-3 shrink-0 rounded-sm"
+                            style={{ backgroundColor: ZONE_COLORS[z] ?? '#94a3b8' }}
+                          />
+                          <span className="min-w-0 flex-1">
+                            <span className="font-medium">{zoneLabel(z, lang)}</span>
+                            <span className="ml-1 text-muted-foreground">{pct}%</span>
+                          </span>
+                          <span className="shrink-0 font-mono text-muted-foreground">{count}× {units}u</span>
+                        </div>
+                      )
+                    })
+                })()}
+              </div>
+            </div>
           </div>
 
           <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">

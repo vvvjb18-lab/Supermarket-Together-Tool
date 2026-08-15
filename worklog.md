@@ -1234,3 +1234,45 @@ Stage Summary:
 - 修復策略雙管齊下：(1) parser 層從 decoded.propdata 重新解析（確保未來上傳的存檔正確）；(2) 一次性修補腳本修正已打包的 encyclopedia.json + demo-save.json 靜態資料
 - 渲染層全面升級：class-based 8 色系統、真實貨架尺寸（shelfLength×shelfWidth）、90° 旋轉長寬互換、冰箱門指示條紋、區域標籤、裝飾物 ID 處理
 - 從 4 種錯誤類型（28 個 Placement Mode）→ 10 種正確容器類型（Product Shelf, Basic Fridge, Double Fridge, Freezer, Storage Shelf, Checkout, Self-checkout, Product Shelf Half, Pegboard Shelf, Corner Shelf Big）
+
+---
+Task ID: CRON-REVIEW-1
+Agent: orchestrator (main)
+Task: 定期 QA + 自主開發 — 驗證 propdata 修復 + 新增容器類型分佈 + 區域分佈 + 佈局類型偵測
+
+Work Log:
+- 讀取 worklog.md 了解專案狀態：已完成所有主要功能（18 頁、i18n、Supabase、兩層地圖、propdata 修復等），待處理：socket.io 清理、技能解鎖狀態、佈局類型偵測、製造解鎖顯示
+-.lint + tsc 驗證 → 0 errors ✅
+- SSR 驗證 store-layout 頁面 → 所有 8 種容器類別、顏色、真實尺寸確認正確 ✅
+- agent-browser 部分 QA：頁面載入「店面平面圖分析」、圖層 toggle、縮放控制、8 高亮模式、排行榜顯示正確容器名稱（「物件 #28 · 置物架」「雙冰箱」等）、0 console errors ✅
+- 清理 socket.io：移除 `socket.io` + `socket.io-client` packages、刪除 `mini-services/room-service/` ✅
+
+新增功能（store-layout.tsx）：
+
+1. **容器類型分佈** (Container Type Distribution)：
+   - 新增「容器類型分佈」區段，按 class 分組統計每種容器的：數量、佔比(%)、庫存單位、貨架價值
+   - 以對應的 class 顏色色塊標示，按數量降序排列
+   - 例如：貨架 46.3% 19× 120u $240、置物架 26.8% 11× 0u $0...
+
+2. **區域分佈** (Zone Distribution)：
+   - 新增「區域分佈」區段，按 zoneCode 分組統計每個區域的：數量、佔比(%)、庫存單位
+   - 4 種區域各有對應顏色（主店=emerald, 倉儲=amber, 結帳=purple, 自助結帳=cyan）
+
+3. **佈局類型偵測** (Layout Type Detection)：
+   - 從 `snapshot.layout` 讀取：0=經典(Classic), 1=廣場(Plaza)
+   - 在 SectionHeader 右側顯示佈局類型 Badge（secondary variant）
+   - 描述列新增 `N container types` 統計
+
+4. **Header 增強**：
+   - description 加入 `uniqueClasses container types` 計數
+   - right 改為 flex row：佈局類型 Badge + props Badge
+
+所有修改：
+- bun run lint → 0 errors ✅
+- bunx tsc --noEmit → 0 errors in changed files ✅
+
+Stage Summary:
+- socket.io 完全清除（package + mini-services）
+- store-layout 新增 3 個分析區段（容器類型分佈 + 區域分佈 + 佈局類型偵測）
+- 所有容器類型正確識別，渲染驗證通過
+- 開發環境 4GB RAM OOM 仍為已知風險（store-layout 已 eager import 緩解）
