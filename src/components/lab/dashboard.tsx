@@ -86,11 +86,11 @@ export function Dashboard() {
       .slice(0, 10)
   }, [snapshot, lang])
 
-  // top 10 high-value unlocked opportunities
+  // top 10 high-value unlock opportunities (products you have NOT unlocked yet)
   const opportunities = useMemo(() => {
     const unlocked = new Set(snapshot?.unlockedProducts ?? ENC.products.map((p) => p.id))
     return ENC.products
-      .filter((p) => unlocked.has(p.id))
+      .filter((p) => !unlocked.has(p.id))
       .map((p) => {
         const box = computeBoxValue(p).value
         const vol = computeColliderVolume(p).value
@@ -362,7 +362,7 @@ export function Dashboard() {
         </ListCard>
 
         <ListCard
-          title="Top 10 高價值解鎖機會"
+          title="Top 10 值得解鎖商品"
           icon={<TrendingUp className="h-4 w-4 text-emerald-500" />}
           confidence="proxy"
           empty={opportunities.length === 0}
@@ -372,7 +372,7 @@ export function Dashboard() {
               key={r.p.id}
               index={i + 1}
               title={r.label}
-              subtitle={`#${r.p.id} · box ${fmtMoney(r.box)} · market ${fmtMoney(r.market)} · density ${fmt(r.density, 1)} $/u³`}
+              subtitle={`未解鎖 · #${r.p.id} · box ${fmtMoney(r.box)} · market ${fmtMoney(r.market)} · density ${fmt(r.density, 1)} $/u³`}
               right={
                 <div className="flex flex-col items-end">
                   <span className="font-mono text-xs">score {fmt(r.score, 1)}</span>
