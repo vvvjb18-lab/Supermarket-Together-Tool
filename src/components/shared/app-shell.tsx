@@ -13,6 +13,7 @@ import { StoreLayout as Layout } from '@/components/lab/store-layout'
 // Lazy-load page components so initial bundle stays small.
 const Dashboard = lazy(() => import('@/components/lab/dashboard').then((m) => ({ default: m.Dashboard })))
 const Upload = lazy(() => import('@/components/lab/upload').then((m) => ({ default: m.Upload })))
+const Stats = lazy(() => import('@/components/lab/stats').then((m) => ({ default: m.Stats })))
 const Room = lazy(() => import('@/components/lab/room').then((m) => ({ default: m.Room })))
 const Restock = lazy(() => import('@/components/lab/restock').then((m) => ({ default: m.Restock })))
 const Pricing = lazy(() => import('@/components/lab/pricing').then((m) => ({ default: m.Pricing })))
@@ -37,6 +38,7 @@ const Atlas = lazy(() => import('@/components/lab/atlas').then((m) => ({ default
 const VIEW_COMPONENTS: Record<string, React.ComponentType<any> | React.LazyExoticComponent<() => any>> = {
   dashboard: Dashboard,
   upload: Upload,
+  stats: Stats,
   room: Room,
   layout: Layout,
   restock: Restock,

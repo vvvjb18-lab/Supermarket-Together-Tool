@@ -39,6 +39,7 @@ export const useSaveStore = create<SaveStore>()(
 type ViewId =
   | 'dashboard'
   | 'upload'
+  | 'stats'
   | 'wiki'
   | 'profit'
   | 'salt'

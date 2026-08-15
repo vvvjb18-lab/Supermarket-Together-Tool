@@ -437,3 +437,73 @@ export interface RoomEvent {
   type: string
   payload: Record<string, unknown>
 }
+
+// ---------- daily statistics history (StoreFile0stats.es3) ----------
+// The game writes one stats block per game day into a separate, cleartext
+// `StoreFile0stats.es3` next to the main save. Key format is `day{N}stat{Name}`.
+// Each day carries 28 scalar + 4 list values (per-Product arrays, indexed by
+// product id). See save-analyzer/extract_stats_history.py for the extractor.
+//
+// Two game-side key typos are normalised here:
+//   'omplainedAboutFilth'      -> complainedAboutFilth  (missing leading 'c')
+//   'totalsProductsSoldThisDay'-> totalProductsSoldThisDay (extra 's')
+// And `totalProductsAcquiredThisDay` is a known game bug: the IL second loop
+// re-sums productsSold (not productsAcquired), so it always equals
+// totalProductsSoldThisDay — do NOT use it to derive purchase volume.
+
+export interface DailyStat {
+  day: number
+  customers: number
+  /** Net daily profit (revenue − expenses) as recorded by the game. */
+  benefits: number
+  /** Cumulative franchise XP (NOT reset daily). */
+  franchiseExperience: number
+  timesRobbed: number
+  moneySpentOnProducts: number
+  notFoundProductsCount: number
+  tooExpensiveProductsCount: number
+  lightCost: number
+  rentCost: number
+  employeesCost: number
+  /** Normalised from the bug key 'omplainedAboutFilth'. */
+  complainedAboutFilth: number
+  /** Normalised from the bug key 'totalsProductsSoldThisDay'. */
+  totalProductsSoldThisDay: number
+  /** KNOWN GAME BUG: always equals totalProductsSoldThisDay (unreliable). */
+  totalProductsAcquiredThisDay: number
+  productsPlacedInContainers: number
+  totalBoxesRecycled: number
+  totalBalesRecycled: number
+  totalBoxesAddedToBaler: number
+  totalTrashCollected: number
+  stolenProductsCollectedFromFloor: number
+  analyzedCustomers: number
+  caughtThievesWhenAnalyzing: number
+  salesMade: number
+  extraProductsSoldThankToSales: number
+  paidInvoices: number
+  onlineOrdersMade: number
+  moneyMadeByOnlineOrders: number
+  repairedDevices: number
+  bystandersConvertedIntoCustomers: number
+  /** Per-product units sold this day (index = product id). */
+  productsSoldList: number[]
+  /** Per-product units acquired this day (index = product id) — UNRELIABLE (game bug). */
+  productsAcquiredList: number[]
+  /** Per-product revenue this day (index = product id). */
+  revenuePerProductSoldList: number[]
+  /** Per-product purchase cost this day (index = product id). */
+  costPerProductAcquiredList: number[]
+}
+
+export interface StatsHistory {
+  source: string
+  days: number[]
+  scalarStats: string[]
+  listStats: string[]
+  /** day (string) -> DailyStat */
+  data: Record<string, DailyStat>
+  /** Length of the per-product list arrays (== product count, usually 339). */
+  productCount: number
+  parseWarnings: string[]
+}

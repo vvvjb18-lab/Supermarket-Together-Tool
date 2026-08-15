@@ -26,6 +26,7 @@ import {
   ChevronRight,
   Store,
   Share2,
+  BarChart3,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUIStore, type ViewId } from '@/lib/store'
@@ -48,6 +49,7 @@ export const NAV: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', zhLabel: '營運總覽', description: '先看風險與下一步', icon: LayoutDashboard, group: '開始', keywords: '首頁 建議' },
   { id: 'upload', label: 'Save Upload', zhLabel: '載入存檔', description: '匯入並檢查遊戲資料', icon: Upload, group: '開始', keywords: 'es3 json demo' },
   { id: 'room', label: 'Multiplayer Room', zhLabel: '多人協作', description: '同步存檔與分工', icon: UsersRound, group: '開始', keywords: 'supabase realtime 房間' },
+  { id: 'stats', label: 'Stats', zhLabel: '營運分析', description: '真實銷量與盈利歷史', icon: BarChart3, group: '經營工具', keywords: '統計 歷史 銷量 盈利 成長 每日' },
   { id: 'restock', label: 'Restock Planner', zhLabel: '補貨規劃', description: '決定現在該買什麼', icon: PackageSearch, group: '經營工具', keywords: '庫存 採購 缺貨' },
   { id: 'pricing', label: 'Pricing Lab', zhLabel: '定價建議', description: '找安全價與高收益價', icon: Tag, group: '經營工具', keywords: '售價 投訴 市價' },
   { id: 'layout', label: 'Store Layout', zhLabel: '店面平面圖', description: '檢查貨架與空間', icon: Map, group: '經營工具', keywords: '地圖 擺位' },
