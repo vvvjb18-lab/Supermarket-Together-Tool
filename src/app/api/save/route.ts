@@ -3,8 +3,8 @@
 // The local watcher (F:\游戲副本\save-analyzer\tools\autosync.py) watches the
 // game save `StoreFile0.es3`, decodes it into the v1.0 `save.json` (11-key
 // format), and POSTs it here. This route:
-//   1. Verifies the room code + password (via the `verify_room_password` RPC,
-//      using pgcrypto bcrypt — same gate the browser Room feature uses).
+//   1. Verifies the room code + password locally against the stored bcrypt
+//      hash (same gate the browser Room feature uses; no pgcrypto/RPC needed).
 //   2. Auto-provisions the room on first use (so the user doesn't have to
 //      create it in the UI first; just configure code + password in
 //      autosync_config.json and both sides agree).
@@ -96,27 +96,22 @@ export async function POST(req: Request) {
   }
 
   // 1. Verify the room password (or auto-provision the room on first use).
-  const { data: okRaw, error: rpcErr } = await supabase.rpc('verify_room_password', {
-    p_code: code,
-    p_password: password,
-  })
-  if (rpcErr) {
-    return NextResponse.json({ ok: false, error: `驗證房間密碼失敗：${rpcErr.message}` }, { status: 500 })
+  //    We compare the bcrypt hash locally (the room row is publicly readable
+  //    under permissive RLS), so there is no pgcrypto / RPC dependency.
+  const { data: room, error: selErr } = await supabase
+    .from('rooms')
+    .select('password_hash')
+    .eq('code', code)
+    .maybeSingle()
+  if (selErr) {
+    return NextResponse.json({ ok: false, error: `查詢房間失敗：${selErr.message}` }, { status: 500 })
   }
 
-  if (!okRaw) {
-    const { data: existing, error: selErr } = await supabase
-      .from('rooms')
-      .select('code')
-      .eq('code', code)
-      .maybeSingle()
-    if (selErr) {
-      return NextResponse.json({ ok: false, error: `查詢房間失敗：${selErr.message}` }, { status: 500 })
-    }
-    if (existing) {
+  if (room) {
+    if (!bcrypt.compareSync(password, room.password_hash)) {
       return NextResponse.json({ ok: false, error: '房間代碼或密碼錯誤' }, { status: 401 })
     }
-
+  } else {
     // Auto-provision: create the room so the user only has to configure
     // code + password in autosync_config.json once.
     const { error: insErr } = await supabase.from('rooms').insert({

@@ -3,15 +3,13 @@
 -- ============================================================
 -- Run this in Supabase Dashboard → SQL Editor → New query → Run
 --
--- Creates: rooms, saves, members, events tables + RLS + realtime
--- + a verify_room_password RPC (bcrypt via pgcrypto).
+-- Creates: rooms, saves, members, events, save_history tables + RLS + realtime.
+-- Password verification is done locally in the app (bcryptjs) against the
+-- stored bcrypt hash — no pgcrypto / RPC dependency.
 --
 -- After running, also enable Realtime on `saves` and `members`:
 --   Dashboard → Database → Replication → toggle saves, members, events ON
 -- ============================================================
-
--- pgcrypto gives us crypt() / gen_salt() for bcrypt password hashing
-create extension if not exists pgcrypto;
 
 -- ----------------------------------------------------------------
 -- rooms: one row per shared session (identified by 6-char code)
@@ -114,35 +112,10 @@ drop policy if exists "save_history_public_all" on save_history;
 create policy "save_history_public_all" on save_history for all using (true) with check (true);
 
 -- ----------------------------------------------------------------
--- RPC: verify a room password against the stored bcrypt hash.
--- Returns true/false. Used by the app's joinRoom() flow.
---
--- NOTE: bcryptjs v3 generates `$2b$` hashes, but pgcrypto's crypt()
--- only verifies `$2a$`. The app now stores `$2a$` (hashPassword()
--- rewrites the prefix), but this RPC defensively rewrites any legacy
--- `$2b$` hash to `$2a$` before comparing so pre-existing rooms keep
--- working after an upgrade.
---
--- Usage:  select verify_room_password('ABC123', 'secret');
+-- NOTE: No verify_room_password RPC is needed. Password verification is
+-- done locally in the app (bcryptjs) against the stored bcrypt hash, so
+-- there is no pgcrypto dependency.
 -- ----------------------------------------------------------------
-create or replace function verify_room_password(p_code text, p_password text)
-returns boolean
-language sql
-security definer
-set search_path = public
-as $$
-  select exists(
-    select 1 from rooms
-    where code = p_code
-      and password_hash = crypt(
-        p_password,
-        replace(password_hash, '$2b$', '$2a$')
-      )
-  );
-$$;
-
--- Allow anon to call it
-grant execute on function verify_room_password(text, text) to anon, authenticated;
 
 -- ----------------------------------------------------------------
 -- Realtime: enable publication for the sync tables.

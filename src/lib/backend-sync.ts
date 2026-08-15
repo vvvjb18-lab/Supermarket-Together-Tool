@@ -7,10 +7,11 @@
 //     configured (`isSupabaseConfigured`). When not configured, every
 //     function throws and the hook falls back to local BroadcastChannel.
 //   - Password hashing uses bcryptjs in the browser (host hashes on
-//     createRoom; joinRoom verifies via the `verify_room_password` RPC
-//     which uses pgcrypto's crypt()). bcryptjs v3 emits `$2b$` but
-//     pgcrypto only accepts `$2a$`, so hashPassword() rewrites the
-//     prefix (see note on hashPassword below).
+//     createRoom). joinRoom verifies the password locally against the
+//     stored bcrypt hash (the room row is publicly readable under the
+//     permissive RLS), so there is no pgcrypto / verify_room_password RPC
+//     dependency. bcryptjs v3 emits `$2b$`; hashPassword() rewrites the
+//     prefix to `$2a$` (see note on hashPassword below).
 //   - Realtime subscriptions are exposed as unsubscribe fns so the hook
 //     can clean them up on leaveRoom / unmount.
 
@@ -93,12 +94,10 @@ export function getSupabase(): SupabaseClient | null {
 
 // ---------- Password hashing (browser bcrypt) ----------
 export function hashPassword(plain: string): string {
-  // bcryptjs v3 emits the `$2b$` variant, but PostgreSQL pgcrypto's
-  // crypt() only verifies `$2a$` (it silently rejects `$2b$` hashes, so
-  // a correct password would fail the verify_room_password RPC).
-  // For ASCII passwords `$2a$` and `$2b$` are byte-identical except for
-  // the prefix, so rewriting the prefix is safe. bcryptjs compareSync
-  // (local fallback) verifies both variants, so this stays compatible.
+  // bcryptjs v3 emits the `$2b$` variant. We store `$2a$` for cross-tool
+  // compatibility (e.g. pgcrypto's crypt() only verifies `$2a$`). For ASCII
+  // passwords the two are byte-identical except the prefix, so the rewrite is
+  // safe. bcryptjs compareSync (used by verifyPassword) accepts both variants.
   return bcrypt.hashSync(plain, 10).replace(/^\$2b\$/, '$2a$')
 }
 
@@ -194,16 +193,9 @@ export async function joinRoom(opts: {
   if (!opts.password) throw new Error('請輸入房間密碼')
   if (!opts.memberName) throw new Error('請輸入你的名字')
 
-  // 1. Verify password via RPC (pgcrypto bcrypt on the server).
-  const { data: okRaw, error: rpcErr } = await supabase.rpc('verify_room_password', {
-    p_code: opts.code,
-    p_password: opts.password,
-  })
-  if (rpcErr) throw new Error(`驗證房間密碼失敗：${rpcErr.message}`)
-  const ok = Boolean(okRaw)
-  if (!ok) throw new Error('房間代碼或密碼錯誤')
-
-  // 2. Fetch room row.
+  // 1. Fetch the room row. password_hash is publicly readable under the
+  //    permissive RLS, so we verify the password locally with bcrypt (below)
+  //    and avoid any pgcrypto / verify_room_password RPC dependency.
   const { data: room, error: roomErr } = await supabase
     .from('rooms')
     .select('*')
@@ -211,6 +203,11 @@ export async function joinRoom(opts: {
     .maybeSingle()
   if (roomErr) throw new Error(`讀取房間資料失敗：${roomErr.message}`)
   if (!room) throw new Error('找不到此房間代碼')
+
+  // 2. Verify the password locally against the stored bcrypt hash.
+  if (!verifyPassword(opts.password, room.password_hash)) {
+    throw new Error('房間代碼或密碼錯誤')
+  }
 
   // 3. Upsert member (role 'member' — host slot is reserved for host_id).
   const role = room.host_id === opts.memberId ? 'host' : 'member'
