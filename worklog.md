@@ -1276,3 +1276,24 @@ Stage Summary:
 - store-layout 新增 3 個分析區段（容器類型分佈 + 區域分佈 + 佈局類型偵測）
 - 所有容器類型正確識別，渲染驗證通過
 - 開發環境 4GB RAM OOM 仍為已知風險（store-layout 已 eager import 緩解）
+
+---
+Task ID: GIT-PUSH-1
+Agent: orchestrator (main)
+Task: 将本地 13+ commit 推送到 GitHub（用户要求"推上GitHub"）
+
+Work Log:
+- git status：本地领先 origin/main 13 commits（含 Supabase 修复 ed1e112、level0 静态几何 atlas 996abb2、gitignore 清理 d34d626、Game Atlas TSV export 等）
+- 首次推送被拒：远端有 1 个本地没有的 commit（2a5c694 Add Supabase URL and anon key to .env.example）
+- git fetch + 对比：远端只改 .env.example（填入实际 Supabase URL + anon key），我们 13 commits 未触碰该文件 → 无冲突
+- rebase 尝试失败：历史早期 commit 曾添加 tool-results/ 文件（后被 d34d626 移除+gitignore），rebase 重放时被磁盘上已忽略的未跟踪文件阻挡
+- 改用 git merge FETCH_HEAD --no-edit → 干净合并（ort 策略，仅 .env.example 改动）
+- git push https://vvvjb18-lab:<PAT>@github.com/...main → 成功（2a5c694..cd8c45c，15 commits 推送）
+- 立即 git remote set-url origin 重置回不带 token 的干净 URL，PAT 未落盘到 .git/config
+- 验证：git log origin/main..main 为空 → 完全同步
+
+Stage Summary:
+- 远端已同步至 cd8c45c（Merge branch 'main'），本地与 origin/main 完全一致
+- PAT 已清理出 git config，但该 PAT 在对话中已出现两次，建议用户去 GitHub 撤销并换新
+- 创建了 15 分钟定期 webDevReview cron job（job_id 324004，Asia/Hong_Kong，fixed_rate 900s）
+- 之前的活动层容器识别 bug 已在 PROPDAT-FIX 任务中修复并验证（8 色容器类别系统 + 真实尺寸 + zone 标签），本次无需重做
