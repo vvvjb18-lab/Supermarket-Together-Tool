@@ -8,7 +8,9 @@
 //     function throws and the hook falls back to local BroadcastChannel.
 //   - Password hashing uses bcryptjs in the browser (host hashes on
 //     createRoom; joinRoom verifies via the `verify_room_password` RPC
-//     which uses pgcrypto's crypt() — same bcrypt scheme).
+//     which uses pgcrypto's crypt()). bcryptjs v3 emits `$2b$` but
+//     pgcrypto only accepts `$2a$`, so hashPassword() rewrites the
+//     prefix (see note on hashPassword below).
 //   - Realtime subscriptions are exposed as unsubscribe fns so the hook
 //     can clean them up on leaveRoom / unmount.
 
@@ -69,8 +71,13 @@ export function getSupabase(): SupabaseClient | null {
 
 // ---------- Password hashing (browser bcrypt) ----------
 export function hashPassword(plain: string): string {
-  // bcryptjs hashSync is sync ~50ms — fine for a one-shot host action.
-  return bcrypt.hashSync(plain, 10)
+  // bcryptjs v3 emits the `$2b$` variant, but PostgreSQL pgcrypto's
+  // crypt() only verifies `$2a$` (it silently rejects `$2b$` hashes, so
+  // a correct password would fail the verify_room_password RPC).
+  // For ASCII passwords `$2a$` and `$2b$` are byte-identical except for
+  // the prefix, so rewriting the prefix is safe. bcryptjs compareSync
+  // (local fallback) verifies both variants, so this stays compatible.
+  return bcrypt.hashSync(plain, 10).replace(/^\$2b\$/, '$2a$')
 }
 
 export function verifyPassword(plain: string, hash: string): boolean {

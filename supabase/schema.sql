@@ -97,6 +97,13 @@ create policy "events_public_all" on events for all using (true) with check (tru
 -- ----------------------------------------------------------------
 -- RPC: verify a room password against the stored bcrypt hash.
 -- Returns true/false. Used by the app's joinRoom() flow.
+--
+-- NOTE: bcryptjs v3 generates `$2b$` hashes, but pgcrypto's crypt()
+-- only verifies `$2a$`. The app now stores `$2a$` (hashPassword()
+-- rewrites the prefix), but this RPC defensively rewrites any legacy
+-- `$2b$` hash to `$2a$` before comparing so pre-existing rooms keep
+-- working after an upgrade.
+--
 -- Usage:  select verify_room_password('ABC123', 'secret');
 -- ----------------------------------------------------------------
 create or replace function verify_room_password(p_code text, p_password text)
@@ -108,7 +115,10 @@ as $$
   select exists(
     select 1 from rooms
     where code = p_code
-      and password_hash = crypt(p_password, password_hash)
+      and password_hash = crypt(
+        p_password,
+        replace(password_hash, '$2b$', '$2a$')
+      )
   );
 $$;
 
