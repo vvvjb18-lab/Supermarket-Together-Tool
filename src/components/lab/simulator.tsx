@@ -5,7 +5,7 @@ import { encyclopedia as ENC } from '@/lib/data-loader'
 import { productById } from '@/lib/data-loader'
 import { simulateCustomers, type SimulationConfig } from '@/lib/engine'
 import { useSaveStore, useUIStore } from '@/lib/store'
-import type { Product } from '@/lib/types'
+import type { Product, Confidence } from '@/lib/types'
 import {
   useLang,
   customerTypeLabel,
@@ -41,6 +41,7 @@ import {
   Box,
   Trophy,
   Target,
+  Workflow,
 } from 'lucide-react'
 import type { SimulationResult } from '@/lib/engine'
 
@@ -61,6 +62,68 @@ function parseCustomWeights(text: string): number[] | null {
 }
 
 // ============================================================
+// 顧客行為流程圖資料 (5 步驟, 對應真實 IL 演算法)
+// ============================================================
+
+interface FlowStep {
+  title: string
+  confidence: Confidence
+  formula: string
+  source: string
+  sim: '已實現' | '部分實現' | '未實現'
+  simNote: string
+  accent: string
+}
+
+const FLOW_STEPS: FlowStep[] = [
+  {
+    title: '生成顧客 (Spawn)',
+    confidence: 'confirmed',
+    formula: 'maxCustomersNPCs = 5 · 路人→顧客機率 0.66',
+    source: 'Game Tuning 常數 + 58 種顧客類型（見「顧客最愛」tab）',
+    sim: '部分實現',
+    simNote: '模擬器假設 58 種等機率生成；真實 NPC 進店/spawn 分布未從 IL 驗證',
+    accent: 'bg-sky-500',
+  },
+  {
+    title: '生成購物清單 (GenerateCompensatedList)',
+    confidence: 'confirmed',
+    formula: '件數 k = Random.Range(2 + difficulty, 5)',
+    source: 'IL 提取；難度越高買越多，difficulty=1 時每顧客 3~4 件，≥3 時固定 5 件',
+    sim: '已實現',
+    simNote: '每件獨立按 compensatedChances[3] 抽模式（random / necessity / premium）',
+    accent: 'bg-indigo-500',
+  },
+  {
+    title: '拿貨 (Pick from shelves)',
+    confidence: 'proxy',
+    formula: '只拿「已解鎖 + 有現貨」的商品',
+    source: '缺貨 = 漏單（missedSales）；真實拿貨路徑/是否繞道未完全驗證',
+    sim: '已實現',
+    simNote: 'unlockedProductIds + stockedProductIds 雙重過濾',
+    accent: 'bg-emerald-500',
+  },
+  {
+    title: '結帳定價 (CustomerNPCControl)',
+    confidence: 'confirmed',
+    formula: '玩家定價 > market × Random.Range(2.01, 2.5) → 投訴 + 不買',
+    source: 'IL 提取；0 投訴保證價 = 2.01×market（201%），2.25× 約 50% 接受',
+    sim: '未實現',
+    simNote: '模擬器目前不看玩家定價 productPlayerPricing，只算命中/漏單',
+    accent: 'bg-rose-500',
+  },
+  {
+    title: '特價衝動購買 (ExtraProductsOnSaleToAdd)',
+    confidence: 'confirmed',
+    formula: '成交機率 = saleCurve(clamp(base,0,199))/100 + 0.01×(discount/5)',
+    source: 'IL 提取；discount clamp[5,45]，discount/5 整數除法（5%→+1%…45%→+9%）',
+    sim: '未實現',
+    simNote: '衝動購買未納入；結論：最小折扣 5% 最賺（只 +1% 機率卻不吃毛利）',
+    accent: 'bg-amber-500',
+  },
+]
+
+// ============================================================
 // Main component
 // ============================================================
 
@@ -71,7 +134,7 @@ export function Simulator() {
   const setView = useUIStore((s) => s.setView)
 
   // Top-level tab: customer view / necessity view / simulator
-  const [tab, setTab] = useState<'customer' | 'necessity' | 'sim'>('customer')
+  const [tab, setTab] = useState<'customer' | 'necessity' | 'sim' | 'flow'>('customer')
 
   // selections for the two explorer tabs
   const [selectedCust, setSelectedCust] = useState(0)
@@ -208,6 +271,7 @@ export function Simulator() {
       mode,
       stockedProductIds,
       unlockedProductIds,
+      difficulty: snapshot?.difficulty ?? 1,
     }
     setResult(simulateCustomers(cfg))
   }
@@ -290,6 +354,9 @@ export function Simulator() {
           </TabsTrigger>
           <TabsTrigger value="sim" className="text-xs sm:text-sm">
             <Play className="mr-1.5 h-3.5 w-3.5" />模擬器
+          </TabsTrigger>
+          <TabsTrigger value="flow" className="text-xs sm:text-sm">
+            <Workflow className="mr-1.5 h-3.5 w-3.5" />行為流程
           </TabsTrigger>
         </TabsList>
 
@@ -674,7 +741,7 @@ export function Simulator() {
                 </div>
               </div>
 
-              <div className="mt-4 flex items-center gap-2">
+              <div className="mt-4 flex flex-wrap items-center gap-2">
                 <Button onClick={runSimulation} size="sm">
                   <Play className="mr-1.5 h-3.5 w-3.5" /> 執行模擬
                 </Button>
@@ -683,6 +750,9 @@ export function Simulator() {
                     已執行 N={result.value.totalCustomers.toLocaleString()}
                   </Badge>
                 )}
+                <span className="text-[10px] text-muted-foreground">
+                  難度 {snapshot?.difficulty ?? 1}（存檔 Difficulty，無存檔預設 1）→ 每顧客 {Math.min(2 + (snapshot?.difficulty ?? 1), 5)}~5 件
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -705,6 +775,82 @@ export function Simulator() {
               }}
             />
           )}
+        </TabsContent>
+
+        {/* ============== Tab D: 行為流程 ============== */}
+        <TabsContent value="flow" className="mt-4 space-y-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Workflow className="h-4 w-4 text-primary" /> 顧客/NPC 行為完整算法流程
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">
+                從生成到結帳的 5 個階段，每步標註真實公式（IL / Game Tuning 提取）與模擬器實作程度。
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-0">
+                {FLOW_STEPS.map((step, i) => {
+                  const simColor =
+                    step.sim === '已實現'
+                      ? 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30'
+                      : step.sim === '部分實現'
+                        ? 'bg-amber-500/15 text-amber-700 border-amber-500/30'
+                        : 'bg-rose-500/15 text-rose-700 border-rose-500/30'
+                  return (
+                    <div key={step.title} className="relative flex gap-3 pb-5">
+                      {/* vertical connector */}
+                      {i < FLOW_STEPS.length - 1 && (
+                        <div className="absolute left-4 top-9 h-[calc(100%-2.25rem)] w-px bg-border" />
+                      )}
+                      {/* number circle */}
+                      <div
+                        className={cn(
+                          'z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white shadow-sm',
+                          step.accent,
+                        )}
+                      >
+                        {i + 1}
+                      </div>
+                      {/* step card */}
+                      <div className="min-w-0 flex-1 rounded-lg border bg-card p-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-sm font-semibold">{step.title}</span>
+                          <ConfidenceBadge confidence={step.confidence} formula={step.formula} />
+                          <span className={cn('ml-auto rounded-full border px-2 py-0.5 text-[10px] font-medium', simColor)}>
+                            {step.sim}
+                          </span>
+                        </div>
+                        <div className="mt-2 rounded-md bg-muted/40 px-2.5 py-1.5 font-mono text-[11px] leading-relaxed text-foreground">
+                          {step.formula}
+                        </div>
+                        <div className="mt-1.5 text-[11px] text-muted-foreground">{step.source}</div>
+                        <div className="mt-1 text-[11px] text-muted-foreground">
+                          <span className="font-medium text-foreground">模擬器：</span>
+                          {step.simNote}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Target className="h-4 w-4 text-emerald-500" /> 一句話總結
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm leading-relaxed text-muted-foreground">
+              每位顧客進店後先抽「要買幾件」<span className="font-mono text-foreground">(2+difficulty ~ 5 件)</span>，每件獨立決定
+              「隨機 / 按需求品類 / 指定高價商品」三種來源之一，然後去貨架拿貨（缺貨就漏單）；結帳時若你的定價超過
+              <span className="font-mono text-foreground">市價 × 隨機 2.01~2.5 倍</span> 會投訴不買；最後有
+              <span className="font-mono text-foreground">特價</span> 時額外 roll 一次衝動購買（機率只 +1%~9%，但吃掉 5~45% 毛利）。
+              模擬器已實作前 3 步（生成→清單→拿貨），定價投訴與特價衝動尚未納入。
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

@@ -1381,6 +1381,8 @@ export interface SimulationConfig {
   stockedProductIds?: Set<number>
   /** If set, customers only "want" products inside this set (unlocked catalog). */
   unlockedProductIds?: Set<number>
+  /** Game difficulty 1-5; raises the minimum items per customer visit. */
+  difficulty?: number
 }
 
 export interface SimulationResult {
@@ -1409,6 +1411,13 @@ export function simulateCustomers(cfg: SimulationConfig): CalcResult<SimulationR
   let totalHits = 0
   let missedHits = 0
 
+  // v2.1: real purchase count from GenerateCompensatedList IL:
+  //   k = Random.Range(2 + difficulty, maxProductsCustomersToBuy)
+  // maxProductsCustomersToBuy is a Game Tuning constant = 5.
+  const MAX_PRODUCTS_PER_CUSTOMER = 5
+  const difficulty = cfg.difficulty ?? 1
+  const minItems = Math.min(2 + difficulty, MAX_PRODUCTS_PER_CUSTOMER)
+
   for (let i = 0; i < cfg.n; i++) {
     // pick customer type by weight
     let r = Math.random() * weightSum
@@ -1419,32 +1428,37 @@ export function simulateCustomers(cfg: SimulationConfig): CalcResult<SimulationR
     }
     if (ci >= custs.length) ci = custs.length - 1
     const cust = custs[ci]
-    // v2.0: determine how many items this customer will buy using compensatedChances
-    //   - mode 0 (random): always 1 item
-    //   - mode 1 (necessity): adds 0-1 extra items
-    //   - mode 2 (premium): adds 0-1 extra items from premiumIndexes
-    // We pick items by sampling necessity for each item; premium mode is entered with
-    // probability compensatedChances[2] / (sum of compensatedChances).
+    const k =
+      minItems >= MAX_PRODUCTS_PER_CUSTOMER
+        ? MAX_PRODUCTS_PER_CUSTOMER
+        : minItems + Math.floor(Math.random() * (MAX_PRODUCTS_PER_CUSTOMER - minItems))
+    // per-item mode weights: compensatedChances = [random, necessity, premium].
     const cc = cust.compensatedChances
     const ccSum = cc.reduce((a, b) => a + b, 0)
-    // sample k = 1 + Bernoulli(extra) where extra ~ Binomial-like from mode 1 weight
-    const baseCount = 1
-    const extraChance = ccSum > 0 ? cc[1] / ccSum : 0
-    const premiumChance = ccSum > 0 ? cc[2] / ccSum : 0
-    const k = baseCount + (Math.random() < extraChance ? 1 : 0) + (Math.random() < premiumChance ? 1 : 0)
-    const isPremiumItem = Math.random() < premiumChance
 
     for (let item = 0; item < k; item++) {
       let chosen = -1
-      // premium mode: pick from premiumIndexes uniformly, restricted to unlocked catalog
-      if (isPremiumItem && cust.premiumIndexes && cust.premiumIndexes.length > 0) {
+      // pick mode per item independently: 0=random, 1=necessity, 2=premium
+      let mode = 1
+      if (ccSum > 0) {
+        let roll = Math.random() * ccSum
+        for (let m = 0; m < 3; m++) {
+          roll -= Math.max(0, cc[m] ?? 0)
+          if (roll <= 0) {
+            mode = m
+            break
+          }
+        }
+      }
+      if (mode === 2 && cust.premiumIndexes && cust.premiumIndexes.length > 0) {
+        // premium mode: uniform over unlocked premium products
         const premiumPool = unlocked ? cust.premiumIndexes.filter((id) => unlocked.has(id)) : cust.premiumIndexes
         if (premiumPool.length > 0) {
           chosen = premiumPool[Math.floor(Math.random() * premiumPool.length)]
         }
-        // if no premium product is unlocked, fall through to necessity mode
+        // else fall through to necessity mode below
       }
-      if (chosen < 0) {
+      if (chosen < 0 && mode !== 0) {
         // necessity mode: pick necessity by chance, then uniform product from pool
         const chances = cust.necessitiesChances
         const chanceSum = chances.reduce((a, b) => a + Math.max(0, b), 0)
@@ -1467,6 +1481,13 @@ export function simulateCustomers(cfg: SimulationConfig): CalcResult<SimulationR
               chosen = tokens[Math.floor(Math.random() * tokens.length)]
             }
           }
+        }
+      }
+      if (chosen < 0 && mode === 0) {
+        // random mode: uniform over all unlocked products
+        const pool = unlocked ? products.filter((p) => unlocked.has(p.id)) : products
+        if (pool.length > 0) {
+          chosen = pool[Math.floor(Math.random() * pool.length)].id
         }
       }
       if (chosen < 0) continue
@@ -1498,10 +1519,10 @@ export function simulateCustomers(cfg: SimulationConfig): CalcResult<SimulationR
 
   return {
     value: { productHits, missedSales, totalCustomers: cfg.n, totalHits, missedHits, demandCoverage, topMissing, topOverstockedLowDemand },
-    formula: `v2.0 Monte Carlo: pick cust by weight, sample items k~1+Bin(extraChance)+Bin(premiumChance), each item picks necessity (or premium pool if premium mode), product uniform from ${cfg.mode} pool`,
-    sources: [`n=${cfg.n}`, `mode=${cfg.mode}`, `customerWeights=${cw.length}`, `AVG_ITEMS_PER_CUSTOMER=${AVG_ITEMS_PER_CUSTOMER.toFixed(3)}`],
+    formula: `Monte Carlo: 抽顧客類型→件數 k=Random.Range(2+difficulty,5)→每件獨立按 compensatedChances[3] 抽模式(0=random/1=necessity/2=premium)→池內均勻抽商品`,
+    sources: [`n=${cfg.n}`, `mode=${cfg.mode}`, `difficulty=${difficulty}`, `customerWeights=${cw.length}`],
     confidence: 'proxy',
-    note: `v2.0: multi-item purchase (compensatedChances) + premium mode (premiumIndexes) per extracted encyclopedia. AVG items/customer = ${AVG_ITEMS_PER_CUSTOMER.toFixed(3)}.`,
+    note: `v2.1 真實演算法: 件數 k=Random.Range(2+difficulty,5)（difficulty=${difficulty}→每顧客 ${minItems}~${MAX_PRODUCTS_PER_CUSTOMER - 1} 件），每件獨立 roll compensatedChances[3] 抽模式。random 模式從全部已解鎖商品均勻抽、necessity 從品類池抽、premium 從 premiumIndexes 抽。`,
   }
 }
 
