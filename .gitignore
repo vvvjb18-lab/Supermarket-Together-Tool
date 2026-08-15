@@ -66,3 +66,6 @@ upload/level0
 # local backup files (created during Mavis patches)
 *.bak
 *.bak.mine
+
+# local archive (manual cleanup, never commit)
+__bak_archive/
