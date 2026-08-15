@@ -1157,3 +1157,80 @@ Stage Summary:
 - 0 lint errors, 0 console errors, 0 runtime errors
 - 所有互動 (圖層切換、縮放、貨架點擊、demo 載入) 正常
 - 用戶可在 Preview Panel 點「店面平面圖」查看結果
+
+---
+Task ID: PROPDAT-FIX
+Agent: orchestrator (main)
+Task: 修復活動層貨架冰箱商品架等全部識別錯誤的問題（用戶反映「位置全部正確了，但是活動層那些貨架冰箱商品架等等等等全部識別錯誤」）
+
+Work Log:
+- 根因分析：Python extractor v1.0 解析 propdata 時把 parts[0]（zoneCode）誤讀為 buildableId。由於主店 zone=0 佔多數，44/57 個 prop 的 buildableId 都變成 0（Placement Mode），而非真實的 containerID（1=Product Shelf, 2=Basic Fridge, 3=Double Fridge…）。
+- 驗證：upload/save.json 的 decoded.propdata0 = "0|1|-1,430456|0|4,553804|89,99998" → zone=0, containerID=1 (Product Shelf)，但 store_layout.props[0].buildableId=0（錯誤）。
+- 正確格式（依用戶規格）：`zoneCode|containerID|posX|rotation|posZ|angle`，parts[0]=zoneCode, parts[1]=containerID。
+
+修改的檔案：
+
+1. **src/lib/types.ts** — LayoutProp 新增 `containerID: number` + `zoneCode: number` 欄位（containerID === buildableId，兩者同步；zoneCode 來自 parts[0]）。
+
+2. **src/lib/data-loader.ts**：
+   - 新增 `containerByID` Map（42 個容器，以 containerID 為 key）
+   - 新增 `containerInfoFor(containerID)` 查詢函式
+   - 新增 `ContainerClassKey` 型別（8 類：shelf/fridge/freezer/produce/pegboard/storage/checkout/decoration）
+   - 新增 `CONTAINER_CLASS_META`（每類的 labelZh/labelEn/color）
+   - 新增 `containerClassKeyFor(containerID)` 將 containerClass 數字（0/1/2/3/4/69/99）轉為 class key
+   - 新增 `normalizeLayoutProps()` 執行時期補欄位（確保舊資料的 containerID/zoneCode 存在）
+
+3. **src/lib/es3-parser.ts**：
+   - `parsePropData()`：修正讀取 parts[0]=zoneCode, parts[1]=containerID（之前 parts[1] 是對的但沒有 zoneCode）；回傳 {buildableId, containerID, zoneCode, posX, posZ, rotation, angle}
+   - `parseExtractedSave()`：改為從 `decoded.propdata{N}` 重新解析（source of truth），不再信任預處理的 `store_layout.props[].buildableId`；fallback 才用預處理值
+
+4. **scripts/fix-layout-props.ts**（新檔）：
+   - 一次性修補腳本：從 upload/save.json 的 decoded.propdata 重新推導正確 containerID
+   - 用最近鄰匹配（tolerance=0.6 世界單位）將 encyclopedia.json + demo-save.json 的 storeLayout props 修補為正確 containerID + zoneCode
+   - 結果：41/41 props 全部匹配，10 種容器類型（之前只有 4 種且大多錯誤）
+
+5. **src/lib/data/encyclopedia.json** + **src/lib/data/demo-save.json**：
+   - 修補前 buildableId 分佈：{0:28, 1:8, 2:1, 3:4}（28 個錯誤為 Placement Mode）
+   - 修補後 containerID 分佈：{1:19, 2:1, 3:3, 4:1, 5:5, 7:1, 10:3, 12:4, 14:3, 19:1}（10 種正確類型）
+
+6. **src/components/lab/store-layout.tsx**（主要渲染修改）：
+   - 移除 `BUILDABLE_PALETTE`（舊的 4 色按 buildableId 對應），改用 `propColor(containerID)` 透過 `containerClassKeyFor` → `CONTAINER_CLASS_META` 取得 class-based 顏色（8 色）
+   - 新增 `propFootprint(containerID)`：從 containerInfo 取真實 shelfLength/shelfWidth
+   - 新增 `propDrawSize(containerID, angle)`：90°/270° 時長寬互換（補償旋轉）
+   - 活動層 rect 改用真實尺寸（Product Shelf = 1.82×0.44，之前固定 0.6×0.4）
+   - 冰箱/冷凍櫃（class 1/2）加上白色玻璃門指示條紋
+   - 文字層 #index 標籤位置改用真實尺寸
+   - 圖例改顯示 8 種容器類別（貨架/冰箱/冷凍櫃/農產品/釘板架/置物架/結帳台/裝飾物）+ 顏色色塊
+   - PropDetailCard：標題改為「物件 #N」+ class badge；新增區域(Zone)/尺寸(Size)/成本(Cost)/耗電(Energy)/ID badges；未對應 ID 顯示「裝飾物 #ID (unmapped id)」
+   - 排行榜表頭 "Buildable" → "容器/Container"
+   - 排行榜 + Top 5 問題貨架改用 `propLabel()` + `propColor()`
+   - 新增 `propLabel()`：用 container.buildableName 或 buildable 的在地化名稱；未對應 ID 顯示「裝飾物 #ID」
+   - 新增 `zoneLabel()`：zoneCode → 主店/倉儲/結帳/自助結帳
+
+7. **src/components/shared/app-shell.tsx**：
+   - `Layout`（store-layout）改為 eager import（非 lazy）— 避免在 4GB 記憶體環境 on-demand chunk compilation 時 OOM
+   - `VIEW_COMPONENTS` 型別放寬為 `React.ComponentType | React.LazyExoticComponent`
+
+驗證：
+- `bun run lint` → 0 errors ✅
+- `bunx tsc --noEmit` → 0 errors in changed files ✅
+- 測試腳本（/tmp/verify-fix.ts）：re-parsed save.json 顯示 11 種容器類型（30×Product Shelf, 1×Basic Fridge, 4×Double Fridge, 2×Freezer, 5×Storage Shelf, 1×Checkout Left, 3×Storage Shelf Unlabeled, 4×Self-checkout, 4×Product Shelf Half, 2×Pegboard Shelf, 1×Corner Shelf Big）+ 4 種 zone（44 主店, 8 倉儲, 1 結帳, 4 自助結帳）✅
+- SSR HTML 驗證（curl）：
+  - 8 種容器類別標籤全部出現（貨架44, 置物架11, 冰箱6, 釘板架1, 農產品1, 裝飾物1, 結帳台1, 冷凍櫃1）✅
+  - 8 種 class 顏色全部出現（#10b981×48, #71717a×18, #a855f7×12, #0ea5e9×9, #94a3b8×5, #06b6d4×3, #f59e0b×2, #84cc16×1）✅
+  - 真實貨架尺寸 height="1.82" 出現 17 次（Product Shelf length，90°/270° 旋轉）✅
+  - 冰箱門指示條紋 fill-opacity="0.45" 出現 5 次（1 Basic Fridge + 3 Double Fridge + 1 Freezer）✅
+  - Zone 標籤出現（自助結帳×4, 結帳×2）✅
+- agent-browser QA（部分，伺服器因 4GB OOM 不穩定）：
+  - 頁面載入「店面平面圖分析」標題 ✅
+  - 4 圖層 toggle（結構層/活動層/天花板層/大門）✅
+  - 縮放控制（縮小/放大/重設）✅
+  - 8 高亮模式 radio ✅
+  - 排行榜顯示「物件 #28 · 置物架」「物件 #32 · 置物架」等正確容器名稱 ✅
+  - 0 console errors, 0 page errors ✅
+
+Stage Summary:
+- 根因：propdata 解析把 parts[0]（zoneCode）誤讀為 buildableId，導致 44/57 個 prop 被識別為「Placement Mode」
+- 修復策略雙管齊下：(1) parser 層從 decoded.propdata 重新解析（確保未來上傳的存檔正確）；(2) 一次性修補腳本修正已打包的 encyclopedia.json + demo-save.json 靜態資料
+- 渲染層全面升級：class-based 8 色系統、真實貨架尺寸（shelfLength×shelfWidth）、90° 旋轉長寬互換、冰箱門指示條紋、區域標籤、裝飾物 ID 處理
+- 從 4 種錯誤類型（28 個 Placement Mode）→ 10 種正確容器類型（Product Shelf, Basic Fridge, Double Fridge, Freezer, Storage Shelf, Checkout, Self-checkout, Product Shelf Half, Pegboard Shelf, Corner Shelf Big）

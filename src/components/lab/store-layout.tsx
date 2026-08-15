@@ -1,11 +1,11 @@
 'use client'
 
 import { useMemo, useRef, useState } from 'react'
-import { useSaveStore, useRoomStore } from '@/lib/store'
-import { encyclopedia as ENC } from '@/lib/data-loader'
+import { useSaveStore, useRoomStore, type Lang } from '@/lib/store'
+import { encyclopedia as ENC, containerInfoFor, containerClassKeyFor, CONTAINER_CLASS_META, type ContainerClassKey } from '@/lib/data-loader'
 import { computeShelfEfficiency, computeDemandProxy } from '@/lib/engine'
 import type { PropEfficiency } from '@/lib/engine'
-import { useLang, productNameFor, groupIdNameFor, buildableIdNameFor, layoutLabel } from '@/lib/i18n'
+import { useLang, productNameFor, groupIdNameFor, layoutLabel } from '@/lib/i18n'
 import {
   level0Geometry,
   storeBounds,
@@ -81,13 +81,77 @@ type HighlightMode =
   | 'missing-demand'
   | 'negative'
 
-const BUILDABLE_PALETTE: Record<number, string> = {
-  0: '#94a3b8', // slate-400 — Placement Mode (default shelf)
-  1: '#10b981', // emerald-500 — Product Shelf
-  2: '#0ea5e9', // sky-500 — Basic Fridge
-  3: '#6366f1', // indigo-500 — Double Fridge
+// Activity-layer color is driven by containerClass (not buildableId), so all
+// shelves share emerald, all fridges share sky, all freezers share cyan, etc.
+// `containerClassKeyFor(containerID)` resolves 0→shelf, 1→fridge, 2→freezer,
+// 3→produce, 4→pegboard, 69→storage, 99→checkout, unmapped→decoration.
+const FALLBACK_COLOR = CONTAINER_CLASS_META.decoration.color
+
+function propColor(containerID: number): string {
+  return CONTAINER_CLASS_META[containerClassKeyFor(containerID)].color
 }
-const FALLBACK_COLOR = '#a1a1aa'
+
+/**
+ * Resolve the visual footprint (length × width in world units) for a prop.
+ * Uses the container's real `shelfLength` / `shelfWidth` from the
+ * encyclopedia when available; falls back to a 0.6 × 0.4 default for
+ * unmapped decoration ids.
+ *
+ * The game's angle (0/90/180/270) rotates the footprint around the prop's
+ * centre. For 90°/270° the length and width swap on-screen, so we return
+ * both the raw footprint and the angle-aware (drawn) footprint.
+ */
+function propFootprint(containerID: number): { length: number; width: number; drawW: number; drawH: number } {
+  const info = containerInfoFor(containerID)
+  if (info) {
+    const length = info.shelfLength || 0.6
+    const width = info.shelfWidth || 0.4
+    return { length, width, drawW: length, drawH: width }
+  }
+  return { length: 0.6, width: 0.4, drawW: 0.6, drawH: 0.4 }
+}
+
+/**
+ * Given a prop's snapped angle (0/90/180/270), return the drawn width/height
+ * after accounting for the 90° footprint swap. The SVG `<g>` already applies
+ * `rotate(-angle)`, so the rect itself is always drawn axis-aligned in the
+ * prop's local frame — we just pick which dimension is "long" vs "short".
+ */
+function propDrawSize(containerID: number, angle: number): { w: number; h: number } {
+  const fp = propFootprint(containerID)
+  // 90°/270° → length runs along Z (vertical on screen), so swap.
+  const swapped = angle % 180 === 90
+  return swapped
+    ? { w: fp.width, h: fp.length }
+    : { w: fp.length, h: fp.width }
+}
+
+/** Zone code → label (parts[0] of propdata: 0=主店, 1=倉儲, 2=結帳, 3=自助結帳). */
+const ZONE_LABELS: Record<number, { zh: string; en: string }> = {
+  0: { zh: '主店', en: 'Main Store' },
+  1: { zh: '倉儲', en: 'Warehouse' },
+  2: { zh: '結帳', en: 'Checkout' },
+  3: { zh: '自助結帳', en: 'Self-Checkout' },
+}
+
+function zoneLabel(zoneCode: number | undefined, lang: Lang): string {
+  const z = ZONE_LABELS[zoneCode ?? 0]
+  if (!z) return lang === 'en' ? `Zone ${zoneCode}` : `區域 ${zoneCode}`
+  return lang === 'en' ? z.en : z.zh
+}
+
+/** Human label for a prop — uses container.buildableName, or "裝飾物 #ID" for unmapped. */
+function propLabel(containerID: number, lang: Lang): string {
+  const info = containerInfoFor(containerID)
+  if (info) {
+    // Prefer the buildable's localized name (matches in-game menu), fall back
+    // to the container's buildableName string.
+    const b = ENC.buildables.find((x) => x.id === containerID)
+    if (b) return lang === 'en' ? b.name.en : (b.name.zhHant || b.name.en)
+    return info.buildableName
+  }
+  return lang === 'en' ? `Decoration #${containerID}` : `裝飾物 #${containerID}`
+}
 
 // Door state → color (mirrors `doorStateFromInt`).
 const DOOR_COLORS: Record<DoorState, string> = {
@@ -724,20 +788,20 @@ export function StoreLayout() {
                         </g>
                       )}
 
-                      {/* ===== ACTIVITY LAYER (shelves) ===== */}
+                      {/* ===== ACTIVITY LAYER (shelves / fridges / freezers / …) ===== */}
                       {layers.activity &&
                         layout.map((prop) => {
                           const eff = efficiencies.find((e) => e.propIndex === prop.index)
                           if (!eff) return null
-                          const color = BUILDABLE_PALETTE[prop.buildableId] ?? FALLBACK_COLOR
+                          const color = propColor(prop.containerID)
                           const hl = getHighlight(eff)
                           const assignment = room?.shelfAssignments[String(prop.index)]
                           const assignedMember = assignment
                             ? room?.members.find((m) => m.id === assignment)
                             : null
                           const isSelected = selectedIdx === prop.index
-                          const rectW = 0.6
-                          const rectH = 0.4
+                          // Real footprint from containerInfo, with 90° swap.
+                          const { w: rectW, h: rectH } = propDrawSize(prop.containerID, prop.angle)
                           return (
                             <g
                               key={prop.index}
@@ -758,7 +822,7 @@ export function StoreLayout() {
                                   rx={0.05}
                                 />
                               )}
-                              {/* Prop body */}
+                              {/* Prop body — real container dimensions */}
                               <rect
                                 x={-rectW / 2}
                                 y={-rectH / 2}
@@ -770,6 +834,19 @@ export function StoreLayout() {
                                 rx={0.04}
                                 className={hl?.blink ? 'animate-pulse' : ''}
                               />
+                              {/* Fridge/freezer door indicator — a thin stripe
+                                  along one long edge to hint at the glass door. */}
+                              {([1, 2] as number[]).includes(containerInfoFor(prop.containerID)?.containerClass ?? -1) && (
+                                <rect
+                                  x={-rectW / 2 + 0.04}
+                                  y={-rectH / 2 + 0.04}
+                                  width={rectW - 0.08}
+                                  height={0.08}
+                                  fill="#ffffff"
+                                  fillOpacity={0.45}
+                                  rx={0.02}
+                                />
+                              )}
                             </g>
                           )
                         })}
@@ -824,8 +901,7 @@ export function StoreLayout() {
                           const eff = efficiencies.find((e) => e.propIndex === prop.index)
                           if (!eff) return null
                           const flippedY = bounds.minZ + bounds.maxZ - prop.posZ
-                          const rectW = 0.6
-                          const rectH = 0.4
+                          const { w: rectW, h: rectH } = propDrawSize(prop.containerID, prop.angle)
                           return (
                             <g key={`txt-${prop.index}`} transform={`translate(${prop.posX} ${flippedY})`}>
                               <text
@@ -914,19 +990,19 @@ export function StoreLayout() {
 
               {/* Legend */}
               <div className="mt-2 space-y-2 text-xs">
-                {/* Shelves legend */}
+                {/* Activity legend — container classes (shelf / fridge / freezer / …) */}
                 <div className="flex flex-wrap items-center gap-3">
                   <span className="text-muted-foreground">{layoutLabel('layout.legend.activity', lang)}:</span>
-                  {[0, 1, 2, 3].map((id) => (
-                    <div key={id} className="flex items-center gap-1.5">
+                  {(Object.keys(CONTAINER_CLASS_META) as ContainerClassKey[]).map((k) => (
+                    <div key={k} className="flex items-center gap-1.5">
                       <span
                         className="inline-block h-3 w-3 rounded-sm"
-                        style={{ backgroundColor: BUILDABLE_PALETTE[id] ?? FALLBACK_COLOR }}
+                        style={{ backgroundColor: CONTAINER_CLASS_META[k].color }}
                       />
-                      <span>{buildableIdNameFor(id, lang)}</span>
+                      <span>{lang === 'en' ? CONTAINER_CLASS_META[k].labelEn : CONTAINER_CLASS_META[k].labelZh}</span>
                     </div>
                   ))}
-                  <span className="ml-1 text-muted-foreground">{lang === 'en' ? 'number = total units' : '數字 = 該貨架總庫存單位'}</span>
+                  <span className="ml-1 text-muted-foreground">{lang === 'en' ? 'size = real shelfLength × Width' : '尺寸 = 真實貨架長×寬'}</span>
                 </div>
                 {/* Structure legend */}
                 <div className="flex flex-wrap items-center gap-3">
@@ -1164,7 +1240,7 @@ export function StoreLayout() {
             <div className="space-y-1.5">
               {topProblematic.map(({ e, issues, recommendation }, i) => {
                 const prop = layout.find((p) => p.index === e.propIndex)
-                const buildableName = prop ? buildableIdNameFor(prop.buildableId, lang) : '—'
+                const pLabel = prop ? propLabel(prop.containerID, lang) : '—'
                 return (
                   <div
                     key={e.propIndex}
@@ -1174,7 +1250,7 @@ export function StoreLayout() {
                     <span className="w-6 shrink-0 text-center font-bold text-rose-600 dark:text-rose-400">#{i + 1}</span>
                     <div className="min-w-0 flex-1">
                       <div className="truncate font-medium">
-                        貨架 #{e.propIndex} · {buildableName}
+                        {lang === 'en' ? `Prop #${e.propIndex}` : `物件 #${e.propIndex}`} · {pLabel}
                       </div>
                       <div className="truncate text-[10px] text-muted-foreground">
                         <span className="text-rose-700 dark:text-rose-300">{issues.join('、')}</span>
@@ -1212,7 +1288,7 @@ export function StoreLayout() {
               <TableHeader className="sticky top-0 bg-card z-10">
                 <TableRow>
                   <TableHead className="w-12 text-right">#</TableHead>
-                  <TableHead>Buildable</TableHead>
+                  <TableHead>{lang === 'en' ? 'Container' : '容器'}</TableHead>
                   <SortableTh label="Units" k="totalUnits" sortKey={sortKey} sortDir={sortDir} onSort={(k, d) => { setSortKey(k); setSortDir(d) }} />
                   <SortableTh label="Distinct" k="distinctProducts" sortKey={sortKey} sortDir={sortDir} onSort={(k, d) => { setSortKey(k); setSortDir(d) }} />
                   <SortableTh label="Shelf Value" k="shelfValue" sortKey={sortKey} sortDir={sortDir} onSort={(k, d) => { setSortKey(k); setSortDir(d) }} />
@@ -1227,7 +1303,8 @@ export function StoreLayout() {
               <TableBody>
                 {sortedEffs.map((e, i) => {
                   const prop = layout.find((p) => p.index === e.propIndex)
-                  const buildableName = prop ? buildableIdNameFor(prop.buildableId, lang) : `#?`
+                  const pLabel = prop ? propLabel(prop.containerID, lang) : `#?`
+                  const pColor = prop ? propColor(prop.containerID) : FALLBACK_COLOR
                   const assignment = room?.shelfAssignments[String(e.propIndex)]
                   const assignedMember = assignment ? room?.members.find((m) => m.id === assignment) : null
                   return (
@@ -1242,9 +1319,9 @@ export function StoreLayout() {
                         <div className="flex items-center gap-1.5">
                           <span
                             className="inline-block h-2.5 w-2.5 shrink-0 rounded-sm"
-                            style={{ backgroundColor: BUILDABLE_PALETTE[prop?.buildableId ?? -1] ?? FALLBACK_COLOR }}
+                            style={{ backgroundColor: pColor }}
                           />
-                          <span className="text-xs">{buildableName}</span>
+                          <span className="text-xs">{pLabel}</span>
                         </div>
                       </TableCell>
                       <TableCell className="text-right font-mono">{e.totalUnits}</TableCell>
@@ -1554,10 +1631,14 @@ function PropDetailCard({
   room: ReturnType<typeof useRoomStore.getState>['room']
   onAssign: (playerId: string) => void
 }) {
-  const buildableName = buildableIdNameFor(prop.buildableId, lang)
+  const label = propLabel(prop.containerID, lang)
+  const classKey = containerClassKeyFor(prop.containerID)
+  const classMeta = CONTAINER_CLASS_META[classKey]
+  const info = containerInfoFor(prop.containerID)
   const inventory = prop.inventory.filter((i) => i.product >= 0)
   const assignment = room?.shelfAssignments[String(prop.index)]
   const assignedMember = assignment ? room?.members.find((m) => m.id === assignment) : null
+  const isDecoration = classKey === 'decoration'
 
   return (
     <Card className="border-emerald-500/30">
@@ -1567,12 +1648,20 @@ function PropDetailCard({
             <div className="flex items-center gap-2">
               <span
                 className="inline-block h-3 w-3 rounded-sm"
-                style={{ backgroundColor: BUILDABLE_PALETTE[prop.buildableId] ?? FALLBACK_COLOR }}
+                style={{ backgroundColor: classMeta.color }}
               />
-              貨架 #{prop.index}
+              {lang === 'en' ? `Prop #${prop.index}` : `物件 #${prop.index}`}
+              <Badge variant="secondary" className="h-5 text-[10px] font-normal">
+                {lang === 'en' ? classMeta.labelEn : classMeta.labelZh}
+              </Badge>
             </div>
             <div className="mt-0.5 text-xs font-normal text-muted-foreground">
-              {buildableName}
+              {label}
+              {isDecoration && (
+                <span className="ml-1 text-amber-600 dark:text-amber-400">
+                  ({lang === 'en' ? 'unmapped id' : '未對應 ID'})
+                </span>
+              )}
             </div>
           </CardTitle>
           <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={onClose}>
@@ -1594,6 +1683,31 @@ function PropDetailCard({
             <div className="text-muted-foreground">angle</div>
             <div className="font-mono">{prop.angle}°</div>
           </div>
+        </div>
+
+        {/* Container metadata: zone + dimensions + cost */}
+        <div className="flex flex-wrap gap-1.5 text-[10px]">
+          <Badge variant="outline" className="h-5 font-normal">
+            {lang === 'en' ? 'Zone' : '區域'}: {zoneLabel(prop.zoneCode, lang)}
+          </Badge>
+          {info && (
+            <>
+              <Badge variant="outline" className="h-5 font-mono font-normal">
+                {lang === 'en' ? 'Size' : '尺寸'}: {fmt(info.shelfLength, 2)} × {fmt(info.shelfWidth, 2)} × {fmt(info.shelfHeight, 2)}
+              </Badge>
+              <Badge variant="outline" className="h-5 font-normal">
+                {lang === 'en' ? 'Cost' : '成本'}: ${info.cost}
+              </Badge>
+              {info.energyCost > 0 && (
+                <Badge variant="outline" className="h-5 font-normal">
+                  {lang === 'en' ? 'Energy' : '耗電'}: {info.energyCost}W
+                </Badge>
+              )}
+              <Badge variant="outline" className="h-5 font-mono font-normal">
+                ID: {prop.containerID}
+              </Badge>
+            </>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-2">

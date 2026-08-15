@@ -2,10 +2,33 @@
 import encyclopediaJson from './data/encyclopedia.json'
 import demoSaveJson from './data/demo-save.json'
 import skillGraphJson from './data/skill-graph.json'
-import type { Encyclopedia, SaveSnapshot, Product, Tier, ProductGroup, Buildable, Container, SkillTreeGraph } from './types'
+import type { Encyclopedia, SaveSnapshot, Product, Tier, ProductGroup, Buildable, Container, SkillTreeGraph, LayoutProp } from './types'
 
-export const encyclopedia = encyclopediaJson as unknown as Encyclopedia
-export const demoSave = demoSaveJson as unknown as SaveSnapshot
+/**
+ * Ensure every LayoutProp carries the canonical `containerID` + `zoneCode`
+ * fields. Older bundled data (encyclopedia.json / demo-save.json generated
+ * before the propdata fix) only has `buildableId` and may even have a wrong
+ * one (the v1.0 extractor read zoneCode as buildableId). This normaliser
+ * guarantees the fields exist; correcting the actual *values* is done by
+ * re-parsing decoded.propdata at save-load time (see es3-parser.ts) and by
+ * the one-shot patch script scripts/fix-layout-props.ts.
+ */
+function normalizeLayoutProps(props: LayoutProp[]): LayoutProp[] {
+  return props.map((p) => ({
+    ...p,
+    containerID: typeof p.containerID === 'number' ? p.containerID : p.buildableId,
+    zoneCode: typeof p.zoneCode === 'number' ? p.zoneCode : 0,
+  }))
+}
+
+const _encyclopedia = encyclopediaJson as unknown as Encyclopedia
+_encyclopedia.storeLayout = normalizeLayoutProps(_encyclopedia.storeLayout ?? [])
+export const encyclopedia = _encyclopedia
+
+const _demoSave = demoSaveJson as unknown as SaveSnapshot
+_demoSave.storeLayout = normalizeLayoutProps(_demoSave.storeLayout ?? [])
+export const demoSave = _demoSave
+
 export const skillGraph = skillGraphJson as unknown as SkillTreeGraph
 
 // pre-indexed maps for fast lookup
@@ -14,6 +37,54 @@ export const tierById = new Map<number, Tier>(encyclopedia.tiers.map((t) => [t.i
 export const groupById = new Map<number, ProductGroup>(encyclopedia.productGroups.map((g) => [g.id, g]))
 export const buildableById = new Map<number, Buildable>(encyclopedia.buildables.map((b) => [b.id, b]))
 export const containerByBuildableName = new Map<string, Container>(encyclopedia.containers.map((c) => [c.buildableName, c]))
+export const containerByID = new Map<number, Container>(encyclopedia.containers.map((c) => [c.containerID, c]))
+
+/**
+ * Look up the Container record (buildableName, shelfLength/Width/Height,
+ * containerClass, cost, …) for a given containerID / buildableId.
+ *
+ * In Supermarket Together save propdata the 2nd pipe-field is the
+ * containerID, and for all 42 encyclopedia containers containerID ===
+ * buildable.id (verified). Unmapped ids (e.g. 198, 200, 216 decoration
+ * props) return undefined and should be rendered as "裝飾物 #ID".
+ */
+export function containerInfoFor(containerID: number): Container | undefined {
+  return containerByID.get(containerID)
+}
+
+/**
+ * containerClass → human label + color. Mirrors the encyclopedia's
+ * containerClass field: 0=貨架, 1=冰箱, 2=冷凍櫃, 3=農產, 4=釘板,
+ * 69=置物, 99=結帳. Unmapped → 'decoration'.
+ */
+export type ContainerClassKey =
+  | 'shelf' | 'fridge' | 'freezer' | 'produce' | 'pegboard' | 'storage' | 'checkout' | 'decoration'
+
+export const CONTAINER_CLASS_META: Record<ContainerClassKey, { labelZh: string; labelEn: string; color: string }> = {
+  shelf:       { labelZh: '貨架',     labelEn: 'Shelf',         color: '#10b981' }, // emerald-500
+  fridge:      { labelZh: '冰箱',     labelEn: 'Fridge',        color: '#0ea5e9' }, // sky-500
+  freezer:     { labelZh: '冷凍櫃',   labelEn: 'Freezer',       color: '#06b6d4' }, // cyan-500
+  produce:     { labelZh: '農產品',   labelEn: 'Produce',       color: '#84cc16' }, // lime-500
+  pegboard:    { labelZh: '釘板架',   labelEn: 'Pegboard',      color: '#f59e0b' }, // amber-500
+  storage:     { labelZh: '置物架',   labelEn: 'Storage',       color: '#71717a' }, // zinc-500
+  checkout:    { labelZh: '結帳台',   labelEn: 'Checkout',      color: '#a855f7' }, // purple-500
+  decoration:  { labelZh: '裝飾物',   labelEn: 'Decoration',    color: '#94a3b8' }, // slate-400
+}
+
+export function containerClassKeyFor(containerID: number): ContainerClassKey {
+  const c = containerByID.get(containerID)
+  if (!c) return 'decoration'
+  switch (c.containerClass) {
+    case 0: return 'shelf'
+    case 1: return 'fridge'
+    case 2: return 'freezer'
+    case 3: return 'produce'
+    case 4: return 'pegboard'
+    case 69: return 'storage'
+    case 99: return 'checkout'
+    default: return 'decoration'
+  }
+}
 
 export function productName(id: number): string {
   return productById.get(id)?.name.en ?? `#${id}`

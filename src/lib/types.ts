@@ -203,7 +203,19 @@ export interface ManufacturingProduct {
 
 export interface LayoutProp {
   index: number
+  /**
+   * Numeric id of the placed buildable. In save propdata this is the 2nd
+   * pipe-field (`zoneCode|containerID|posX|rot|posZ|angle`). For known
+   * containers containerID === buildable.id (verified across all 42
+   * encyclopedia containers). For decoration/unmapped ids (198, 200, 216…)
+   * there is no matching container/buildable and the prop is rendered as
+   * "裝飾物 #ID".
+   */
   buildableId: number
+  /** Same value as buildableId; kept as a separate field for clarity. */
+  containerID: number
+  /** Zone code from propdata parts[0]: 0=主店, 1=倉儲, 2=結帳, 3=自助結帳. */
+  zoneCode: number
   posX: number
   posZ: number
   rotation: number

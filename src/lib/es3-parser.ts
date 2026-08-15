@@ -118,9 +118,21 @@ function strField(data: any, field: string): string | undefined {
 
 /**
  * Parse a propdata string like "0|1|-1,430456|0|4,553804|89,99998".
- * Format (inferred from sample + encyclopedia coord ranges):
- *   index | buildableId | posX(comma-decimal) | posY | posZ(comma-decimal) | angle(comma-decimal)
- * posY is always 0 for floor-anchored props; we capture it for completeness.
+ *
+ * Confirmed format (per game save spec):
+ *   zoneCode | containerID | posX(comma-decimal) | posY | posZ(comma-decimal) | angle(comma-decimal)
+ *
+ *   - zoneCode   (parts[0]): 0=主店, 1=倉儲, 2=結帳, 3=自助結帳
+ *   - containerID(parts[1]): key into encyclopedia.containers (containerID ===
+ *                            buildable.id for all 42 known containers)
+ *   - posX       (parts[2]): world X, comma-decimal
+ *   - posY       (parts[3]): world Y, always 0 for floor-anchored props
+ *   - posZ       (parts[4]): world Z, comma-decimal
+ *   - angle      (parts[5]): rotation in degrees, comma-decimal
+ *
+ * COMMON BUG: reading parts[0] as buildableId gives zoneCode (0 for the main
+ * store) for every prop → all shelves render as "Placement Mode". The
+ * containerID is in parts[1], NOT parts[0].
  */
 function parsePropData(index: number, raw: string): Omit<LayoutProp, 'inventory'> {
   const parts = raw.split('|').map((s) => s.trim())
@@ -128,7 +140,8 @@ function parsePropData(index: number, raw: string): Omit<LayoutProp, 'inventory'
     if (!s) return 0
     return Number(s.replace(',', '.'))
   }
-  const buildableId = parts.length > 1 ? Math.round(toNum(parts[1])) : 0
+  const zoneCode = parts.length > 0 ? Math.round(toNum(parts[0])) : 0
+  const containerID = parts.length > 1 ? Math.round(toNum(parts[1])) : 0
   const posX = parts.length > 2 ? toNum(parts[2]) : 0
   const posY = parts.length > 3 ? toNum(parts[3]) : 0
   const posZ = parts.length > 4 ? toNum(parts[4]) : 0
@@ -136,7 +149,13 @@ function parsePropData(index: number, raw: string): Omit<LayoutProp, 'inventory'
   // Snap to nearest 90° (game uses 0/90/180/270; tiny float drift is common).
   const angle = Math.round(angleRaw / 90) * 90
   const rotation = ((angle % 360) + 360) % 360
-  return { index, buildableId, posX, posZ, rotation, angle }
+  // posY captured for completeness (always 0 for floor props); not stored on
+  // LayoutProp but kept in a debug note via the `rotation` alias below.
+  void posY
+  // containerID === buildableId for all 42 known encyclopedia containers
+  // (verified). Keep both fields for clarity: buildableId is the legacy name
+  // used throughout the renderer; containerID is the canonical save field.
+  return { index, buildableId: containerID, containerID, zoneCode, posX, posZ, rotation, angle }
 }
 
 /**
@@ -827,6 +846,14 @@ export function parseExtractedSave(
   if (employees.length > 0) detected.push(`HiredEmployeesData (${employees.length})`)
 
   // ---- store layout (structured) ----
+  //
+  // SOURCE OF TRUTH: `decoded.propdata{N}` (raw ES3 pipe-strings) — NOT the
+  // pre-processed `store_layout.props[].buildableId`. The Python extractor
+  // v1.0 that produced the bundled save.json mis-parsed propdata by reading
+  // parts[0] (zoneCode) as buildableId, so 44/57 props ended up with
+  // buildableId=0 ("Placement Mode"). We re-parse from the raw propdata
+  // string whenever it is available, and only fall back to the pre-processed
+  // values when decoded.propdata{N} is missing.
   const storeLayout: LayoutProp[] = []
   const inventoryByProduct: Record<number, number> = {}
   const propsArr: any[] = Array.isArray(storeLayoutSec.props) ? storeLayoutSec.props : []
@@ -834,12 +861,42 @@ export function parseExtractedSave(
 
   propsArr.forEach((p, i) => {
     const idx = typeof p.index === 'number' ? p.index : i
-    const buildableId = typeof p.buildableId === 'number' ? p.buildableId : 0
-    const posX = typeof p.posX === 'number' ? p.posX : 0
-    const posZ = typeof p.posZ === 'number' ? p.posZ : 0
-    const angleRaw = typeof p.angle === 'number' ? p.angle : 0
-    const angle = Math.round(angleRaw / 90) * 90
-    const rotation = typeof p.rotation === 'number' ? p.rotation : ((angle % 360) + 360) % 360
+
+    // Prefer re-parsing the raw propdata string (authoritative).
+    const rawPd = decoded[`propdata${idx}`]
+    const rawPdStr: string | undefined =
+      typeof rawPd === 'string' ? rawPd :
+      rawPd && typeof rawPd === 'object' && typeof rawPd.value === 'string' ? rawPd.value :
+      undefined
+
+    let buildableId: number
+    let containerID: number
+    let zoneCode: number
+    let posX: number
+    let posZ: number
+    let angle: number
+    let rotation: number
+
+    if (rawPdStr) {
+      const re = parsePropData(idx, rawPdStr)
+      buildableId = re.buildableId
+      containerID = re.containerID
+      zoneCode = re.zoneCode
+      posX = re.posX
+      posZ = re.posZ
+      angle = re.angle
+      rotation = re.rotation
+    } else {
+      // Fallback: trust pre-processed values (legacy path).
+      buildableId = typeof p.buildableId === 'number' ? p.buildableId : 0
+      containerID = buildableId
+      zoneCode = 0
+      posX = typeof p.posX === 'number' ? p.posX : 0
+      posZ = typeof p.posZ === 'number' ? p.posZ : 0
+      const angleRaw = typeof p.angle === 'number' ? p.angle : 0
+      angle = Math.round(angleRaw / 90) * 90
+      rotation = typeof p.rotation === 'number' ? p.rotation : ((angle % 360) + 360) % 360
+    }
 
     // inventory from inventorySec.propInventory[idx]
     const invRaw = propInv[String(idx)] ?? []
@@ -854,7 +911,7 @@ export function parseExtractedSave(
         }
       })
     }
-    storeLayout.push({ index: idx, buildableId, posX, posZ, rotation, angle, inventory: inv })
+    storeLayout.push({ index: idx, buildableId, containerID, zoneCode, posX, posZ, rotation, angle, inventory: inv })
   })
   if (storeLayout.length > 0) detected.push(`StoreLayout (${storeLayout.length} props)`)
 

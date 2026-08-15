@@ -415,7 +415,7 @@
   "storeLayout": [
     {
       "index": 0,
-      "buildableId": 0,
+      "buildableId": 1,
       "posX": -1.4305,
       "posZ": 4.5538,
       "rotation": 0,
@@ -437,11 +437,13 @@
           "product": 145,
           "count": 5
         }
-      ]
+      ],
+      "containerID": 1,
+      "zoneCode": 0
     },
     {
       "index": 1,
-      "buildableId": 0,
+      "buildableId": 1,
       "posX": -1.4522,
       "posZ": 5.1718,
       "rotation": 0,
@@ -463,11 +465,13 @@
           "product": 8,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 1,
+      "zoneCode": 0
     },
     {
       "index": 2,
-      "buildableId": 0,
+      "buildableId": 1,
       "posX": -1.4664,
       "posZ": 6.981,
       "rotation": 0,
@@ -489,11 +493,13 @@
           "product": 1,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 1,
+      "zoneCode": 0
     },
     {
       "index": 3,
-      "buildableId": 0,
+      "buildableId": 1,
       "posX": -1.4746,
       "posZ": 7.5835,
       "rotation": 0,
@@ -515,11 +521,13 @@
           "product": 21,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 1,
+      "zoneCode": 0
     },
     {
       "index": 4,
-      "buildableId": 0,
+      "buildableId": 1,
       "posX": -1.4734,
       "posZ": 9.4026,
       "rotation": 0,
@@ -541,11 +549,13 @@
           "product": 33,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 1,
+      "zoneCode": 0
     },
     {
       "index": 5,
-      "buildableId": 0,
+      "buildableId": 1,
       "posX": -1.4999,
       "posZ": 10.0128,
       "rotation": 0,
@@ -567,11 +577,13 @@
           "product": 10,
           "count": 34
         }
-      ]
+      ],
+      "containerID": 1,
+      "zoneCode": 0
     },
     {
       "index": 6,
-      "buildableId": 0,
+      "buildableId": 2,
       "posX": 2.9951,
       "posZ": 11.1924,
       "rotation": 0,
@@ -597,11 +609,13 @@
           "product": 44,
           "count": 29
         }
-      ]
+      ],
+      "containerID": 2,
+      "zoneCode": 0
     },
     {
       "index": 7,
-      "buildableId": 0,
+      "buildableId": 3,
       "posX": 4.0982,
       "posZ": 11.3095,
       "rotation": 0,
@@ -627,11 +641,13 @@
           "product": 239,
           "count": 29
         }
-      ]
+      ],
+      "containerID": 3,
+      "zoneCode": 0
     },
     {
       "index": 8,
-      "buildableId": 0,
+      "buildableId": 19,
       "posX": 6.8709,
       "posZ": -0.8388,
       "rotation": 0,
@@ -669,11 +685,13 @@
           "product": 3,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 19,
+      "zoneCode": 0
     },
     {
       "index": 9,
-      "buildableId": 0,
+      "buildableId": 3,
       "posX": 5.3017,
       "posZ": 11.313,
       "rotation": 0,
@@ -699,11 +717,13 @@
           "product": 240,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 3,
+      "zoneCode": 0
     },
     {
       "index": 10,
-      "buildableId": 0,
+      "buildableId": 1,
       "posX": -5.1208,
       "posZ": 10.061,
       "rotation": 0,
@@ -725,11 +745,13 @@
           "product": 54,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 1,
+      "zoneCode": 0
     },
     {
       "index": 11,
-      "buildableId": 0,
+      "buildableId": 1,
       "posX": -5.1235,
       "posZ": 9.4574,
       "rotation": 0,
@@ -751,11 +773,13 @@
           "product": 137,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 1,
+      "zoneCode": 0
     },
     {
       "index": 12,
-      "buildableId": 0,
+      "buildableId": 1,
       "posX": -5.1097,
       "posZ": 7.6545,
       "rotation": 0,
@@ -777,11 +801,13 @@
           "product": 25,
           "count": 2
         }
-      ]
+      ],
+      "containerID": 1,
+      "zoneCode": 0
     },
     {
       "index": 13,
-      "buildableId": 0,
+      "buildableId": 1,
       "posX": -5.1126,
       "posZ": 7.0529,
       "rotation": 0,
@@ -803,11 +829,13 @@
           "product": 12,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 1,
+      "zoneCode": 0
     },
     {
       "index": 14,
-      "buildableId": 0,
+      "buildableId": 1,
       "posX": -5.1151,
       "posZ": 5.194,
       "rotation": 0,
@@ -829,11 +857,13 @@
           "product": 23,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 1,
+      "zoneCode": 0
     },
     {
       "index": 15,
-      "buildableId": 0,
+      "buildableId": 1,
       "posX": -5.116,
       "posZ": 4.5809,
       "rotation": 0,
@@ -855,11 +885,13 @@
           "product": 14,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 1,
+      "zoneCode": 0
     },
     {
       "index": 16,
-      "buildableId": 0,
+      "buildableId": 14,
       "posX": 0.0696,
       "posZ": 4.5581,
       "rotation": 0,
@@ -881,11 +913,13 @@
           "product": 16,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 14,
+      "zoneCode": 0
     },
     {
       "index": 17,
-      "buildableId": 0,
+      "buildableId": 14,
       "posX": 0.0475,
       "posZ": 5.1607,
       "rotation": 0,
@@ -907,11 +941,13 @@
           "product": 24,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 14,
+      "zoneCode": 0
     },
     {
       "index": 18,
-      "buildableId": 0,
+      "buildableId": 3,
       "posX": 1.8949,
       "posZ": 11.6879,
       "rotation": 0,
@@ -937,11 +973,13 @@
           "product": 127,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 3,
+      "zoneCode": 0
     },
     {
       "index": 19,
-      "buildableId": 0,
+      "buildableId": 4,
       "posX": 6.6104,
       "posZ": 11.5095,
       "rotation": 0,
@@ -955,11 +993,13 @@
           "product": 61,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 4,
+      "zoneCode": 0
     },
     {
       "index": 20,
-      "buildableId": 0,
+      "buildableId": 1,
       "posX": -8.6892,
       "posZ": 10.5092,
       "rotation": 0,
@@ -981,11 +1021,13 @@
           "product": 22,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 1,
+      "zoneCode": 0
     },
     {
       "index": 21,
-      "buildableId": 0,
+      "buildableId": 1,
       "posX": -8.697,
       "posZ": 8.5033,
       "rotation": 0,
@@ -1007,11 +1049,13 @@
           "product": 34,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 1,
+      "zoneCode": 0
     },
     {
       "index": 22,
-      "buildableId": 0,
+      "buildableId": 1,
       "posX": -8.6841,
       "posZ": 6.4685,
       "rotation": 0,
@@ -1033,11 +1077,13 @@
           "product": 30,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 1,
+      "zoneCode": 0
     },
     {
       "index": 23,
-      "buildableId": 0,
+      "buildableId": 14,
       "posX": -8.6648,
       "posZ": 4.9573,
       "rotation": 0,
@@ -1059,11 +1105,13 @@
           "product": 104,
           "count": 23
         }
-      ]
+      ],
+      "containerID": 14,
+      "zoneCode": 0
     },
     {
       "index": 24,
-      "buildableId": 0,
+      "buildableId": 1,
       "posX": 1.9176,
       "posZ": 6.9098,
       "rotation": 0,
@@ -1085,11 +1133,13 @@
           "product": 138,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 1,
+      "zoneCode": 0
     },
     {
       "index": 25,
-      "buildableId": 0,
+      "buildableId": 1,
       "posX": 1.9287,
       "posZ": 7.5268,
       "rotation": 0.0042,
@@ -1111,11 +1161,13 @@
           "product": -1,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 1,
+      "zoneCode": 0
     },
     {
       "index": 26,
-      "buildableId": 0,
+      "buildableId": 1,
       "posX": 3.9394,
       "posZ": 6.9217,
       "rotation": 0,
@@ -1137,11 +1189,13 @@
           "product": 255,
           "count": 34
         }
-      ]
+      ],
+      "containerID": 1,
+      "zoneCode": 0
     },
     {
       "index": 27,
-      "buildableId": 0,
+      "buildableId": 1,
       "posX": 3.9849,
       "posZ": 7.54,
       "rotation": 0,
@@ -1163,11 +1217,13 @@
           "product": -1,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 1,
+      "zoneCode": 0
     },
     {
       "index": 28,
-      "buildableId": 1,
+      "buildableId": 5,
       "posX": 14.0467,
       "posZ": 11.1352,
       "rotation": 0,
@@ -1213,11 +1269,13 @@
           "product": 1,
           "count": -1
         }
-      ]
+      ],
+      "containerID": 5,
+      "zoneCode": 1
     },
     {
       "index": 29,
-      "buildableId": 1,
+      "buildableId": 10,
       "posX": 14.0449,
       "posZ": 9.7077,
       "rotation": 0,
@@ -1263,11 +1321,13 @@
           "product": 65,
           "count": 30
         }
-      ]
+      ],
+      "containerID": 10,
+      "zoneCode": 1
     },
     {
       "index": 30,
-      "buildableId": 1,
+      "buildableId": 10,
       "posX": 14.0463,
       "posZ": 8.247,
       "rotation": 0,
@@ -1313,11 +1373,13 @@
           "product": -1,
           "count": -1
         }
-      ]
+      ],
+      "containerID": 10,
+      "zoneCode": 1
     },
     {
       "index": 31,
-      "buildableId": 1,
+      "buildableId": 10,
       "posX": 14.0567,
       "posZ": 6.8327,
       "rotation": 0,
@@ -1363,11 +1425,13 @@
           "product": 60,
           "count": 20
         }
-      ]
+      ],
+      "containerID": 10,
+      "zoneCode": 1
     },
     {
       "index": 32,
-      "buildableId": 1,
+      "buildableId": 5,
       "posX": 11.9762,
       "posZ": 11.2572,
       "rotation": 0,
@@ -1413,11 +1477,13 @@
           "product": 27,
           "count": -1
         }
-      ]
+      ],
+      "containerID": 5,
+      "zoneCode": 1
     },
     {
       "index": 33,
-      "buildableId": 1,
+      "buildableId": 5,
       "posX": 11.987,
       "posZ": 9.8019,
       "rotation": 0,
@@ -1463,11 +1529,13 @@
           "product": -1,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 5,
+      "zoneCode": 1
     },
     {
       "index": 34,
-      "buildableId": 1,
+      "buildableId": 5,
       "posX": 12.018,
       "posZ": 8.344,
       "rotation": 0,
@@ -1513,11 +1581,13 @@
           "product": 77,
           "count": 50
         }
-      ]
+      ],
+      "containerID": 5,
+      "zoneCode": 1
     },
     {
       "index": 35,
-      "buildableId": 1,
+      "buildableId": 5,
       "posX": 12.0483,
       "posZ": 6.9294,
       "rotation": 0,
@@ -1563,11 +1633,13 @@
           "product": 133,
           "count": -1
         }
-      ]
+      ],
+      "containerID": 5,
+      "zoneCode": 1
     },
     {
       "index": 36,
-      "buildableId": 2,
+      "buildableId": 7,
       "posX": -13.2604,
       "posZ": 0.5294,
       "rotation": 0,
@@ -1577,11 +1649,13 @@
           "product": -1,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 7,
+      "zoneCode": 2
     },
     {
       "index": 37,
-      "buildableId": 3,
+      "buildableId": 12,
       "posX": 2.9267,
       "posZ": 2.0884,
       "rotation": 0,
@@ -1591,11 +1665,13 @@
           "product": -1,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 12,
+      "zoneCode": 3
     },
     {
       "index": 38,
-      "buildableId": 3,
+      "buildableId": 12,
       "posX": -3.0572,
       "posZ": 2.1453,
       "rotation": 0,
@@ -1605,11 +1681,13 @@
           "product": -1,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 12,
+      "zoneCode": 3
     },
     {
       "index": 39,
-      "buildableId": 3,
+      "buildableId": 12,
       "posX": 4.0734,
       "posZ": 2.8088,
       "rotation": 0,
@@ -1619,11 +1697,13 @@
           "product": -1,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 12,
+      "zoneCode": 3
     },
     {
       "index": 40,
-      "buildableId": 3,
+      "buildableId": 12,
       "posX": -4.1153,
       "posZ": 2.6779,
       "rotation": 0,
@@ -1633,7 +1713,9 @@
           "product": -1,
           "count": 0
         }
-      ]
+      ],
+      "containerID": 12,
+      "zoneCode": 3
     }
   ],
   "inventoryByProduct": {

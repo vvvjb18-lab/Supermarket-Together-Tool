@@ -7,12 +7,12 @@ import { TopBar } from './topbar'
 import { useUIStore } from '@/lib/store'
 import { Skeleton } from '@/components/ui/skeleton'
 import { PageErrorBoundary } from './page-error-boundary'
+import { StoreLayout as Layout } from '@/components/lab/store-layout'
 
 // Lazy-load page components so initial bundle stays small.
 const Dashboard = lazy(() => import('@/components/lab/dashboard').then((m) => ({ default: m.Dashboard })))
 const Upload = lazy(() => import('@/components/lab/upload').then((m) => ({ default: m.Upload })))
 const Room = lazy(() => import('@/components/lab/room').then((m) => ({ default: m.Room })))
-const Layout = lazy(() => import('@/components/lab/store-layout').then((m) => ({ default: m.StoreLayout })))
 const Restock = lazy(() => import('@/components/lab/restock').then((m) => ({ default: m.Restock })))
 const Pricing = lazy(() => import('@/components/lab/pricing').then((m) => ({ default: m.Pricing })))
 const Skills = lazy(() => import('@/components/lab/skills').then((m) => ({ default: m.Skills })))
@@ -29,8 +29,11 @@ const Achievements = lazy(() => import('@/components/lab/achievements').then((m)
 const RawData = lazy(() => import('@/components/lab/raw-data').then((m) => ({ default: m.RawData })))
 const Atlas = lazy(() => import('@/components/lab/atlas').then((m) => ({ default: m.Atlas })))
 
-// Map view ID to its component (keeps the switch compact)
-const VIEW_COMPONENTS: Record<string, React.LazyExoticComponent<() => any>> = {
+// Map view ID to its component (keeps the switch compact).
+// `Layout` is eagerly imported (not lazy) so it compiles with the main
+// bundle — avoids on-demand chunk compilation OOM on memory-constrained
+// dev machines. All other views stay lazy-loaded.
+const VIEW_COMPONENTS: Record<string, React.ComponentType<any> | React.LazyExoticComponent<() => any>> = {
   dashboard: Dashboard,
   upload: Upload,
   room: Room,
