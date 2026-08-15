@@ -76,6 +76,7 @@ export function Simulator() {
   // selections for the two explorer tabs
   const [selectedCust, setSelectedCust] = useState(0)
   const [selectedNec, setSelectedNec] = useState(0)
+  const [demandSaveMode, setDemandSaveMode] = useState(false)
 
   // simulation controls
   const [n, setN] = useState(2000)
@@ -146,6 +147,36 @@ export function Simulator() {
       return { idx, totalWeight, custCount }
     })
   }, [necessities, customerTypes])
+
+  // Per-necessity save-aware stats: how many products are unlocked / in stock / missing
+  const necSaveStats = useMemo(() => {
+    const unlockedSet = new Set(snapshot?.unlockedProducts ?? [])
+    const inv = snapshot?.inventoryByProduct ?? {}
+    return necessities.map((nec) => {
+      let unlocked = 0
+      let stocked = 0
+      for (const pid of nec.productIds) {
+        if (!unlockedSet.has(pid)) continue
+        unlocked++
+        if ((inv[pid] ?? 0) > 0) stocked++
+      }
+      return { unlocked, stocked, missing: unlocked - stocked }
+    })
+  }, [necessities, snapshot])
+
+  // Necessity list order: index order in theory mode, most-missing first in save mode
+  const necessityList = useMemo(() => {
+    const list = necessities.map((nec, idx) => ({
+      nec,
+      idx,
+      agg: necAggregates[idx],
+      save: necSaveStats[idx],
+    }))
+    if (demandSaveMode) {
+      list.sort((a, b) => b.save.missing - a.save.missing)
+    }
+    return list
+  }, [necessities, necAggregates, necSaveStats, demandSaveMode])
 
   // ---------- Simulation ----------
   const runSimulation = () => {
@@ -408,14 +439,17 @@ export function Simulator() {
                     <Layers className="h-4 w-4 text-emerald-500" />
                     商品類別
                   </span>
-                  <Badge variant="outline" className="text-[10px]">{necessities.length} 類</Badge>
+                  <div className="flex items-center gap-2">
+                    <span className={cn('text-[11px]', !demandSaveMode ? 'font-bold' : 'text-muted-foreground')}>理論</span>
+                    <Switch checked={demandSaveMode} onCheckedChange={setDemandSaveMode} />
+                    <span className={cn('text-[11px]', demandSaveMode ? 'font-bold' : 'text-muted-foreground')}>存檔</span>
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-1">
-                  {necessities.map((nec, idx) => {
+                  {necessityList.map(({ idx, agg, save }) => {
                     const isSelected = idx === selectedNec
-                    const agg = necAggregates[idx]
                     return (
                       <button
                         key={idx}
@@ -432,9 +466,16 @@ export function Simulator() {
                           <div className="truncate font-medium">
                             {necessityIdNameFor(idx, lang)}
                           </div>
-                          <div className="font-mono text-[10px] text-muted-foreground">
-                            {agg.custCount} 顧客 · 總權重 {agg.totalWeight.toFixed(2)}
-                          </div>
+                          {demandSaveMode ? (
+                            <div className="font-mono text-[10px] text-muted-foreground">
+                              已解鎖 {save.unlocked} · 現貨 {save.stocked} ·{' '}
+                              <span className={save.missing > 0 ? 'font-bold text-rose-600' : ''}>缺貨 {save.missing}</span>
+                            </div>
+                          ) : (
+                            <div className="font-mono text-[10px] text-muted-foreground">
+                              {agg.custCount} 顧客 · 總權重 {agg.totalWeight.toFixed(2)}
+                            </div>
+                          )}
                         </div>
                       </button>
                     )
@@ -471,6 +512,15 @@ export function Simulator() {
                     <span className="font-mono">
                       {necessities[selectedNec].productIds.length} unique ·{' '}
                       {necessities[selectedNec].rawTokens.length} tokens
+                    </span>
+                  </div>
+                  <div className="mt-1 flex items-center justify-between gap-2">
+                    <span className="text-muted-foreground">存檔：</span>
+                    <span className="font-mono">
+                      已解鎖 {necSaveStats[selectedNec].unlocked} · 現貨 {necSaveStats[selectedNec].stocked} ·{' '}
+                      <span className={necSaveStats[selectedNec].missing > 0 ? 'text-rose-600' : ''}>
+                        缺貨 {necSaveStats[selectedNec].missing}
+                      </span>
                     </span>
                   </div>
                 </div>
