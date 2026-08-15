@@ -115,8 +115,11 @@ export function Dashboard() {
         .filter(([, c]) => (c as number) > 0)
         .map(([id]) => Number(id)),
     )
+    // only count products the player can actually sell (unlocked). A locked
+    // product is an unlock opportunity, not a missed sale.
+    const unlocked = new Set(snapshot?.unlockedProducts ?? ENC.products.map((p) => p.id))
     return ENC.products
-      .filter((p) => !stocked.has(p.id) || ((inv[p.id] as number) ?? 0) === 0)
+      .filter((p) => unlocked.has(p.id) && !stocked.has(p.id))
       .map((p) => ({
         p,
         demand: computeDemandProxy(p.id, ENC.necessities, ENC.customerTypes).value,
@@ -396,7 +399,7 @@ export function Dashboard() {
               index={i + 1}
               title={r.label}
               subtitle={`#${r.p.id} · demand ${fmt(r.demand, 5)} · box ${fmtMoney(r.box)}`}
-              right={<span className="font-mono text-xs">loss proxy {fmtMoney(r.demand * r.box * 10)}</span>}
+              right={<span className="font-mono text-xs">loss/visit {fmtMoney(r.demand * r.box)}</span>}
               onClick={() => {
                 setSelectedProduct(r.p.id)
                 setView('wiki')

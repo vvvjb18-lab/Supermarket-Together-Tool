@@ -160,6 +160,13 @@ export interface DemandOptions {
   mode?: 'raw' | 'unique' // raw preserves duplicate tokens; unique dedupes
 }
 
+// Memo caches for the two demand functions. The dominant call pattern is the
+// default equal-spawn case (no custom weights), called 339× across dashboard,
+// store-layout, smart-inventory and restock. Both are pure & deterministic, so
+// caching by (productId, mode) collapses ~1-2M inner iterations into O(1) hits.
+const _demandProxyCache = new Map<string, CalcResult<number>>()
+const _demandPerVisitCache = new Map<string, CalcResult<number>>()
+
 export function computeDemandProxy(
   productId: number,
   necessities: Necessity[],
@@ -168,6 +175,14 @@ export function computeDemandProxy(
 ): CalcResult<number> {
   const mode = opts.mode ?? 'raw'
   const cw = opts.customerWeights
+  const cacheKey =
+    cw == null && necessities === ENC.necessities && customerTypes === ENC.customerTypes
+      ? `${productId}|${mode}`
+      : null
+  if (cacheKey) {
+    const hit = _demandProxyCache.get(cacheKey)
+    if (hit) return hit
+  }
   let total = 0
   const hits: string[] = []
   for (let ci = 0; ci < customerTypes.length; ci++) {
@@ -192,7 +207,7 @@ export function computeDemandProxy(
   // normalize by sum of customer weights so it reads as "expected purchases per customer"
   const weightSum = cw ? cw.reduce((a, b) => a + b, 0) : customerTypes.length
   const normalized = weightSum > 0 ? total / weightSum : 0
-  return {
+  const result: CalcResult<number> = {
     value: normalized,
     formula:
       mode === 'raw'
@@ -202,6 +217,8 @@ export function computeDemandProxy(
     confidence: 'proxy',
     note: 'Assumes equal customer spawn + uniform pick within necessity pool. True runtime selection unverified.',
   }
+  if (cacheKey) _demandProxyCache.set(cacheKey, result)
+  return result
 }
 
 // ============================================================
@@ -219,6 +236,14 @@ export function computeDemandPerVisit(
 ): CalcResult<number> {
   const mode = opts.mode ?? 'raw'
   const cw = opts.customerWeights
+  const cacheKey =
+    cw == null && necessities === ENC.necessities && customerTypes === ENC.customerTypes
+      ? `${productId}|${mode}`
+      : null
+  if (cacheKey) {
+    const hit = _demandPerVisitCache.get(cacheKey)
+    if (hit) return hit
+  }
   let total = 0
   const hits: string[] = []
   for (let ci = 0; ci < customerTypes.length; ci++) {
@@ -242,13 +267,15 @@ export function computeDemandPerVisit(
   }
   const weightSum = cw ? cw.reduce((a, b) => a + b, 0) : customerTypes.length
   const normalized = weightSum > 0 ? total / weightSum : 0
-  return {
+  const result: CalcResult<number> = {
     value: normalized,
     formula: 'demandPerVisit = Scust Snec (custWeight x itemsPerVisit x necChance x tokenHits/rawPoolSize) / ScustWeight',
     sources: hits.slice(0, 6),
     confidence: 'proxy',
     note: 'itemsPerVisit = ScompensatedChances (avg items per customer visit, ranges 0.75-2.01). Higher accuracy than computeDemandProxy for per-visit metrics.',
   }
+  if (cacheKey) _demandPerVisitCache.set(cacheKey, result)
+  return result
 }
 
 export function computeWeightedRevenueProxy(
@@ -1393,7 +1420,7 @@ export interface SimulationResult {
   missedHits: number
   demandCoverage: number
   topMissing: { productId: number; name: string; missed: number }[]
-  topOverstockedLowDemand: { productId: number; name: string; units: number; demand: number }[]
+  topLowDemand: { productId: number; name: string; demand: number }[]
 }
 
 export function simulateCustomers(cfg: SimulationConfig): CalcResult<SimulationResult> {
@@ -1508,17 +1535,17 @@ export function simulateCustomers(cfg: SimulationConfig): CalcResult<SimulationR
     .sort((a, b) => b.missed - a.missed)
     .slice(0, 10)
 
-  // overstocked low demand: products with high inventory but low demand proxy
-  const topOverstockedLowDemand = products
+  // lowest-demand products (sorted ascending) — honest "don't stock these" list
+  const topLowDemand = products
     .map((p) => {
       const demand = computeDemandPerVisit(p.id, nec, custs, { mode: cfg.mode }).value
-      return { productId: p.id, name: p.name.en, units: 0, demand }
+      return { productId: p.id, name: p.name.en, demand }
     })
-    .filter((x) => x.demand < 0.0005)
+    .sort((a, b) => a.demand - b.demand)
     .slice(0, 10)
 
   return {
-    value: { productHits, missedSales, totalCustomers: cfg.n, totalHits, missedHits, demandCoverage, topMissing, topOverstockedLowDemand },
+    value: { productHits, missedSales, totalCustomers: cfg.n, totalHits, missedHits, demandCoverage, topMissing, topLowDemand },
     formula: `Monte Carlo: 抽顧客類型→件數 k=Random.Range(2+difficulty,5)→每件獨立按 compensatedChances[3] 抽模式(0=random/1=necessity/2=premium)→池內均勻抽商品`,
     sources: [`n=${cfg.n}`, `mode=${cfg.mode}`, `difficulty=${difficulty}`, `customerWeights=${cw.length}`],
     confidence: 'proxy',

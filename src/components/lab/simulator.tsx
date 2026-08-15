@@ -1033,34 +1033,34 @@ function OutputPanel({
           </CardContent>
         </Card>
 
-        {/* Overstocked low-demand */}
+        {/* Lowest-demand products */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center justify-between text-base">
               <span className="flex items-center gap-2">
-                <Box className="h-4 w-4 text-amber-500" /> 過度備貨 / 低需求 Top 10
+                <Box className="h-4 w-4 text-amber-500" /> 最低需求商品 Top 10
               </span>
               <ConfidenceBadge
                 confidence="proxy"
-                formula="filter products where demandProxy < 0.0005"
-                note="高庫存但低 demand proxy 的矛盾品項"
+                formula="demandPerVisit 升冪排序，取最低 10"
+                note="幾乎沒有顧客會買的商品，適合別囤貨"
               />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-1">
-              {result.topOverstockedLowDemand.map((r, i) => (
+              {result.topLowDemand.map((r, i) => (
                 <DataRow
                   key={r.productId}
                   index={i + 1}
                   title={productNameFor(r.productId, lang)}
-                  subtitle={`#${r.productId} · demand ${r.demand.toExponential(3)}`}
+                  subtitle={`#${r.productId} · demand ${r.demand.toExponential(3)}/visit`}
                   right={<Badge variant="outline" className="text-[10px] text-amber-600">low demand</Badge>}
                   onClick={() => onSelectProduct(r.productId)}
                 />
               ))}
-              {result.topOverstockedLowDemand.length === 0 && (
-                <div className="py-6 text-center text-sm text-muted-foreground">無過度備貨品項</div>
+              {result.topLowDemand.length === 0 && (
+                <div className="py-6 text-center text-sm text-muted-foreground">無低需求品項</div>
               )}
             </div>
           </CardContent>

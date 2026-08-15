@@ -448,7 +448,9 @@ export function parseES3Save(text: string, fileName: string): ES3ParseResult {
     }
     storeLayout.push({ ...base, inventory: inv })
     inv.forEach(({ product, count }) => {
-      inventoryByProduct[product] = (inventoryByProduct[product] ?? 0) + count
+      // Negative counts are empty-slot sentinels — keep them in the prop
+      // inventory (for anomaly flagging) but exclude from the aggregate total.
+      if (count >= 0) inventoryByProduct[product] = (inventoryByProduct[product] ?? 0) + count
     })
     propIndex++
   }
@@ -907,7 +909,10 @@ export function parseExtractedSave(
         const cnt = it?.count
         if (typeof pid === 'number' && typeof cnt === 'number' && pid >= 0) {
           inv.push({ product: pid, count: cnt })
-          inventoryByProduct[pid] = (inventoryByProduct[pid] ?? 0) + cnt
+          // Negative counts are empty-slot sentinels — exclude from aggregate.
+          if (cnt >= 0) {
+            inventoryByProduct[pid] = (inventoryByProduct[pid] ?? 0) + cnt
+          }
         }
       })
     }
