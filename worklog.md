@@ -1297,3 +1297,79 @@ Stage Summary:
 - PAT 已清理出 git config，但该 PAT 在对话中已出现两次，建议用户去 GitHub 撤销并换新
 - 创建了 15 分钟定期 webDevReview cron job（job_id 324004，Asia/Hong_Kong，fixed_rate 900s）
 - 之前的活动层容器识别 bug 已在 PROPDAT-FIX 任务中修复并验证（8 色容器类别系统 + 真实尺寸 + zone 标签），本次无需重做
+
+---
+Task ID: CRON-REVIEW-2
+Agent: orchestrator (main)
+Task: 用戶反饋修復 — 重複物品算法優化 + 貨架價值修正 + 個性化優化推薦方案
+
+Work Log:
+
+**用戶反饋（4 個問題）：**
+1. 重複物品算法有誤：置物架位於倉庫不影響售賣，不應計入重複判定
+2. 偵測到重複但不顯示是什麼重複了
+3. 需要根據存檔數據生成個性化的空間利用/利潤最大化等視覺化優化推薦方案
+4. 貨架價值顯示「不知道」— 但商品百科有每個商品的詳細數據
+
+**修復內容：**
+
+### 1. engine.ts — duplicatedProducts 算法重寫
+- **根因**：舊算法對每個 inventory 條目都檢查 `propAppearances > 1` 並 `duplicated++`，導致一個跨貨架重複商品被計數多次（每個條目 +1）。且倉庫置物架 (zoneCode=1) 也參與判定。
+- **修復**：
+  - 只對售賣區 props (zoneCode !== 1) 計算跨貨架重複
+  - 每個 product 在本貨架去重（`seen` Set），只計 1 次
+  - 新增 `duplicatedProductIds: number[]` + `duplicatedWithProps: { productId, otherProps[] }[]`
+  - `duplicatedProducts` 改為「與其他售賣貨架重複的商品種類數」
+  - PropEfficiency 新增 `zoneCode` 欄位
+
+### 2. engine.ts — 新增 computeStoreOptimization()
+三個正交策略，每個返回 0-100 得分 + 理論目標 + 具體操作列表：
+- **SPACE（空間利用）**：score = filledSlots / totalSlots × 100（僅售賣區），actions = 空貨架/空格補貨建議
+- **PROFIT（利潤最大化）**：score = currentShelfValue / theoreticalMax × 100，actions = 低價值貨架替換建議 + 重複商品集中建議
+- **DEMAND（需求覆蓋）**：score = coveredNecessities / 11 × 100，actions = 未覆蓋需求池補缺口建議
+- 每個 action 包含 type (restock/replace-low-value/consolidate/fill-gap/relocate)、propIndex、detailZh/detailEn、impact 分數
+
+### 3. store-layout.tsx — 優化推薦方案 Card
+- 新增「優化推薦方案」Card，位於配置報告與問題貨架之間
+- 3 個策略 tab（空間利用/利潤最大化/需求覆蓋），各顯示得分 + 進度條 + 公式
+- 每個 tab 下顯示 Top 8 建議操作列表（可點擊跳轉貨架）
+- 「地圖標記」開關：開啟後在 SVG 地圖上為每個待優化貨架加上彩色虛線環 + 動作類型 badge（↧補貨/⇄替換/⊕集中/＋補缺口/→搬移）
+- 5 種動作類型各有顏色：restock=green, replace=amber, consolidate=purple, fill-gap=blue, relocate=cyan
+- 圖例顯示所有動作類型 + 顏色
+
+### 4. store-layout.tsx — 重複商品詳情顯示
+- PropDetailCard 的重複商品區塊從只顯示數量 → 顯示每個重複商品的：
+  - 商品名稱 + ID
+  - 在哪些其他售賣貨架出現（貨架 #N）
+- 範例：「偵測到 1 個重複商品 — 牙膏 #74 → 貨架 #10」
+
+### 5. store-layout.tsx — 容器類型分佈標註倉庫
+- 每個容器類別行新增「N 倉儲」badge（amber 色）
+- 數量列改為 `Ns Nw`（s=selling, w=warehouse）分別用 emerald/amber 色
+- 讓用戶清楚看到哪些容器在倉庫（不影響售賣）
+
+### 6. 清理
+- 刪除廢棄的 examples/websocket/ 目錄（socket.io 已在 CRON-REVIEW-1 移除）
+- 修復 i18n.ts 的 Lang type re-export（SkillsDataTable.tsx 報錯）
+- profitScore 上限 100（避免超過 100）
+
+**驗證：**
+- bun run lint → 0 errors ✅
+- bunx tsc --noEmit → 0 errors in changed files ✅
+- agent-browser QA：
+  - 優化推薦方案面板正確顯示（3 tabs + 得分 + 進度條 + 操作列表）✅
+  - 空間利用 39/100、利潤最大化 100/100、需求覆蓋 55/100 ✅
+  - 地圖標記開關 ON → SVG 地圖上可見 8-10 個彩色虛線環 + 動作 badge ✅
+  - 策略切換 → 操作列表即時更新（補貨/替換/集中/補缺口）✅
+  - 貨架詳情卡 → 重複商品顯示「牙膏 #74 → 貨架 #10」✅
+  - 容器分佈 → 置物架行顯示「8 倉儲」badge ✅
+  - 0 console errors, 0 runtime errors ✅
+- VLM 截圖驗證：優化面板 + 地圖 overlay 均視覺確認正確 ✅
+
+Stage Summary:
+- 重複物品算法完全重寫：倉庫排除 + 跨貨架去重 + 具體商品 ID 記錄
+- 貨架價值已正確計算（Σ count × basePricePerUnit，商品百科數據）
+- 新增 3 策略優化推薦系統（空間/利潤/需求），含視覺化地圖 overlay
+- 操作列表可點擊跳轉貨架，5 種動作類型各有顏色標識
+- 容器分佈標註倉庫/售賣區分離
+- 所有修改 0 lint errors, 0 TS errors, 0 runtime errors

@@ -309,16 +309,24 @@ export function computeNecessityCoverage(
 // Shelf efficiency (per layout prop)
 // ============================================================
 
+export interface DuplicatedProductInfo {
+  productId: number
+  otherProps: number[] // other SELLING-zone props that also carry this product
+}
+
 export interface PropEfficiency {
   propIndex: number
   buildableId: number
+  zoneCode: number
   totalUnits: number
   distinctProducts: number
   shelfValue: number // sum of count × basePrice
   demandCoverage: number // sum of count × demandProxy (proxy)
   emptySlots: number // inventory entries with count 0 or product -1
   negativeAnomalies: number
-  duplicatedProducts: number // products appearing on this prop AND another prop
+  duplicatedProducts: number // distinct product kinds that ALSO appear on another SELLING prop
+  duplicatedProductIds: number[] // the product ids (for display)
+  duplicatedWithProps: DuplicatedProductInfo[] // detail: which products + which other props
   efficiency: number // shelfValue × demandCoverage normalized
 }
 
@@ -334,12 +342,21 @@ export function computeShelfEfficiency(
   for (const p of products) {
     demandCache.set(p.id, computeDemandProxy(p.id, necessities, customerTypes).value)
   }
-  // count product appearances across props
-  const propAppearances = new Map<number, number>()
-  for (const prop of layout) {
+  // Cross-prop duplication only counts SELLING-zone props (zoneCode !== 1).
+  // Warehouse storage shelves (zoneCode=1) do not compete with selling shelves
+  // and therefore never contribute to "duplicated" flags.
+  const sellingProps = layout.filter((p) => p.zoneCode !== 1)
+  // product → list of selling-prop indices that carry it (deduped per prop)
+  const productToSellingProps = new Map<number, number[]>()
+  for (const prop of sellingProps) {
+    const seen = new Set<number>()
     for (const inv of prop.inventory) {
-      if (inv.product < 0) continue
-      propAppearances.set(inv.product, (propAppearances.get(inv.product) ?? 0) + 1)
+      if (inv.product < 0 || inv.count <= 0) continue
+      if (seen.has(inv.product)) continue // same product on same prop = 1 appearance
+      seen.add(inv.product)
+      const arr = productToSellingProps.get(inv.product) ?? []
+      arr.push(prop.index)
+      productToSellingProps.set(inv.product, arr)
     }
   }
   const result: PropEfficiency[] = layout.map((prop) => {
@@ -348,8 +365,9 @@ export function computeShelfEfficiency(
     let demandCoverage = 0
     let emptySlots = 0
     let negativeAnomalies = 0
-    let duplicated = 0
     const seen = new Set<number>()
+    const duplicatedProductIds: number[] = []
+    const duplicatedWithProps: DuplicatedProductInfo[] = []
     for (const inv of prop.inventory) {
       if (inv.product < 0 || inv.count === 0) {
         emptySlots++
@@ -365,28 +383,283 @@ export function computeShelfEfficiency(
         shelfValue += inv.count * p.basePricePerUnit
         demandCoverage += inv.count * (demandCache.get(inv.product) ?? 0)
       }
-      if (seen.has(inv.product)) duplicated++
-      else seen.add(inv.product)
-      if ((propAppearances.get(inv.product) ?? 0) > 1) duplicated++
+      if (seen.has(inv.product)) continue // dedupe within prop
+      seen.add(inv.product)
+      // Cross-prop duplication — only flagged for SELLING props.
+      if (prop.zoneCode !== 1) {
+        const allProps = productToSellingProps.get(inv.product) ?? []
+        const otherProps = allProps.filter((i) => i !== prop.index)
+        if (otherProps.length > 0) {
+          duplicatedProductIds.push(inv.product)
+          duplicatedWithProps.push({ productId: inv.product, otherProps })
+        }
+      }
     }
     const efficiency = shelfValue * (1 + demandCoverage * 100)
     return {
       propIndex: prop.index,
       buildableId: prop.buildableId,
+      zoneCode: prop.zoneCode,
       totalUnits,
       distinctProducts: seen.size,
       shelfValue,
       demandCoverage,
       emptySlots,
       negativeAnomalies,
-      duplicatedProducts: duplicated,
+      duplicatedProducts: duplicatedProductIds.length,
+      duplicatedProductIds,
+      duplicatedWithProps,
       efficiency,
     }
   })
   return {
     value: result,
-    formula: 'shelfValue = Σ count×basePrice; demandCoverage = Σ count×demandProxy; efficiency = shelfValue×(1+demandCoverage×100)',
-    sources: [`layout props=${layout.length}`, `products=${products.length}`],
+    formula: 'shelfValue = Σ count×basePrice; demandCoverage = Σ count×demandProxy; efficiency = shelfValue×(1+demandCoverage×100); duplicated = distinct products also on another selling-zone prop (warehouse excluded)',
+    sources: [`layout props=${layout.length}`, `selling props=${sellingProps.length}`, `products=${products.length}`],
+    confidence: 'proxy',
+  }
+}
+
+// ============================================================
+// Store optimization recommendations
+// Three orthogonal strategies: space utilization, profit, demand.
+// Each returns a 0..100 score, a theoretical target, and a list of
+// concrete actions tied to specific props so the UI can highlight them.
+// ============================================================
+
+export type OptimizationActionType =
+  | 'restock' // fill empty slots / empty shelf
+  | 'replace-low-value' // swap low-value products for higher-value ones
+  | 'consolidate' // merge duplicated products onto one shelf
+  | 'fill-gap' // add a product to cover an uncovered necessity
+  | 'relocate-to-warehouse' // move excess stock to storage
+
+export interface OptimizationAction {
+  type: OptimizationActionType
+  propIndex: number
+  detailZh: string
+  detailEn: string
+  impact: number // estimated score delta if applied
+  productId?: number
+  relatedProps?: number[]
+}
+
+export interface OptimizationStrategy {
+  key: 'space' | 'profit' | 'demand'
+  score: number // 0..100
+  targetScore: number // theoretical max
+  gap: number // target - score
+  actions: OptimizationAction[]
+  formulaZh: string
+  formulaEn: string
+}
+
+export interface StoreOptimization {
+  space: OptimizationStrategy
+  profit: OptimizationStrategy
+  demand: OptimizationStrategy
+}
+
+/**
+ * Compute three orthogonal optimization strategies for the current store layout.
+ *
+ * - SPACE: how full are the selling shelves? Target = 100% filled.
+ * - PROFIT: shelf value per slot vs. theoretical max (each slot holding the
+ *   highest value-density product that fits the container class).
+ * - DEMAND: how many of the 11 necessity pools are covered by at least one
+ *   selling shelf? Target = all 11.
+ */
+export function computeStoreOptimization(
+  layout: LayoutProp[],
+  efficiencies: PropEfficiency[],
+  products: Product[] = ENC.products,
+  necessities: Necessity[] = ENC.necessities,
+  customerTypes: CustomerType[] = ENC.customerTypes,
+): CalcResult<StoreOptimization> {
+  const demandCache = new Map<number, number>()
+  for (const p of products) {
+    demandCache.set(p.id, computeDemandProxy(p.id, necessities, customerTypes).value)
+  }
+  const effByIndex = new Map(efficiencies.map((e) => [e.propIndex, e]))
+  const sellingProps = layout.filter((p) => p.zoneCode !== 1)
+
+  // -------- SPACE strategy --------
+  // score = filledSlots / totalSlots × 100 (selling props only)
+  let totalSlots = 0
+  let filledSlots = 0
+  const spaceActions: OptimizationAction[] = []
+  for (const prop of sellingProps) {
+    const eff = effByIndex.get(prop.index)
+    if (!eff) continue
+    const slots = prop.inventory.length || 1
+    totalSlots += slots
+    const filled = slots - eff.emptySlots
+    filledSlots += filled
+    if (eff.totalUnits === 0) {
+      spaceActions.push({
+        type: 'restock',
+        propIndex: prop.index,
+        detailZh: `貨架 #${prop.index} 完全空置 — 從倉庫補上高 demand 商品`,
+        detailEn: `Shelf #${prop.index} is empty — restock with high-demand products from storage`,
+        impact: 15,
+      })
+    } else if (eff.emptySlots > 0) {
+      spaceActions.push({
+        type: 'restock',
+        propIndex: prop.index,
+        detailZh: `貨架 #${prop.index} 有 ${eff.emptySlots} 個空格 — 補滿可提升空間利用`,
+        detailEn: `Shelf #${prop.index} has ${eff.emptySlots} empty slots — fill to improve space use`,
+        impact: Math.min(10, eff.emptySlots * 2),
+      })
+    }
+  }
+  const spaceScore = totalSlots > 0 ? Math.round((filledSlots / totalSlots) * 100) : 0
+  spaceActions.sort((a, b) => b.impact - a.impact)
+
+  // -------- PROFIT strategy --------
+  // score = current total shelf value / theoretical max × 100
+  // theoretical max per slot = highest (basePrice × demandProxy) among all products
+  // of the same containerClass as the prop. If we can't resolve containerClass,
+  // use the global best.
+  const bestValueByClass = new Map<number, number>() // containerClass → best unit value
+  for (const p of products) {
+    const v = p.basePricePerUnit * (demandCache.get(p.id) ?? 0)
+    const prev = bestValueByClass.get(p.containerClass) ?? 0
+    if (v > prev) bestValueByClass.set(p.containerClass, v)
+  }
+  const globalBestValue = Math.max(...bestValueByClass.values(), 1)
+  let currentProfit = 0
+  let maxProfit = 0
+  const profitActions: OptimizationAction[] = []
+  for (const prop of sellingProps) {
+    const eff = effByIndex.get(prop.index)
+    if (!eff) continue
+    currentProfit += eff.shelfValue
+    const slots = prop.inventory.length || 1
+    // resolve container class for this prop
+    const container = ENC.containers.find((c) => c.containerID === prop.containerID)
+    const cls = container?.containerClass ?? 0
+    const bestVal = bestValueByClass.get(cls) ?? globalBestValue
+    // assume each filled slot holds ~20 units of the best product (proxy)
+    const propMax = slots * 20 * bestVal
+    maxProfit += propMax
+    // flag low-value props: value per slot below 30% of theoretical
+    const valPerSlot = slots > 0 ? eff.shelfValue / slots : 0
+    const maxPerSlot = 20 * bestVal
+    if (valPerSlot < maxPerSlot * 0.3 && eff.totalUnits > 0) {
+      profitActions.push({
+        type: 'replace-low-value',
+        propIndex: prop.index,
+        detailZh: `貨架 #${prop.index} 單位價值偏低 ($${valPerSlot.toFixed(2)}/格) — 替換為高價值高需求商品可提升利潤`,
+        detailEn: `Shelf #${prop.index} has low per-slot value ($${valPerSlot.toFixed(2)}/slot) — swap for higher-value products`,
+        impact: 12,
+      })
+    }
+  }
+  const profitScore = maxProfit > 0 ? Math.min(100, Math.round((currentProfit / maxProfit) * 100)) : 0
+  profitActions.sort((a, b) => b.impact - a.impact)
+
+  // -------- DEMAND strategy --------
+  // score = covered necessities / total necessities × 100
+  const necProductSets = necessities.map((n) => new Set(n.productIds))
+  const sellingProductIds = new Set<number>()
+  for (const prop of sellingProps) {
+    for (const inv of prop.inventory) {
+      if (inv.product >= 0 && inv.count > 0) sellingProductIds.add(inv.product)
+    }
+  }
+  let coveredCount = 0
+  const uncoveredNecIdx: number[] = []
+  necProductSets.forEach((set, idx) => {
+    let covered = false
+    for (const pid of set) {
+      if (sellingProductIds.has(pid)) {
+        covered = true
+        break
+      }
+    }
+    if (covered) coveredCount++
+    else uncoveredNecIdx.push(idx)
+  })
+  const demandScore = necProductSets.length > 0 ? Math.round((coveredCount / necProductSets.length) * 100) : 0
+  const demandActions: OptimizationAction[] = []
+  for (const necIdx of uncoveredNecIdx.slice(0, 6)) {
+    const nec = necessities[necIdx]
+    if (!nec) continue
+    // suggest the first product from this necessity that isn't on any selling shelf
+    const missing = nec.productIds.find((pid) => !sellingProductIds.has(pid))
+    if (missing !== undefined) {
+      // suggest placing it on the empty/lowest-value selling shelf
+      const targetProp = sellingProps
+        .map((p) => ({ p, eff: effByIndex.get(p.index) }))
+        .filter((x) => x.eff && (x.eff.totalUnits === 0 || x.eff.emptySlots > 0))
+        .sort((a, b) => (a.eff!.emptySlots - b.eff!.emptySlots))[0]?.p
+      demandActions.push({
+        type: 'fill-gap',
+        propIndex: targetProp?.index ?? -1,
+        productId: missing,
+        detailZh: `需求缺口「${nec.name.zhHant}」未被覆蓋 — 補上商品 #${missing} 到貨架 #${targetProp?.index ?? '?'}`,
+        detailEn: `Demand gap "${nec.name.en}" uncovered — add product #${missing} to shelf #${targetProp?.index ?? '?'}`,
+        impact: Math.round(100 / necProductSets.length),
+      })
+    }
+  }
+
+  // Also surface consolidation actions (duplicated products)
+  for (const eff of efficiencies) {
+    if (eff.duplicatedProducts > 0) {
+      const firstDup = eff.duplicatedWithProps[0]
+      if (firstDup) {
+        profitActions.push({
+          type: 'consolidate',
+          propIndex: eff.propIndex,
+          productId: firstDup.productId,
+          relatedProps: firstDup.otherProps,
+          detailZh: `商品 #${firstDup.productId} 同時出現在貨架 #${eff.propIndex} 與 #${firstDup.otherProps.join(', ')} — 集中可騰出空間`,
+          detailEn: `Product #${firstDup.productId} on shelf #${eff.propIndex} also on #${firstDup.otherProps.join(', ')} — consolidate to free space`,
+          impact: 5,
+        })
+      }
+    }
+  }
+  profitActions.sort((a, b) => b.impact - a.impact)
+
+  const space: OptimizationStrategy = {
+    key: 'space',
+    score: spaceScore,
+    targetScore: 100,
+    gap: 100 - spaceScore,
+    actions: spaceActions.slice(0, 8),
+    formulaZh: '已填格數 / 總格數 × 100（僅計算售賣區貨架）',
+    formulaEn: 'filledSlots / totalSlots × 100 (selling-zone shelves only)',
+  }
+  const profit: OptimizationStrategy = {
+    key: 'profit',
+    score: profitScore,
+    targetScore: 100,
+    gap: 100 - profitScore,
+    actions: profitActions.slice(0, 8),
+    formulaZh: '當前總貨架價值 / 理論最大價值 × 100（每格假設 20 件最高價值商品）',
+    formulaEn: 'currentShelfValue / theoreticalMax × 100 (assumes 20 units/slot of best product)',
+  }
+  const demand: OptimizationStrategy = {
+    key: 'demand',
+    score: demandScore,
+    targetScore: 100,
+    gap: 100 - demandScore,
+    actions: demandActions.slice(0, 8),
+    formulaZh: `已覆蓋需求池 / 總需求池 × 100（${necProductSets.length} 個需求池）`,
+    formulaEn: `coveredNecessities / totalNecessities × 100 (${necProductSets.length} pools)`,
+  }
+
+  return {
+    value: { space, profit, demand },
+    formula: '3 strategies: space=filledSlots/totalSlots; profit=shelfValue/theoreticalMax; demand=coveredNec/totalNec',
+    sources: [
+      `selling props=${sellingProps.length}`,
+      `total slots=${totalSlots}`,
+      `covered nec=${coveredCount}/${necProductSets.length}`,
+    ],
     confidence: 'proxy',
   }
 }

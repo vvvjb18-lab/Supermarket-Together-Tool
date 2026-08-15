@@ -3,8 +3,8 @@
 import { useMemo, useRef, useState } from 'react'
 import { useSaveStore, useRoomStore, type Lang } from '@/lib/store'
 import { encyclopedia as ENC, containerInfoFor, containerClassKeyFor, CONTAINER_CLASS_META, type ContainerClassKey } from '@/lib/data-loader'
-import { computeShelfEfficiency, computeDemandProxy } from '@/lib/engine'
-import type { PropEfficiency } from '@/lib/engine'
+import { computeShelfEfficiency, computeDemandProxy, computeStoreOptimization } from '@/lib/engine'
+import type { PropEfficiency, OptimizationStrategy, OptimizationActionType } from '@/lib/engine'
 import { useLang, productNameFor, groupIdNameFor, layoutLabel } from '@/lib/i18n'
 import {
   level0Geometry,
@@ -58,6 +58,12 @@ import {
   ZoomOut,
   Maximize,
   DoorOpen,
+  Sparkles,
+  TrendingUp,
+  DollarSign,
+  Target,
+  Eye,
+  EyeOff,
 } from 'lucide-react'
 import type { LayoutProp } from '@/lib/types'
 
@@ -200,6 +206,16 @@ export function StoreLayout() {
 
   const effResult = useMemo(() => computeShelfEfficiency(layout), [layout])
   const efficiencies = effResult.value
+
+  // ---- Store optimization (3 strategies: space / profit / demand) ----
+  const optResult = useMemo(
+    () => computeStoreOptimization(layout, efficiencies),
+    [layout, efficiencies],
+  )
+  const optimization = optResult.value
+  const [optStrategy, setOptStrategy] = useState<'space' | 'profit' | 'demand'>('space')
+  // When a strategy is "active", props mentioned in its actions get a colored ring.
+  const [optActive, setOptActive] = useState(false)
 
   // Precompute product demand for "missing-demand" highlight.
   const demandCache = useMemo(() => {
@@ -398,6 +414,33 @@ export function StoreLayout() {
     }
     return null
   }
+
+  // ---- Optimization overlay: when optActive, props targeted by the active
+  // strategy's actions get a colored dashed ring so the user can see exactly
+  // which shelves the optimizer wants to change.
+  const ACTION_COLORS: Record<OptimizationActionType, string> = {
+    'restock': '#22c55e', // green — fill it up
+    'replace-low-value': '#f59e0b', // amber — swap products
+    'consolidate': '#a855f7', // purple — merge duplicates
+    'fill-gap': '#3b82f6', // blue — add missing product
+    'relocate-to-warehouse': '#06b6d4', // cyan — move to storage
+  }
+  const optActionForProp = useMemo(() => {
+    const map = new Map<number, { type: OptimizationActionType; detail: string }>()
+    if (!optActive || !optimization) return map
+    const strat: OptimizationStrategy = optimization[optStrategy]
+    for (const a of strat.actions) {
+      if (a.propIndex < 0) continue
+      // first action targeting this prop wins (they're sorted by impact)
+      if (!map.has(a.propIndex)) {
+        map.set(a.propIndex, {
+          type: a.type,
+          detail: lang === 'en' ? a.detailEn : a.detailZh,
+        })
+      }
+    }
+    return map
+  }, [optActive, optimization, optStrategy, lang])
 
   // Sorted leaderboard rows.
   const sortedEffs = useMemo(() => {
@@ -869,6 +912,46 @@ export function StoreLayout() {
                                   rx={0.02}
                                 />
                               )}
+                              {/* Optimization overlay — dashed ring + icon label */}
+                              {optActionForProp.has(prop.index) && (() => {
+                                const act = optActionForProp.get(prop.index)!
+                                const c = ACTION_COLORS[act.type]
+                                return (
+                                  <>
+                                    <rect
+                                      x={-rectW / 2 - 0.12}
+                                      y={-rectH / 2 - 0.12}
+                                      width={rectW + 0.24}
+                                      height={rectH + 0.24}
+                                      fill="none"
+                                      stroke={c}
+                                      strokeWidth={0.07}
+                                      strokeDasharray="0.2 0.1"
+                                      rx={0.06}
+                                    />
+                                    {/* Action-type badge above the prop */}
+                                    <rect
+                                      x={-rectW / 2}
+                                      y={-rectH / 2 - 0.38}
+                                      width={Math.max(rectW, 0.8)}
+                                      height={0.26}
+                                      fill={c}
+                                      rx={0.04}
+                                    />
+                                    <text
+                                      x={0}
+                                      y={-rectH / 2 - 0.2}
+                                      textAnchor="middle"
+                                      fontSize={0.14}
+                                      fill="#ffffff"
+                                      fontWeight={700}
+                                      style={{ pointerEvents: 'none' }}
+                                    >
+                                      {act.type === 'restock' ? '↧' : act.type === 'replace-low-value' ? '⇄' : act.type === 'consolidate' ? '⊕' : act.type === 'fill-gap' ? '＋' : '→'}
+                                    </text>
+                                  </>
+                                )
+                              })()}
                             </g>
                           )
                         })}
@@ -1166,15 +1249,17 @@ export function StoreLayout() {
               </h4>
               <div className="space-y-1.5">
                 {(() => {
-                  const classCounts = new Map<ContainerClassKey, { count: number; units: number; value: number }>()
+                  const classCounts = new Map<ContainerClassKey, { count: number; units: number; value: number; warehouseCount: number }>()
                   for (const prop of layout) {
                     const key = containerClassKeyFor(prop.containerID)
-                    const prev = classCounts.get(key) ?? { count: 0, units: 0, value: 0 }
+                    const prev = classCounts.get(key) ?? { count: 0, units: 0, value: 0, warehouseCount: 0 }
                     const eff = efficiencies.find((e) => e.propIndex === prop.index)
+                    const isWarehouse = prop.zoneCode === 1
                     classCounts.set(key, {
                       count: prev.count + 1,
                       units: prev.units + (eff?.totalUnits ?? 0),
                       value: prev.value + (eff?.shelfValue ?? 0),
+                      warehouseCount: prev.warehouseCount + (isWarehouse ? 1 : 0),
                     })
                   }
                   const totalProps = layout.length || 1
@@ -1182,9 +1267,10 @@ export function StoreLayout() {
                     .map((k) => ({ key: k, ...classCounts.get(k)! }))
                     .filter((e) => e.count > 0)
                     .sort((a, b) => b.count - a.count)
-                  return entries.map(({ key, count, units, value }) => {
+                  return entries.map(({ key, count, units, value, warehouseCount }) => {
                     const meta = CONTAINER_CLASS_META[key]
                     const pct = ((count / totalProps) * 100).toFixed(1)
+                    const sellingCount = count - warehouseCount
                     return (
                       <div key={key} className="flex items-center gap-2 rounded border bg-card px-3 py-1.5 text-xs">
                         <span
@@ -1194,8 +1280,17 @@ export function StoreLayout() {
                         <span className="min-w-0 flex-1">
                           <span className="font-medium">{lang === 'en' ? meta.labelEn : meta.labelZh}</span>
                           <span className="ml-1 text-muted-foreground">{pct}%</span>
+                          {warehouseCount > 0 && (
+                            <span className="ml-1 rounded bg-amber-500/15 px-1 text-[10px] text-amber-600 dark:text-amber-400">
+                              {lang === 'en' ? `${warehouseCount} in warehouse` : `${warehouseCount} 倉儲`}
+                            </span>
+                          )}
                         </span>
-                        <span className="shrink-0 font-mono text-muted-foreground">{count}× {units}u</span>
+                        <span className="shrink-0 font-mono text-muted-foreground">
+                          {sellingCount > 0 && <span className="text-emerald-600 dark:text-emerald-400">{sellingCount}s</span>}
+                          {warehouseCount > 0 && <span className="text-amber-600 dark:text-amber-400"> {warehouseCount}w</span>}
+                          <span className="ml-1">{units}u</span>
+                        </span>
                         <span className="shrink-0 font-mono text-emerald-600 dark:text-emerald-400">{fmtMoney(value)}</span>
                       </div>
                     )
@@ -1334,6 +1429,204 @@ export function StoreLayout() {
           </div>
         </CardContent>
       </Card>
+
+      {/* ===== Optimization Recommendations ===== */}
+      {optimization && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center justify-between text-base">
+              <span className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-violet-500" />
+                {lang === 'en' ? 'Optimization Recommendations' : '優化推薦方案'}
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={optActive ? 'default' : 'outline'}
+                  size="sm"
+                  className="h-7 gap-1.5 text-xs"
+                  onClick={() => setOptActive(!optActive)}
+                >
+                  {optActive ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                  {lang === 'en' ? (optActive ? 'Overlay ON' : 'Overlay OFF') : optActive ? '地圖標記開' : '地圖標記關'}
+                </Button>
+                <ConfidenceBadge
+                  confidence="proxy"
+                  formula={optResult.formula}
+                  note={lang === 'en' ? '3 strategies from save data' : '依存檔數據生成 3 種策略'}
+                />
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {/* Strategy tabs */}
+            <div className="mb-3 flex gap-1.5">
+              {([
+                { key: 'space' as const, icon: Boxes, label: lang === 'en' ? 'Space' : '空間利用', color: 'text-emerald-600' },
+                { key: 'profit' as const, icon: DollarSign, label: lang === 'en' ? 'Profit' : '利潤最大化', color: 'text-amber-600' },
+                { key: 'demand' as const, icon: Target, label: lang === 'en' ? 'Demand' : '需求覆蓋', color: 'text-blue-600' },
+              ]).map(({ key, icon: Icon, label, color }) => {
+                const strat = optimization[key]
+                const active = optStrategy === key
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setOptStrategy(key)}
+                    className={`flex flex-1 items-center justify-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium transition-colors ${
+                      active
+                        ? 'border-violet-500 bg-violet-500/10 text-violet-700 dark:text-violet-300'
+                        : 'border-border bg-card text-muted-foreground hover:bg-accent'
+                    }`}
+                  >
+                    <Icon className={`h-3.5 w-3.5 ${active ? color : ''}`} />
+                    <span>{label}</span>
+                    <span className={`ml-1 font-mono ${active ? color : ''}`}>{strat.score}</span>
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Active strategy detail */}
+            {(() => {
+              const strat = optimization[optStrategy]
+              const scoreColor = strat.score >= 70 ? 'bg-emerald-500' : strat.score >= 40 ? 'bg-amber-500' : 'bg-rose-500'
+              const stratIcon = optStrategy === 'space' ? Boxes : optStrategy === 'profit' ? DollarSign : Target
+              const StratIcon = stratIcon
+              return (
+                <div className="space-y-3">
+                  {/* Score bar */}
+                  <div className="rounded-md border bg-card p-3">
+                    <div className="mb-2 flex items-center justify-between text-xs">
+                      <span className="flex items-center gap-1.5 font-medium">
+                        <StratIcon className="h-3.5 w-3.5" />
+                        {lang === 'en' ? 'Current Score' : '當前得分'}
+                      </span>
+                      <span className="font-mono text-lg font-bold">
+                        {strat.score}
+                        <span className="text-muted-foreground"> / {strat.targetScore}</span>
+                      </span>
+                    </div>
+                    <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
+                      <div
+                        className={`h-full rounded-full transition-all ${scoreColor}`}
+                        style={{ width: `${Math.min(100, strat.score)}%` }}
+                      />
+                    </div>
+                    <div className="mt-1.5 flex items-center justify-between text-[10px] text-muted-foreground">
+                      <span>{lang === 'en' ? `Gap to target: ${strat.gap} pts` : `距目標差距：${strat.gap} 分`}</span>
+                      <span className="font-mono">{lang === 'en' ? strat.formulaEn : strat.formulaZh}</span>
+                    </div>
+                  </div>
+
+                  {/* Action list */}
+                  <div>
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <h5 className="text-xs font-semibold text-muted-foreground">
+                        {lang === 'en' ? `Top ${strat.actions.length} Recommended Actions` : `Top ${strat.actions.length} 建議操作`}
+                      </h5>
+                      <span className="text-[10px] text-muted-foreground">
+                        {lang === 'en' ? 'click row to jump to shelf' : '點擊列跳轉貨架'}
+                      </span>
+                    </div>
+                    {strat.actions.length === 0 ? (
+                      <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3 text-center text-xs text-emerald-700 dark:text-emerald-300">
+                        <TrendingUp className="mx-auto mb-1 h-5 w-5" />
+                        {lang === 'en' ? 'No actions needed — this strategy is already optimal!' : '此策略已最佳化，無需操作！'}
+                      </div>
+                    ) : (
+                      <div className="max-h-72 space-y-1.5 overflow-y-auto scrollbar-thin pr-1">
+                        {strat.actions.map((a, i) => {
+                          const c = ACTION_COLORS[a.type]
+                          const typeLabel = lang === 'en'
+                            ? (a.type === 'restock' ? 'Restock'
+                              : a.type === 'replace-low-value' ? 'Replace'
+                              : a.type === 'consolidate' ? 'Consolidate'
+                              : a.type === 'fill-gap' ? 'Fill Gap'
+                              : 'Relocate')
+                            : (a.type === 'restock' ? '補貨'
+                              : a.type === 'replace-low-value' ? '替換'
+                              : a.type === 'consolidate' ? '集中'
+                              : a.type === 'fill-gap' ? '補缺口'
+                              : '搬移')
+                          return (
+                            <div
+                              key={`${a.type}-${a.propIndex}-${i}`}
+                              onClick={() => a.propIndex >= 0 && setSelectedIdx(a.propIndex)}
+                              className={`flex items-start gap-2 rounded-md border bg-card px-3 py-2 text-xs transition-colors ${
+                                a.propIndex >= 0 ? 'cursor-pointer hover:bg-accent' : ''
+                              }`}
+                            >
+                              <span
+                                className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded text-[10px] font-bold text-white"
+                                style={{ backgroundColor: c }}
+                              >
+                                {i + 1}
+                              </span>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-1.5">
+                                  <span
+                                    className="rounded px-1 py-0.5 text-[10px] font-medium"
+                                    style={{ backgroundColor: `${c}22`, color: c }}
+                                  >
+                                    {typeLabel}
+                                  </span>
+                                  {a.propIndex >= 0 && (
+                                    <span className="font-mono text-[10px] text-muted-foreground">
+                                      {lang === 'en' ? `Shelf #${a.propIndex}` : `貨架 #${a.propIndex}`}
+                                    </span>
+                                  )}
+                                  {a.productId !== undefined && (
+                                    <span className="truncate font-mono text-[10px] text-muted-foreground">
+                                      {productNameFor(a.productId, lang)} #{a.productId}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="mt-0.5 text-muted-foreground">
+                                  {lang === 'en' ? a.detailEn : a.detailZh}
+                                </div>
+                              </div>
+                              <span className="shrink-0 font-mono text-[10px] text-violet-600 dark:text-violet-400">
+                                +{a.impact}
+                              </span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Overlay legend (only when overlay is active) */}
+                  {optActive && (
+                    <div className="flex flex-wrap gap-2 rounded-md border bg-muted/30 p-2 text-[10px]">
+                      <span className="font-semibold text-muted-foreground">
+                        {lang === 'en' ? 'Overlay legend:' : '地圖標記圖例：'}
+                      </span>
+                      {(Object.keys(ACTION_COLORS) as OptimizationActionType[]).map((t) => (
+                        <span key={t} className="flex items-center gap-1">
+                          <span
+                            className="inline-block h-2.5 w-2.5 rounded-sm"
+                            style={{ backgroundColor: ACTION_COLORS[t] }}
+                          />
+                          {lang === 'en'
+                            ? (t === 'restock' ? 'Restock'
+                              : t === 'replace-low-value' ? 'Replace'
+                              : t === 'consolidate' ? 'Consolidate'
+                              : t === 'fill-gap' ? 'Fill Gap'
+                              : 'Relocate')
+                            : (t === 'restock' ? '補貨'
+                              : t === 'replace-low-value' ? '替換'
+                              : t === 'consolidate' ? '集中'
+                              : t === 'fill-gap' ? '補缺口'
+                              : '搬移')}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Top 5 problematic shelves — quick scan */}
       {topProblematic.length > 0 && (
@@ -1846,8 +2139,33 @@ function PropDetailCard({
 
         {eff.duplicatedProducts > 0 && (
           <div className="rounded-md border border-fuchsia-500/30 bg-fuchsia-500/5 p-2 text-xs text-fuchsia-700 dark:text-fuchsia-300">
-            <span className="font-semibold">偵測到 {eff.duplicatedProducts} 個重複商品</span>{' '}
-            — 部分商品同時出現在此貨架與其他貨架
+            <div className="mb-1 font-semibold">
+              {lang === 'en'
+                ? `Detected ${eff.duplicatedProducts} duplicated product(s)`
+                : `偵測到 ${eff.duplicatedProducts} 個重複商品`}
+              <span className="ml-1 font-normal text-fuchsia-500/70">
+                {lang === 'en' ? '(also on other selling shelves)' : '（同時出現在其他售賣貨架）'}
+              </span>
+            </div>
+            <div className="space-y-1">
+              {eff.duplicatedWithProps.map((d) => (
+                <div
+                  key={d.productId}
+                  className="flex items-center gap-1.5 rounded bg-fuchsia-500/10 px-1.5 py-0.5"
+                >
+                  <span className="min-w-0 flex-1 truncate font-medium">
+                    {productNameFor(d.productId, lang)}
+                  </span>
+                  <span className="shrink-0 font-mono text-[10px] text-fuchsia-600 dark:text-fuchsia-400">
+                    #{d.productId}
+                  </span>
+                  <span className="shrink-0 text-fuchsia-500/70">→</span>
+                  <span className="shrink-0 font-mono text-[10px]">
+                    {lang === 'en' ? 'shelf' : '貨架'} #{d.otherProps.join(', #')}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
