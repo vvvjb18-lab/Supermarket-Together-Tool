@@ -1379,6 +1379,8 @@ export interface SimulationConfig {
   customerWeights?: number[]
   mode: 'raw' | 'unique'
   stockedProductIds?: Set<number>
+  /** If set, customers only "want" products inside this set (unlocked catalog). */
+  unlockedProductIds?: Set<number>
 }
 
 export interface SimulationResult {
@@ -1400,6 +1402,7 @@ export function simulateCustomers(cfg: SimulationConfig): CalcResult<SimulationR
   const cw = cfg.customerWeights ?? custs.map(() => 1)
   const weightSum = cw.reduce((a, b) => a + b, 0)
   const stocked = cfg.stockedProductIds ?? new Set<number>(products.map((p) => p.id))
+  const unlocked = cfg.unlockedProductIds ?? null
 
   const productHits = new Map<number, number>()
   const missedSales = new Map<number, number>()
@@ -1433,32 +1436,40 @@ export function simulateCustomers(cfg: SimulationConfig): CalcResult<SimulationR
 
     for (let item = 0; item < k; item++) {
       let chosen = -1
+      // premium mode: pick from premiumIndexes uniformly, restricted to unlocked catalog
       if (isPremiumItem && cust.premiumIndexes && cust.premiumIndexes.length > 0) {
-        // premium mode: pick from premiumIndexes uniformly
-        const idx = cust.premiumIndexes[Math.floor(Math.random() * cust.premiumIndexes.length)]
-        chosen = products.find((p) => p.id === idx)?.id ?? -1
-        if (chosen < 0) continue
-      } else {
+        const premiumPool = unlocked ? cust.premiumIndexes.filter((id) => unlocked.has(id)) : cust.premiumIndexes
+        if (premiumPool.length > 0) {
+          chosen = premiumPool[Math.floor(Math.random() * premiumPool.length)]
+        }
+        // if no premium product is unlocked, fall through to necessity mode
+      }
+      if (chosen < 0) {
         // necessity mode: pick necessity by chance, then uniform product from pool
         const chances = cust.necessitiesChances
         const chanceSum = chances.reduce((a, b) => a + Math.max(0, b), 0)
-        if (chanceSum <= 0) continue
-        let r2 = Math.random() * chanceSum
-        let ni = -1
-        for (let m = 0; m < chances.length; m++) {
-          r2 -= Math.max(0, chances[m])
-          if (r2 <= 0) {
-            ni = m
-            break
+        if (chanceSum > 0) {
+          let r2 = Math.random() * chanceSum
+          let ni = -1
+          for (let m = 0; m < chances.length; m++) {
+            r2 -= Math.max(0, chances[m])
+            if (r2 <= 0) {
+              ni = m
+              break
+            }
+          }
+          if (ni < 0) ni = chances.length - 1
+          const pool = nec[ni]
+          if (pool && pool.rawTokens.length > 0) {
+            let tokens = cfg.mode === 'unique' ? Array.from(new Set(pool.rawTokens)) : pool.rawTokens
+            if (unlocked) tokens = tokens.filter((t) => unlocked.has(t))
+            if (tokens.length > 0) {
+              chosen = tokens[Math.floor(Math.random() * tokens.length)]
+            }
           }
         }
-        if (ni < 0) ni = chances.length - 1
-        const pool = nec[ni]
-        if (!pool || pool.rawTokens.length === 0) continue
-        const tokens = cfg.mode === 'unique' ? Array.from(new Set(pool.rawTokens)) : pool.rawTokens
-        chosen = tokens[Math.floor(Math.random() * tokens.length)]
-        if (chosen < 0) continue
       }
+      if (chosen < 0) continue
       totalHits++
       if (stocked.has(chosen)) {
         productHits.set(chosen, (productHits.get(chosen) ?? 0) + 1)

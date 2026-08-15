@@ -156,9 +156,12 @@ export function Simulator() {
       // else fall back to equal (undefined)
     }
     let stockedProductIds: Set<number> | undefined
+    let unlockedProductIds: Set<number> | undefined
     if (stockedMode === 'all') {
       stockedProductIds = new Set(ENC.products.map((p) => p.id))
     } else if (stockedMode === 'from-save') {
+      const unlocked = snapshot?.unlockedProducts ?? []
+      unlockedProductIds = new Set(unlocked.length > 0 ? unlocked : ENC.products.map((p) => p.id))
       const inv = snapshot?.inventoryByProduct ?? {}
       stockedProductIds = new Set(
         Object.entries(inv)
@@ -173,6 +176,7 @@ export function Simulator() {
       customerWeights,
       mode,
       stockedProductIds,
+      unlockedProductIds,
     }
     setResult(simulateCustomers(cfg))
   }
@@ -596,12 +600,12 @@ export function Simulator() {
                   </div>
 
                   <div>
-                    <Label className="text-xs">店內現貨集合</Label>
+                    <Label className="text-xs">商品範圍</Label>
                     <Tabs value={stockedMode} onValueChange={(v) => setStockedMode(v as 'all' | 'from-save' | 'none')}>
                       <TabsList className="mt-1 h-7">
                         <TabsTrigger value="all" className="text-[11px]">全部商品</TabsTrigger>
-                        <TabsTrigger value="from-save" className="text-[11px]">來自存檔</TabsTrigger>
-                        <TabsTrigger value="none" className="text-[11px]">無（看漏單）</TabsTrigger>
+                        <TabsTrigger value="from-save" className="text-[11px]">依存檔（已解鎖）</TabsTrigger>
+                        <TabsTrigger value="none" className="text-[11px]">無現貨（看漏單）</TabsTrigger>
                       </TabsList>
                     </Tabs>
                     {stockedMode === 'from-save' && !snapshot && (
@@ -611,7 +615,9 @@ export function Simulator() {
                     )}
                     {stockedMode === 'from-save' && snapshot && (
                       <div className="mt-1 text-[10px] text-muted-foreground">
-                        偵測到 {Object.values(snapshot.inventoryByProduct).filter((c) => (c as number) > 0).length} 項有庫存商品
+                        已解鎖 {snapshot.unlockedProducts?.length ?? 0} 項商品、有現貨{' '}
+                        {Object.values(snapshot.inventoryByProduct).filter((c) => (c as number) > 0).length} 項
+                        （缺貨＝已解鎖但無現貨）
                       </div>
                     )}
                   </div>
