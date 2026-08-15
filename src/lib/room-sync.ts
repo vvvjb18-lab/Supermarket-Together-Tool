@@ -299,6 +299,7 @@ export function useRoomSync() {
           }
           useRoomStore.getState().createRoom(code, name, host)
           useRoomStore.getState().setSelf(selfId, playerName)
+          useRoomStore.getState().setRoomPassword(password)
           // Pre-fetch members + save (likely empty).
           try {
             const rows = await fetchMembers(code)
@@ -335,6 +336,7 @@ export function useRoomSync() {
         }
         useRoomStore.getState().createRoom(code, name, host)
         useRoomStore.getState().setSelf(selfId, playerName)
+        useRoomStore.getState().setRoomPassword(password)
         bcRef.current?.postMessage({
           type: 'state',
           room: useRoomStore.getState().room,
@@ -389,6 +391,7 @@ export function useRoomSync() {
           }
           useRoomStore.getState().joinRoom(stub)
           useRoomStore.getState().setSelf(selfId, playerName)
+          useRoomStore.getState().setRoomPassword(password)
 
           // Fetch members + save + recent events.
           try {
@@ -458,6 +461,7 @@ export function useRoomSync() {
         }
         useRoomStore.getState().joinRoom(stub)
         useRoomStore.getState().setSelf(selfId, playerName)
+        useRoomStore.getState().setRoomPassword(password)
         bcRef.current?.postMessage({
           type: 'state',
           room: useRoomStore.getState().room,
@@ -471,6 +475,24 @@ export function useRoomSync() {
     },
     [mode, selfId, setupBackendSubscriptions, updateRoom],
   )
+
+  // ---------- Auto-rejoin a persisted room after a page refresh ----------
+  // The room store persists a minimal room stub + password; on reload we
+  // re-verify the password (which upserts our member row) and re-fetch
+  // members/snapshot/events, so refreshing no longer kicks the user out.
+  const rejoinedRef = useRef(false)
+  useEffect(() => {
+    if (mode !== 'backend') return
+    if (rejoinedRef.current) return
+    const st = useRoomStore.getState()
+    if (!st.room || !st.roomPassword) return
+    rejoinedRef.current = true
+    void joinRoom(st.room.code, st.selfName, st.roomPassword).catch((e) => {
+      console.warn('[room-sync] auto-rejoin failed:', e)
+      setLastError(e instanceof Error ? e.message : String(e))
+      rejoinedRef.current = false
+    })
+  }, [mode, joinRoom])
 
   // ---------- uploadSave (host-only) ----------
   const uploadSave = useCallback(async (): Promise<void> => {

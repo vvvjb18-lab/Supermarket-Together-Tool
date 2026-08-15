@@ -126,26 +126,39 @@ export function useAutoSync() {
     [clearSubs],
   )
 
-  // On mount: auto-join if a room is remembered and no manual room is active.
+  // On mount: auto-join if a room is remembered — unless the user is in a
+  // DIFFERENT manual room (that room's subscription drives the snapshot).
   useEffect(() => {
     if (!getIsSupabaseConfigured()) return
     const creds = getAutoSyncCreds()
     if (!creds) return
-    if (useRoomStore.getState().room) return
+    const r = useRoomStore.getState().room
+    if (r && r.code !== creds.code) return
     void connect(creds)
     return () => clearSubs()
   }, [connect, clearSubs])
 
-  // Pause while the user is in a manual (multiplayer) room — that room's
-  // own subscription drives the snapshot instead.
+  // Pause while the user is in a manual room with a DIFFERENT code; resume
+  // (or keep running) when the active room is the auto-sync room or there is
+  // no room at all. Same-code rooms share the same save subscription, so the
+  // auto-sync connection is simply kept.
   useEffect(() => {
     return useRoomStore.subscribe((s, prev) => {
-      if (s.room && !prev.room) {
+      const creds = getAutoSyncCreds()
+      if (!creds) return
+      const prevCode = prev?.room?.code ?? null
+      const roomCode = s.room?.code ?? null
+      if (roomCode === prevCode) return
+      const inOtherRoom = roomCode !== null && roomCode !== creds.code
+      if (inOtherRoom) {
         clearSubs()
         setStatus('disabled')
+        setCode(null)
+      } else {
+        void connect(creds)
       }
     })
-  }, [clearSubs])
+  }, [connect, clearSubs])
 
   return { status, code, lastSyncedAt, error, disconnect }
 }

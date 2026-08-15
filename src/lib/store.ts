@@ -102,8 +102,10 @@ interface RoomStore {
   room: Room | null
   selfId: string
   selfName: string
+  roomPassword: string
   connected: boolean
   setSelf: (id: string, name: string) => void
+  setRoomPassword: (p: string) => void
   setConnected: (b: boolean) => void
   createRoom: (code: string, name: string, host: RoomMember) => void
   joinRoom: (room: Room) => void
@@ -134,8 +136,10 @@ export const useRoomStore = create<RoomStore>()(
       room: null,
       selfId: SELF_ID,
       selfName: 'Player',
+      roomPassword: '',
       connected: false,
       setSelf: (selfId, selfName) => set({ selfId, selfName }),
+      setRoomPassword: (roomPassword) => set({ roomPassword }),
       setConnected: (connected) => set({ connected }),
       createRoom: (code, name, host) =>
         set({
@@ -226,13 +230,34 @@ export const useRoomStore = create<RoomStore>()(
     {
       name: 'stl-room',
       storage: createJSONStorage(() => localStorage),
-      // Only persist stable identity — the live `room`/`connected` state must
-      // NOT be rehydrated (it would surface stale members/snapshot after a
-      // reload, and realtime subscriptions would not be re-established).
-      partialize: (s) => ({ selfId: s.selfId, selfName: s.selfName }),
+      // Persist stable identity + room password + a MINIMAL room stub
+      // (code/name/self member only). On reload the stub lets the app know
+      // which room to rejoin, then room-sync re-fetches members/snapshot and
+      // re-establishes realtime subscriptions — so refreshing no longer
+      // kicks the user out of the room.
+      partialize: (s) => ({
+        selfId: s.selfId,
+        selfName: s.selfName,
+        roomPassword: s.roomPassword,
+        room: persistRoom(s.room, s.selfId),
+      }),
     },
   ),
 )
+
+// Collapse a live room down to a minimal rejoin stub: keep identity
+// (id/code/name/createdAt) + only the self member, drop the volatile
+// members/snapshot/events so a reload never surfaces stale data.
+function persistRoom(room: Room | null, selfId: string): Room | null {
+  if (!room) return null
+  const me = room.members.find((m) => m.id === selfId)
+  return {
+    ...room,
+    members: me ? [me] : [],
+    snapshot: null,
+    events: [],
+  }
+}
 
 function defaultChecklist(): ChecklistItem[] {
   return [
