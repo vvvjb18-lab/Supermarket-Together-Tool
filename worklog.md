@@ -1528,3 +1528,39 @@ Migration:
 - 沒有 breaking API change,只有型別從 number 變 number | null
 - 之前用 scores.x.value.toFixed() 的地方會編譯失敗 → 已修
 - 之前用 scores.x.value > X 比較的地方會編譯失敗 → 已加 != null 判斷
+
+---
+Task ID: 9
+Agent: orchestrator (main)
+Task: /api/sample-save: kill hardcoded Linux path, support env override + sibling project.
+
+Context:
+- User reported "好像還是沒有正確連上 supabase". Two root causes:
+  1. .env.local missing (no env loaded at all) — user-side config, not a code fix
+  2. /api/sample-save/route.ts hardcoded /home/z/my-project/upload/* — fails on Windows + Vercel
+
+Work Log:
+- src/app/api/sample-save/route.ts:
+  - Replaced hardcoded /home/z/my-project/upload/ with a 6-candidate search list:
+    1. process.env.SAMPLE_SAVE_PATH (explicit override)
+    2. ${cwd}/save.json
+    3. ${cwd}/sample-save.json
+    4. ${cwd}/../save-analyzer/_latest/save.json (sibling project, v1.0 schema)
+    5. /home/z/my-project/upload/save.json (legacy Linux dev)
+    6. /home/z/my-project/upload/_latest.json
+  - 404 response now includes the list of tried paths for easier debugging
+  - X-Save-Source header shows the matched path label
+- Verified: F:\游戲副本\save-analyzer\_latest\save.json (156KB Day 32 real save) is reachable
+  via candidate #4 (../save-analyzer/_latest/save.json)
+- npx tsc --noEmit: 0 errors (only pre-existing scripts/fix-layout-props.ts)
+- npx next build: ✓ Compiled successfully
+
+Files changed:
+- src/app/api/sample-save/route.ts (rewritten, 6 search paths + helpful 404)
+- worklog.md (this entry)
+
+Note:
+- Supabase itself is still configured in .env.example only. User needs to either:
+  - cp .env.example .env.local + restart dev (local)
+  - or set env vars in Vercel dashboard + redeploy (Vercel)
+  (See Task ID 9 reply for full diagnosis.)
