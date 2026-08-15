@@ -4,6 +4,7 @@ import { Suspense, lazy, useEffect, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { MobileNavigation, Sidebar } from './sidebar'
 import { TopBar } from './topbar'
+import { AutoSyncStatus } from './auto-sync-status'
 import { useUIStore } from '@/lib/store'
 import { Skeleton } from '@/components/ui/skeleton'
 import { PageErrorBoundary } from './page-error-boundary'
@@ -103,6 +104,7 @@ export function AppShell() {
       <MobileNavigation />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar />
+        <AutoSyncStatus />
         <main ref={mainRef} className="flex-1 overflow-y-auto overscroll-contain scrollbar-thin">
           <PageErrorBoundary viewName={view}>
             <Suspense fallback={<PageFallback />}>

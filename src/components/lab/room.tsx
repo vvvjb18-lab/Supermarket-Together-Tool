@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useRoomStore, useSaveStore, useUIStore } from '@/lib/store'
 import { useRoomSync } from '@/lib/room-sync'
+import { setAutoSyncCreds } from '@/lib/auto-sync'
 import { SectionHeader } from '@/components/shared/primitives'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -173,6 +174,9 @@ function RoomLobby({ sync }: { sync: ReturnType<typeof useRoomSync> }) {
   const [jPass, setJPass] = useState('')
   const [jJoining, setJJoining] = useState(false)
 
+  // Auto-sync: remember this room so the dashboard auto-connects on next load.
+  const [remember, setRemember] = useState(false)
+
   const persistName = (setter: (v: string) => void) => (v: string) => {
     setter(v)
     setSelf(selfId, v)
@@ -185,6 +189,7 @@ function RoomLobby({ sync }: { sync: ReturnType<typeof useRoomSync> }) {
     try {
       const code = await sync.createRoom(cRoom || '我們的超級市場', cName || 'Host', cPass)
       setCCreatedCode(code)
+      if (remember) setAutoSyncCreds({ code, password: cPass, name: cName || 'Host' })
       toast.success(`房間已建立：${code}`)
     } catch (e) {
       toast.error(e instanceof Error ? e.message : '建立房間失敗')
@@ -206,6 +211,7 @@ function RoomLobby({ sync }: { sync: ReturnType<typeof useRoomSync> }) {
     sync.clearError()
     try {
       await sync.joinRoom(jCode, jName || 'Player', jPass)
+      if (remember) setAutoSyncCreds({ code: jCode.toUpperCase(), password: jPass, name: jName || 'Player' })
       toast.success(`已加入房間 ${jCode.toUpperCase()}`)
     } catch (e) {
       toast.error(e instanceof Error ? e.message : '加入房間失敗')
@@ -406,6 +412,18 @@ function RoomLobby({ sync }: { sync: ReturnType<typeof useRoomSync> }) {
           </Card>
         </div>
       )}
+
+      <label className="flex cursor-pointer items-start gap-2 rounded-md border border-dashed px-3 py-2 text-sm">
+        <input
+          type="checkbox"
+          checked={remember}
+          onChange={(e) => setRemember(e.target.checked)}
+          className="mt-0.5 h-4 w-4 shrink-0 accent-primary"
+        />
+        <span className="text-xs leading-relaxed text-muted-foreground">
+          記住此房間密碼（僅存於此裝置），下次開啟網站自動連線並即時同步遊戲存檔。
+        </span>
+      </label>
 
       <Card className="bg-muted/30">
         <CardContent className="space-y-2 py-4 text-sm">
