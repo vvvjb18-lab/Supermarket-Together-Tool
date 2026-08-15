@@ -172,27 +172,72 @@ export function containerIdNameFor(containerID: number, lang: Lang): string {
   return c ? resolveContainerName(c.buildableName, lang) : `Container ${containerID}`
 }
 
-// ---------- customer type labels (generated from necessity weights) ----------
+// ---------- customer type labels (short, unique, generated from necessity weights) ----------
 
-/** Build a human-readable label for a customer type from its necessity weights. */
-export function customerTypeLabel(ct: CustomerType, lang: Lang): string {
-  const weights = ct.necessitiesChances
-  const items: { idx: number; w: number }[] = weights
+const CUSTOMER_NEC_SHORT_ZH: Record<number, string> = {
+  0: '飲料', 1: '日用品', 2: '壽司茶飲', 3: '冷凍', 4: '紙巾', 5: '園藝', 6: '3C', 7: '母嬰', 8: '藥妝', 9: '鹽', 10: '主食',
+}
+const CUSTOMER_NEC_SHORT_EN: Record<number, string> = {
+  0: 'Drinks', 1: 'Hygiene', 2: 'Sushi/Tea', 3: 'Frozen', 4: 'Paper', 5: 'Garden', 6: 'Electronics', 7: 'Baby', 8: 'Pharmacy', 9: 'Salt', 10: 'Staple',
+}
+
+function circledNum(n: number): string {
+  const glyphs = '①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳'
+  return glyphs[n - 1] ?? `(${n})`
+}
+
+/** Base "main·secondary" name from the two strongest necessity weights. */
+function customerBaseName(ct: CustomerType, lang: Lang): string {
+  const short = lang === 'en' ? CUSTOMER_NEC_SHORT_EN : CUSTOMER_NEC_SHORT_ZH
+  const items = ct.necessitiesChances
     .map((w, idx) => ({ idx, w }))
     .filter((x) => x.w > 0)
     .sort((a, b) => b.w - a.w)
   if (items.length === 0) return lang === 'en' ? 'No demand' : '無需求'
-  const parts = items.slice(0, 3).map(({ idx, w }) => {
-    const n = encyclopedia.necessities[idx]
-    const nName = n ? loc(n.name, lang) : `#${idx}`
-    return `${nName}×${w}`
-  })
-  return parts.join(lang === 'en' ? ', ' : '、')
+  const main = short[items[0].idx] ?? `#${items[0].idx}`
+  const second = items[1]
+  const sub = second && second.w >= 0.15 ? short[second.idx] ?? `#${second.idx}` : null
+  return sub ? `${main}·${sub}` : main
+}
+
+// Precompute a unique short name for every customer type once at module load.
+// Many types share identical top necessities (the game data repeats near-identical
+// customer profiles), so equal base names get a circled ordinal suffix.
+const CUSTOMER_TYPE_NAMES: { zh: Map<number, string>; en: Map<number, string> } = (() => {
+  const build = (lang: 'zhHant' | 'en') => {
+    const bases = encyclopedia.customerTypes.map((ct) => customerBaseName(ct, lang))
+    const group = new Map<string, number[]>()
+    bases.forEach((b, i) => {
+      const arr = group.get(b) ?? []
+      arr.push(i)
+      group.set(b, arr)
+    })
+    const names = new Map<number, string>()
+    const seen = new Map<string, number>()
+    encyclopedia.customerTypes.forEach((ct, i) => {
+      const base = bases[i]
+      let name = base
+      if ((group.get(base)?.length ?? 0) > 1) {
+        const k = (seen.get(base) ?? 0) + 1
+        seen.set(base, k)
+        name = `${base} ${circledNum(k)}`
+      }
+      names.set(ct.index, name)
+    })
+    return names
+  }
+  return { zh: build('zhHant'), en: build('en') }
+})()
+
+/** Unique, human-readable short name for a customer type, e.g. "主食·日用品 ①". */
+export function customerTypeLabel(ct: CustomerType, lang: Lang): string {
+  const names = lang === 'en' ? CUSTOMER_TYPE_NAMES.en : CUSTOMER_TYPE_NAMES.zh
+  return names.get(ct.index) ?? (lang === 'en' ? `Customer ${ct.index}` : `顧客 ${ct.index}`)
 }
 
 export function customerTypeIdLabel(idx: number, lang: Lang): string {
   const ct = encyclopedia.customerTypes[idx]
-  if (!ct) return `Customer ${idx}`
+  if (!ct) return lang === 'en' ? `Customer ${idx}` : `顧客 ${idx}`
   return customerTypeLabel(ct, lang)
 }
 
