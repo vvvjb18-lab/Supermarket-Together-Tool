@@ -7,6 +7,7 @@ import { productById } from '@/lib/data-loader'
 import {
   computeRestockPlan,
   computeDemandPerVisit,
+  estimateDailyCustomers,
   computeSmartInventory,
   type RestockStrategy,
   type RestockRecommendation,
@@ -160,12 +161,26 @@ export function Restock() {
     if (!snapshot) return null
     const inv = snapshot.inventoryByProduct ?? {}
     const unlockedSet = new Set(snapshot.unlockedProducts ?? [])
-    const demandOf = (id: number) => computeDemandPerVisit(id, ENC.necessities, ENC.customerTypes).value
+    const demandOptions = {
+      day: snapshot.day ?? 1,
+      difficulty: snapshot.difficulty ?? 1,
+      connections: Math.max(1, snapshot.playerSlots || 1),
+    }
+    const demandOf = (id: number) => computeDemandPerVisit(id, ENC.necessities, ENC.customerTypes, demandOptions).value
 
-    // low stock (absolute units, >0 and <5)
+    const dailyCustomers = Math.max(1, estimateDailyCustomers(
+      snapshot.day ?? 1,
+      Math.max(1, snapshot.playerSlots || 1),
+      snapshot.difficulty ?? 1,
+    ).value)
+    // low stock: positive inventory with less than one estimated day remaining.
     const lowStock = ENC.products
-      .map((p) => ({ p, count: (inv[p.id] as number) ?? 0 }))
-      .filter((x) => x.count > 0 && x.count < 5)
+      .map((p) => {
+        const count = (inv[p.id] as number) ?? 0
+        const demand = demandOf(p.id)
+        return { p, count, stockDays: demand > 1e-9 ? count / demand / dailyCustomers : Infinity }
+      })
+      .filter((x) => x.count > 0 && x.stockDays < 1)
       .sort((a, b) => a.count - b.count)
       .slice(0, 10)
 
@@ -203,7 +218,8 @@ export function Restock() {
     return {
       lowStockCount: ENC.products.filter((p) => {
         const c = (inv[p.id] as number) ?? 0
-        return c > 0 && c < 5
+        const demand = demandOf(p.id)
+        return c > 0 && demand > 1e-9 && c / demand / dailyCustomers < 1
       }).length,
       negativeCount: negativeEntries.length,
       neverStockedCount: ENC.products.filter(
@@ -412,7 +428,7 @@ export function Restock() {
               <DetectionStat
                 id="low"
                 label="低庫存"
-                sub="< 5 件且 > 0"
+                sub="預估不足 1 天且 > 0"
                 count={detection.lowStockCount}
                 accent="warn"
                 expanded={expandedDetection}
@@ -525,7 +541,7 @@ export function Restock() {
               </span>
               <ConfidenceBadge
                 confidence="proxy"
-                formula="visitsRemaining = current / demandPerVisit（demandPerVisit 為 proxy）"
+                formula="daysRemaining = current / demandPerVisit / estimatedDailyCustomers（Day/難度/連線動態）"
               />
             </CardTitle>
           </CardHeader>
@@ -578,16 +594,16 @@ export function Restock() {
             {/* two lists */}
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
               <div>
-                <div className="mb-1 text-xs font-semibold">最急補貨（還剩最少顧客造訪）</div>
+                <div className="mb-1 text-xs font-semibold">最急補貨（預估剩餘天數最少）</div>
                 <div className="max-h-72 space-y-1 overflow-y-auto scrollbar-thin pr-1">
                   {smartInventory.topUrgent.map((it) => (
                     <DataRow
                       key={it.productId}
                       title={productNameFor(it.productId, lang)}
-                      subtitle={`stock ${it.current} · per-visit ${it.demandPerVisit.toFixed(5)}`}
+                      subtitle={`stock ${it.current} · 每客需求 ${it.demandPerVisit.toFixed(5)}`}
                       right={
                         <Badge variant="outline" className="text-[10px] text-rose-600">
-                          ≈{Number.isFinite(it.visitsRemaining) ? Math.max(1, Math.round(it.visitsRemaining)) : '∞'} 造訪
+                          ≈{Number.isFinite(it.daysRemaining) ? it.daysRemaining.toFixed(2) : '∞'} 天
                         </Badge>
                       }
                     />

@@ -35,6 +35,11 @@ export function Dashboard() {
   const snapshot = useSaveStore((s) => s.snapshot)
   const setView = useUIStore((s) => s.setView)
   const setSelectedProduct = useUIStore((s) => s.setSelectedProduct)
+  const demandOptions = useMemo(() => ({
+    day: snapshot?.day ?? 1,
+    difficulty: snapshot?.difficulty ?? 1,
+    connections: Math.max(1, snapshot?.playerSlots || 1),
+  }), [snapshot])
 
   const scores = useMemo(() => computeDashboardScores(snapshot), [snapshot])
 
@@ -45,7 +50,7 @@ export function Dashboard() {
       .filter((p) => (inv[p.id] as number) !== undefined || Object.keys(inv).length === 0)
       .map((p) => {
         // v2.0: use per-visit demand (multiplies by compensatedChances sum)
-        const demand = computeDemandPerVisit(p.id, ENC.necessities, ENC.customerTypes).value
+        const demand = computeDemandPerVisit(p.id, ENC.necessities, ENC.customerTypes, demandOptions).value
         const current = (inv[p.id] as number) ?? 0
         // urgency = demand * (current < 10 ? 5 : 1) + (current === 0 && demand > 0.001 ? 2 : 0)
         // 5 = "critically low" multiplier (<10 units, ~1 day of stock)
@@ -57,7 +62,7 @@ export function Dashboard() {
       .filter((x) => x.urgency > 0)
       .sort((a, b) => b.urgency - a.urgency)
       .slice(0, 10)
-  }, [snapshot, lang])
+  }, [snapshot, lang, demandOptions])
 
   // top 10 wasted shelf slots (low demand, high inventory)
   const wastedSlots = useMemo(() => {
@@ -84,7 +89,7 @@ export function Dashboard() {
       .filter((x) => x.units > 0 && x.demand < 0.001)
       .sort((a, b) => b.units - a.units)
       .slice(0, 10)
-  }, [snapshot, lang])
+  }, [snapshot, lang, demandOptions])
 
   // top 10 high-value unlock opportunities (products you have NOT unlocked yet)
   const opportunities = useMemo(() => {
@@ -96,7 +101,7 @@ export function Dashboard() {
         const vol = computeColliderVolume(p).value
         const density = computeValueDensity(p).value
         // v2.0: use per-visit demand so the score reflects "real sales potential"
-        const demand = computeDemandPerVisit(p.id, ENC.necessities, ENC.customerTypes).value
+        const demand = computeDemandPerVisit(p.id, ENC.necessities, ENC.customerTypes, demandOptions).value
         const market = computeMarketPrice(p).value
         // score weights: 0.4 (box value) + 0.0001 (density) + 0.6 (demand×box)
         // 0.0001 normalizes $/u³ values (typically 1e3-1e5) to similar scale
@@ -105,7 +110,7 @@ export function Dashboard() {
       })
       .sort((a, b) => b.score - a.score)
       .slice(0, 10)
-  }, [snapshot, lang])
+  }, [snapshot, lang, demandOptions])
 
   // top 10 likely missed sales (high demand, not stocked)
   const missedSales = useMemo(() => {
@@ -129,7 +134,7 @@ export function Dashboard() {
       .filter((x) => x.demand > 0.002)
       .sort((a, b) => b.demand * b.box - a.demand * a.box)
       .slice(0, 10)
-  }, [snapshot, lang])
+  }, [snapshot, lang, demandOptions])
 
   // next best actions
   const nextActions = useMemo(() => {

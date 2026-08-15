@@ -3,7 +3,13 @@
 import { useMemo, useState } from 'react'
 import { encyclopedia as ENC } from '@/lib/data-loader'
 import { productById } from '@/lib/data-loader'
-import { simulateCustomers, maxProductsCustomersToBuy, type SimulationConfig } from '@/lib/engine'
+import {
+  estimateDailyCustomers,
+  maxCustomersNPCs,
+  maxProductsCustomersToBuy,
+  simulateCustomers,
+  type SimulationConfig,
+} from '@/lib/engine'
 import { useSaveStore, useUIStore } from '@/lib/store'
 import type { Product, Confidence } from '@/lib/types'
 import {
@@ -80,12 +86,12 @@ const FLOW_STEPS: FlowStep[] = [
   {
     title: '① 生成顧客 (Spawn)',
     confidence: 'confirmed',
-    formula: 'maxCustomersNPCs = 5（店內同時最多 5 位 NPC 顧客）',
+    formula: 'maxCustomersNPCs = clamp(3+day+(connections−1)×4+perk+difficulty×2+weather+layoutScale, 5, dynamicCap)',
     details: [
       'bystanderToCustomerChance = 0.66：每位路人 66% 機率轉成顧客進店',
       'maxDummyNPCs = 10：店外最多同時有 10 位路人（可轉顧客的候選池）',
-      'maxCustomersNPCs = 5：店內同時最多 5 位顧客，滿了才輪下一批',
-      '營業時間 openHour 8.05 → closeHour 22；timeFactor = 50（遊戲內時間流速）',
+      'maxCustomersNPCs 會在開門時按 Day、難度、連線人數、技能、天氣與佈局重算；.ctor 的 5 只是初始值',
+      '營業時間 openHour 8.05 → closeHour 22.50；開門 timeFactor=1，關門後才是 50',
       'skill42「說服技巧」：用滅火器把路人推進店內，33% 機率轉成顧客',
       'skill5「空調」/ skill6「Wifi」：各 +1 extraCustomersPerk（每日額外客流）',
       'skill38「托盤展示」：解鎖 convertBystandersTriggerOBJ（路人轉顧客 perk）',
@@ -213,6 +219,14 @@ export function Simulator() {
   const customerTypes = ENC.customerTypes
   const necessities = ENC.necessities
   const selectedCustomer = customerTypes[selectedCust]
+  const runtimeDay = snapshot?.day ?? 1
+  const runtimeDifficulty = snapshot?.difficulty ?? 1
+  const runtimeConnections = Math.max(1, snapshot?.playerSlots || 1)
+  const runtimeMaxProducts = maxProductsCustomersToBuy(runtimeDay, runtimeConnections, runtimeDifficulty)
+  const runtimeMaxCustomers = maxCustomersNPCs(runtimeDay, runtimeConnections, runtimeDifficulty, {
+    layout: snapshot?.layout === 1 ? 5 : 0,
+  })
+  const runtimeDailyCustomers = estimateDailyCustomers(runtimeDay, runtimeConnections, runtimeDifficulty).value
 
   // ---------- Panel A: customer → top necessities ----------
   const customerTopNec = useMemo(() => {
@@ -332,7 +346,7 @@ export function Simulator() {
       unlockedProductIds,
       difficulty: snapshot?.difficulty ?? 1,
       day: snapshot?.day ?? 1,
-      connections: 1,
+      connections: runtimeConnections,
     }
     setResult(simulateCustomers(cfg))
   }
@@ -812,9 +826,8 @@ export function Simulator() {
                   </Badge>
                 )}
                 <span className="text-[10px] text-muted-foreground">
-                  難度 {snapshot?.difficulty ?? 1} · Day {snapshot?.day ?? 1} → 每顧客{' '}
-                  {Math.min(2 + (snapshot?.difficulty ?? 1), maxProductsCustomersToBuy(snapshot?.day ?? 1, 1, snapshot?.difficulty ?? 1))}~
-                  {maxProductsCustomersToBuy(snapshot?.day ?? 1, 1, snapshot?.difficulty ?? 1) - 1} 件
+                  難度 {runtimeDifficulty} · Day {runtimeDay} · {runtimeConnections} 人 → 每顧客{' '}
+                  {Math.min(2 + runtimeDifficulty, runtimeMaxProducts)}~{runtimeMaxProducts - 1} 件
                 </span>
               </div>
             </CardContent>
@@ -914,18 +927,30 @@ export function Simulator() {
                 <Layers className="h-4 w-4 text-indigo-500" /> 關鍵常數（Game Tuning / IL 提取）
               </CardTitle>
               <p className="text-xs text-muted-foreground">
-                驅動以上 5 步的真實數值，全部來自反組譯常數或 Game Tuning 表。
+                固定值來自 IL / Game Tuning；動態值按目前 Day {runtimeDay}、難度 {runtimeDifficulty}、{runtimeConnections} 人即時計算。
               </p>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-                {FLOW_CONSTANTS.map((c) => (
-                  <div key={c.k} className="rounded-lg border bg-muted/30 px-3 py-2">
-                    <div className="text-[10px] text-muted-foreground">{c.k}</div>
-                    <div className="mt-0.5 font-mono text-[12px] font-semibold text-foreground">{c.v}</div>
-                    <div className="mt-0.5 text-[10px] leading-tight text-muted-foreground">{c.note}</div>
-                  </div>
-                ))}
+                {FLOW_CONSTANTS.map((c) => {
+                  const value = c.k === 'maxCustomersNPCs'
+                    ? String(runtimeMaxCustomers)
+                    : c.k === 'maxProductsCustomersToBuy'
+                      ? String(runtimeMaxProducts)
+                      : c.v
+                  return (
+                    <div key={c.k} className="rounded-lg border bg-muted/30 px-3 py-2">
+                      <div className="text-[10px] text-muted-foreground">{c.k}</div>
+                      <div className="mt-0.5 font-mono text-[12px] font-semibold text-foreground">{value}</div>
+                      <div className="mt-0.5 text-[10px] leading-tight text-muted-foreground">{c.note}</div>
+                    </div>
+                  )
+                })}
+                <div className="rounded-lg border bg-muted/30 px-3 py-2">
+                  <div className="text-[10px] text-muted-foreground">預估每日客流</div>
+                  <div className="mt-0.5 font-mono text-[12px] font-semibold text-foreground">≈{Math.round(runtimeDailyCustomers)}</div>
+                  <div className="mt-0.5 text-[10px] leading-tight text-muted-foreground">依動態生成間隔；未計天氣／perk runtime 加成</div>
+                </div>
               </div>
             </CardContent>
           </Card>

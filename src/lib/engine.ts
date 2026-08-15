@@ -141,6 +141,58 @@ export function computeBoxValueDensity(p: Product): CalcResult<number> {
 }
 
 // ============================================================
+// Runtime customer formulas
+// ============================================================
+
+/** IL-confirmed per-customer item cap, recomputed at store open. */
+export function maxProductsCustomersToBuy(day: number, connections: number, difficulty: number): number {
+  return Math.min(
+    Math.max(5 + Math.floor(day / 2) + connections + difficulty, 5),
+    25 + connections + difficulty,
+  )
+}
+
+/** IL-confirmed simultaneous customer cap, recomputed at store open. */
+export function maxCustomersNPCs(
+  day: number,
+  connections: number,
+  difficulty: number,
+  options: { perk?: number; weather?: number; layout?: number } = {},
+): number {
+  const perk = options.perk ?? 0
+  const weather = options.weather ?? 0
+  const layout = options.layout ?? 0
+  const layoutScale = layout * Math.min(3, Math.max(1, day / 30))
+  const value = 3 + day + (connections - 1) * 4 + perk + difficulty * 2 + weather + layoutScale
+  const cap = 70 + perk + connections + weather + layoutScale
+  return Math.min(Math.max(value, 5), cap)
+}
+
+/** Expected integer item count for Random.Range(2+difficulty, maxProducts). */
+export function expectedItemsPerCustomer(day: number, connections: number, difficulty: number): number {
+  const max = maxProductsCustomersToBuy(day, connections, difficulty)
+  const min = Math.min(2 + difficulty, max)
+  return min >= max ? max : (min + max - 1) / 2
+}
+
+/** IL-confirmed average customer spawn interval and daily customer estimate. */
+export function estimateDailyCustomers(day: number, connections: number, difficulty: number): CalcResult<number> {
+  const activity = day + difficulty + connections
+  const minInterval = Math.max(2, 5 - activity * 0.05)
+  const maxInterval = Math.max(4, 12 - activity * 0.12)
+  const averageInterval = (minInterval + maxInterval) / 2
+  const openSeconds = (22.5 - 8.05) * 60
+  const customers = averageInterval > 0 ? openSeconds / averageInterval : 0
+  return {
+    value: customers,
+    formula: 'dailyCustomers = (closeHour−openHour)×60 / average(Random.Range(5−activity×0.05,12−activity×0.12), lower bounds 2/4)',
+    sources: [`day=${day}`, `connections=${connections}`, `difficulty=${difficulty}`, `averageInterval=${averageInterval.toFixed(3)}s`, `openSeconds=${openSeconds}`],
+    confidence: 'confirmed',
+    note: 'Estimate excludes dynamic capacity, layout, weather and perk bonuses; those require runtime state.',
+  }
+}
+
+// ============================================================
 // Demand proxy
 // ------------------------------------------------------------
 // For every customer type, take necessitiesChances[necessityIndex].
@@ -159,6 +211,10 @@ export function computeBoxValueDensity(p: Product): CalcResult<number> {
 export interface DemandOptions {
   customerWeights?: number[] // per-customer-type spawn weight (default: equal = 1)
   mode?: 'raw' | 'unique' // raw preserves duplicate tokens; unique dedupes
+  /** Runtime values used by the store-open customer item formula. */
+  day?: number
+  difficulty?: number
+  connections?: number
 }
 
 // Memo caches for the two demand functions. The dominant call pattern is the
@@ -237,43 +293,65 @@ export function computeDemandPerVisit(
 ): CalcResult<number> {
   const mode = opts.mode ?? 'raw'
   const cw = opts.customerWeights
+  const day = opts.day ?? 1
+  const difficulty = opts.difficulty ?? 1
+  const connections = opts.connections ?? 1
+  const hasRuntime = opts.day != null || opts.difficulty != null || opts.connections != null
   const cacheKey =
-    cw == null && necessities === ENC.necessities && customerTypes === ENC.customerTypes
+    cw == null && !hasRuntime && necessities === ENC.necessities && customerTypes === ENC.customerTypes
       ? `${productId}|${mode}`
       : null
   if (cacheKey) {
     const hit = _demandPerVisitCache.get(cacheKey)
     if (hit) return hit
   }
+
+  const itemsPerVisit = expectedItemsPerCustomer(day, connections, difficulty)
+  const allProductChance = ENC.products.length > 0 ? 1 / ENC.products.length : 0
   let total = 0
   const hits: string[] = []
   for (let ci = 0; ci < customerTypes.length; ci++) {
     const cust = customerTypes[ci]
     const w = cw ? cw[ci] ?? 0 : 1
     if (w <= 0) continue
-    const itemsPerVisit = cust.compensatedChances.reduce((a, b) => a + b, 0)
-    const chances = cust.necessitiesChances
-    for (let ni = 0; ni < necessities.length; ni++) {
-      const chance = chances[ni] ?? 0
-      if (chance <= 0) continue
-      const nec = necessities[ni]
-      const tokens = mode === 'unique' ? Array.from(new Set(nec.rawTokens)) : nec.rawTokens
-      if (tokens.length === 0) continue
-      const hitsCount = tokens.filter((t) => t === productId).length
-      if (hitsCount === 0) continue
-      const contribution = w * chance * itemsPerVisit * (hitsCount / tokens.length)
-      total += contribution
-      hits.push(`cust[${ci}]*${w} x itemsPerVisit=${itemsPerVisit.toFixed(3)} x nec[${ni}]*${chance} x ${hitsCount}/${tokens.length}`)
+
+    const cc = cust.compensatedChances.map((value) => Math.max(0, value))
+    const ccSum = cc.reduce((a, b) => a + b, 0)
+    if (ccSum <= 0) continue
+
+    let necessityChance = 0
+    const necessityWeightSum = cust.necessitiesChances.reduce((a, b) => a + Math.max(0, b), 0)
+    if (necessityWeightSum > 0) {
+      for (let ni = 0; ni < necessities.length; ni++) {
+        const necessityWeight = Math.max(0, cust.necessitiesChances[ni] ?? 0)
+        if (necessityWeight <= 0) continue
+        const tokens = mode === 'unique' ? Array.from(new Set(necessities[ni].rawTokens)) : necessities[ni].rawTokens
+        if (tokens.length === 0) continue
+        const hitsCount = tokens.filter((id) => id === productId).length
+        necessityChance += (necessityWeight / necessityWeightSum) * (hitsCount / tokens.length)
+      }
     }
+
+    const premiumChance = cust.premiumIndexes.length > 0 && cust.premiumIndexes.includes(productId)
+      ? 1 / cust.premiumIndexes.length
+      : 0
+    const perItemChance =
+      (cc[0] / ccSum) * allProductChance +
+      (cc[1] / ccSum) * necessityChance +
+      (cc[2] / ccSum) * premiumChance
+    const contribution = w * itemsPerVisit * perItemChance
+    total += contribution
+    if (perItemChance > 0) hits.push(`cust[${ci}]×${w} × items=${itemsPerVisit.toFixed(2)} × p=${perItemChance.toFixed(6)}`)
   }
+
   const weightSum = cw ? cw.reduce((a, b) => a + b, 0) : customerTypes.length
   const normalized = weightSum > 0 ? total / weightSum : 0
   const result: CalcResult<number> = {
     value: normalized,
-    formula: 'demandPerVisit = Scust Snec (custWeight x itemsPerVisit x necChance x tokenHits/rawPoolSize) / ScustWeight',
-    sources: hits.slice(0, 6),
+    formula: 'demandPerVisit = expectedItems(day,connections,difficulty) × weighted probability(random/necessity/premium)',
+    sources: [`day=${day}`, `connections=${connections}`, `difficulty=${difficulty}`, `expectedItems=${itemsPerVisit.toFixed(2)}`, ...hits.slice(0, 4)],
     confidence: 'proxy',
-    note: 'itemsPerVisit = ScompensatedChances (avg items per customer visit, ranges 0.75-2.01). Higher accuracy than computeDemandProxy for per-visit metrics.',
+    note: 'Item count uses the IL-confirmed dynamic Random.Range formula. Product selection models all three compensated modes; equal customer spawning remains a proxy.',
   }
   if (cacheKey) _demandPerVisitCache.set(cacheKey, result)
   return result
@@ -859,9 +937,17 @@ export function computeDashboardScores(snapshot: SaveSnapshot | null): Dashboard
   // stock risk: null unless inventory exists
   let stockRisk: number | null = null
   if (hasInv && snapshot) {
-    const entries = Object.entries(snapshot.inventoryByProduct)
-    const low = entries.filter(([, c]) => (c as number) > 0 && (c as number) < 5).length
-    const total = entries.filter(([, c]) => (c as number) > 0).length
+    const day = snapshot.day ?? 1
+    const difficulty = snapshot.difficulty ?? 1
+    const connections = Math.max(1, snapshot.playerSlots || 1)
+    const dailyCustomers = estimateDailyCustomers(day, connections, difficulty).value
+    const low = Object.entries(snapshot.inventoryByProduct).filter(([id, count]) => {
+      const current = Number(count)
+      if (current <= 0) return false
+      const demand = computeDemandPerVisit(Number(id), ENC.necessities, ENC.customerTypes, { day, difficulty, connections }).value
+      return demand > 1e-9 && (current / demand / Math.max(dailyCustomers, 1)) < 1
+    }).length
+    const total = Object.values(snapshot.inventoryByProduct).filter((count) => Number(count) > 0).length
     stockRisk = total > 0 ? (low / total) * 100 : 0
   }
 
@@ -903,7 +989,7 @@ export function computeDashboardScores(snapshot: SaveSnapshot | null): Dashboard
       'proxy',
     ),
     demandCoverage: _wrap(demandCov, 'Σ(nec.coverage × nec.totalWeight) / Σ nec.totalWeight × 100', 'proxy'),
-    stockRisk: _wrap(stockRisk, '(lowStockProducts / totalStockedProducts) × 100, low=<5 units', 'proxy'),
+    stockRisk: _wrap(stockRisk, '(products with <1 estimated day remaining / total stocked products) × 100', 'proxy'),
     shelfEfficiency: _wrap(shelfEff, '100 − (emptySlots/totalSlots)×100', 'proxy'),
     employeeEfficiency: _wrap(empEff, 'min(100, 30 + avgLevel×14)', 'proxy'),
   }
@@ -945,12 +1031,17 @@ export function computeRestockPlan(
   const inv = snapshot?.inventoryByProduct ?? {}
   const unlocked = snapshot?.unlockedProducts ?? products.map((p) => p.id)
   const unlockedSet = new Set(unlocked)
+  const day = snapshot?.day ?? 1
+  const difficulty = snapshot?.difficulty ?? 1
+  const connections = Math.max(1, snapshot?.playerSlots ?? 1)
+  const dailyCustomers = estimateDailyCustomers(day, connections, difficulty).value
+  const demandOptions = { day, difficulty, connections }
 
   // score each product
   const scored = products
     .filter((p) => unlockedSet.has(p.id))
     .map((p) => {
-      const demand = computeDemandProxy(p.id, necessities, custs).value
+      const demand = computeDemandPerVisit(p.id, necessities, custs, demandOptions).value
       const box = computeBoxValue(p).value
       const vol = computeColliderVolume(p).value
       const density = computeValueDensity(p).value
@@ -990,10 +1081,11 @@ export function computeRestockPlan(
           reason = current < 10 ? `庫存偏低（現有 ${current} 件）` : `綜合高分 · 現有 ${current} 件`
           break
       }
-      // urgency boost if low stock & has demand
-      if (current < 5 && demand > 0.001) {
+      // urgency boost when this stock covers less than one estimated day.
+      const stockDays = demand > 1e-9 && dailyCustomers > 0 ? current / demand / dailyCustomers : Infinity
+      if (stockDays < 1 && demand > 0.001) {
         score *= 1.5
-        reason += ' · 缺貨急補'
+        reason += ' · 不足一天庫存'
       }
       return { p, demand, box, vol, current, score, reason }
     })
@@ -1008,7 +1100,9 @@ export function computeRestockPlan(
     const boxCost = s.box // buying one box costs ≈ boxValue (wholesale ≈ base × units)
     if (boxCost <= 0) continue
     const maxBoxesByBudget = Math.floor(remaining / boxCost)
-    const desiredBoxes = Math.max(1, Math.min(maxBoxesByBudget, Math.ceil((50 - s.current) / s.p.maxItemsPerBox)))
+    const targetUnits = Math.max(s.p.maxItemsPerBox, Math.ceil(s.demand * dailyCustomers))
+    const unitsNeeded = Math.max(0, targetUnits - s.current)
+    const desiredBoxes = Math.min(maxBoxesByBudget, Math.ceil(unitsNeeded / s.p.maxItemsPerBox))
     if (desiredBoxes <= 0) continue
     const boxes = Math.max(1, Math.min(desiredBoxes, maxBoxesByBudget))
     if (boxes <= 0) continue
@@ -1029,10 +1123,10 @@ export function computeRestockPlan(
   }
   return {
     value: recs,
-    formula: `greedy knapsack: score by strategy=${strategy}, take boxes while budget≥0; boxCost≈boxValue`,
-    sources: [`budget=${budget}`, `candidates=${scored.length}`, `strategy=${strategy}`],
+    formula: `greedy knapsack: targetUnits=max(boxSize,demandPerVisit×estimatedDailyCustomers), score by strategy=${strategy}, take boxes while budget≥0`,
+    sources: [`budget=${budget}`, `candidates=${scored.length}`, `strategy=${strategy}`, `day=${day}`, `difficulty=${difficulty}`, `connections=${connections}`, `dailyCustomers≈${dailyCustomers.toFixed(1)}`],
     confidence: 'proxy',
-    note: 'boxCost assumes wholesale ≈ base×units; real wholesale price unverified.',
+    note: 'Target stock now follows dynamic day/difficulty/connections demand instead of a fixed 50 units. Box cost still assumes wholesale ≈ base×units.',
   }
 }
 
@@ -1057,6 +1151,8 @@ export interface SmartInventoryItem {
   marketValue: number
   /** current / demandPerVisit. Infinity when demandPerVisit ≈ 0. */
   visitsRemaining: number
+  /** visitsRemaining / estimated daily customers. */
+  daysRemaining: number
   status: StockStatus
 }
 
@@ -1074,6 +1170,11 @@ export interface SmartInventory {
 export function computeSmartInventory(snapshot: SaveSnapshot | null): SmartInventory | null {
   if (!snapshot || Object.keys(snapshot.inventoryByProduct).length === 0) return null
   const inv = snapshot.inventoryByProduct
+  const day = snapshot.day ?? 1
+  const difficulty = snapshot.difficulty ?? 1
+  const connections = Math.max(1, snapshot.playerSlots || 1)
+  const dailyCustomers = estimateDailyCustomers(day, connections, difficulty).value
+  const demandOptions = { day, difficulty, connections }
 
   const items: SmartInventoryItem[] = []
   let totalUnits = 0
@@ -1083,15 +1184,16 @@ export function computeSmartInventory(snapshot: SaveSnapshot | null): SmartInven
   for (const p of ENC.products) {
     const current = (inv[p.id] as number) ?? 0
     if (current <= 0) continue
-    const demandPerVisit = computeDemandPerVisit(p.id).value
+    const demandPerVisit = computeDemandPerVisit(p.id, ENC.necessities, ENC.customerTypes, demandOptions).value
     const market = computeMarketPrice(p).value
     const visitsRemaining = demandPerVisit > 1e-9 ? current / demandPerVisit : Infinity
+    const daysRemaining = dailyCustomers > 0 ? visitsRemaining / dailyCustomers : Infinity
 
     let status: StockStatus
     if (demandPerVisit <= 1e-9) status = 'dead'
-    else if (current < 5) status = 'critical'
-    else if (visitsRemaining < 12) status = 'low'
-    else if (current >= 100) status = 'overstocked'
+    else if (daysRemaining < 0.25) status = 'critical'
+    else if (daysRemaining < 1) status = 'low'
+    else if (daysRemaining >= 3) status = 'overstocked'
     else status = 'healthy'
 
     totalUnits += current
@@ -1103,6 +1205,7 @@ export function computeSmartInventory(snapshot: SaveSnapshot | null): SmartInven
       demandPerVisit,
       marketValue: current * market,
       visitsRemaining,
+      daysRemaining,
       status,
     })
   }
@@ -1426,14 +1529,6 @@ export interface SimulationResult {
   demandCoverage: number
   topMissing: { productId: number; name: string; missed: number }[]
   topLowDemand: { productId: number; name: string; demand: number }[]
-}
-
-/** IL-confirmed per-customer item cap, recomputed at store open (AuxiliarSupermarketOpen). */
-export function maxProductsCustomersToBuy(day: number, connections: number, difficulty: number): number {
-  return Math.min(
-    Math.max(5 + Math.floor(day / 2) + connections + difficulty, 5),
-    25 + connections + difficulty,
-  )
 }
 
 export function simulateCustomers(cfg: SimulationConfig): CalcResult<SimulationResult> {
