@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { encyclopedia as ENC } from '@/lib/data-loader'
 import { productById } from '@/lib/data-loader'
-import { simulateCustomers, type SimulationConfig } from '@/lib/engine'
+import { simulateCustomers, maxProductsCustomersToBuy, type SimulationConfig } from '@/lib/engine'
 import { useSaveStore, useUIStore } from '@/lib/store'
 import type { Product, Confidence } from '@/lib/types'
 import {
@@ -100,9 +100,9 @@ const FLOW_STEPS: FlowStep[] = [
   {
     title: '② 生成購物清單 (GenerateCompensatedList)',
     confidence: 'confirmed',
-    formula: '件數 k = Random.Range(2 + difficulty, maxProductsCustomersToBuy=5)',
+    formula: '件數 k = Random.Range(2 + difficulty, maxProductsCustomersToBuy) ｜ maxProductsCustomersToBuy = clamp(5 + day/2 + conn + difficulty, 5, 25 + conn + difficulty)',
     details: [
-      'Unity int Random.Range 上界 exclusive：difficulty=1 → k ∈ {3,4}；difficulty≥3 → min>max 被 clamp 成固定 5 件（難度越高買越多）',
+      'Unity int Random.Range 上界 exclusive：difficulty=1 且 day=1 → maxProducts=7 → k ∈ {3,4,5,6}；開門時會重算上限（不是 .ctor 固定 5），難度與天數越高買越多（Day35 難度5 → 每客 7~27 件）',
       '每「件」獨立按 compensatedChances = [random, necessity, premium] 加權抽來源模式（不是每顧客固定一個模式）',
       'compensatedChances 結構：random 權重幾乎恆為 1；necessity 0.1~1；premium 0~0.25（只有部分顧客會抽 premium）',
       'mode 0 = random：從「全部已解鎖商品」均勻抽一件',
@@ -168,18 +168,18 @@ const FLOW_STEPS: FlowStep[] = [
 ]
 
 const FLOW_CONSTANTS: { k: string; v: string; note: string }[] = [
-  { k: 'maxCustomersNPCs', v: '5', note: '店內同時最多 NPC 顧客' },
+  { k: 'maxCustomersNPCs', v: 'clamp(3+day+…)', note: '開門重算：店內同時 NPC 上限（Day35 單人=48）' },
   { k: 'maxDummyNPCs', v: '10', note: '店外路人候選池' },
-  { k: 'maxProductsCustomersToBuy', v: '5', note: '每顧客件數上界' },
+  { k: 'maxProductsCustomersToBuy', v: 'clamp(5+day/2+conn+難度, 5, 25+conn+難度)', note: '開門重算：每顧客件數上界（Day35=28）' },
   { k: 'bystanderToCustomerChance', v: '0.66', note: '路人轉顧客機率' },
   { k: '投訴門檻', v: 'Random(2.01, 2.5)', note: '市價 × 此值' },
   { k: '特價折扣 clamp', v: '[5, 45]%', note: '衝動購買折扣範圍' },
   { k: '衝動加成', v: '+0.01×(discount/5)', note: '整數除法' },
   { k: 'tierInflation', v: '1.13~1.59', note: '17 tier 有加價，其餘 1.0' },
   { k: 'premium 商品', v: '173/175/186/287/296/297/299', note: '7 個 premium ID' },
-  { k: '營業時間', v: '8.05 ~ 22.00', note: 'openHour / closeHour' },
+  { k: '營業時間', v: '8.05 ~ 22.50', note: 'openHour / closeHour' },
   { k: 'counterLimit', v: '150', note: '結帳計數上限' },
-  { k: 'timeFactor', v: '50', note: '遊戲內時間流速' },
+  { k: 'timeFactor', v: '開門 1 / 關門 50', note: '1 遊戲小時 = 60 真實秒（開門時）' },
 ]
 
 // ============================================================
@@ -331,6 +331,8 @@ export function Simulator() {
       stockedProductIds,
       unlockedProductIds,
       difficulty: snapshot?.difficulty ?? 1,
+      day: snapshot?.day ?? 1,
+      connections: 1,
     }
     setResult(simulateCustomers(cfg))
   }
@@ -810,7 +812,9 @@ export function Simulator() {
                   </Badge>
                 )}
                 <span className="text-[10px] text-muted-foreground">
-                  難度 {snapshot?.difficulty ?? 1}（存檔 Difficulty，無存檔預設 1）→ 每顧客 {Math.min(2 + (snapshot?.difficulty ?? 1), 5)}~5 件
+                  難度 {snapshot?.difficulty ?? 1} · Day {snapshot?.day ?? 1} → 每顧客{' '}
+                  {Math.min(2 + (snapshot?.difficulty ?? 1), maxProductsCustomersToBuy(snapshot?.day ?? 1, 1, snapshot?.difficulty ?? 1))}~
+                  {maxProductsCustomersToBuy(snapshot?.day ?? 1, 1, snapshot?.difficulty ?? 1) - 1} 件
                 </span>
               </div>
             </CardContent>
@@ -933,8 +937,9 @@ export function Simulator() {
               </CardTitle>
             </CardHeader>
             <CardContent className="text-sm leading-relaxed text-muted-foreground">
-              每位顧客先由 <span className="font-mono text-foreground">66% 路人轉換</span> 進店（店內同時最多 5 人），進店後先抽
-              <span className="font-mono text-foreground">「要買幾件」= Random.Range(2+difficulty, 5)</span>，然後「每一件」獨立 roll 一次
+              每位顧客先由 <span className="font-mono text-foreground">66% 路人轉換</span> 進店，進店後先抽
+              <span className="font-mono text-foreground">「要買幾件」= Random.Range(2+difficulty, maxProductsCustomersToBuy)</span>（開門時重算上限
+              <span className="font-mono text-foreground">clamp(5+day/2+conn+difficulty, 5, 25+conn+difficulty)</span>，不是固定 5），然後「每一件」獨立 roll 一次
               <span className="font-mono text-foreground">compensatedChances[3]</span> 決定來源：隨機（全解鎖商品均勻抽）／按 11 品類需求加權／指定 premium 高價品。
               接著去貨架拿貨，<span className="text-foreground">缺貨就漏單</span>；結帳時若玩家定價超過
               <span className="font-mono text-foreground">市價 × Random(2.01, 2.5)</span> 就投訴不買；最後有

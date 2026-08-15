@@ -151,8 +151,9 @@ export function computeBoxValueDensity(p: Product): CalcResult<number> {
 // selection method are not fully extracted. We assume:
 //  - equal customer-type spawn (configurable in simulator)
 //  - uniform pick within a necessity's raw token pool
-//  - one purchase per customer (maxProductsCustomersToBuy=5 in tuning, but
-//    for a single-necessity proxy we count one hit per chosen necessity)
+//  - one hit per chosen necessity per customer visit (proxy: the real
+//    per-customer item count k = Random.Range(2+difficulty, maxProductsCustomersToBuy)
+//    is applied later in simulateCustomers, not here)
 // ============================================================
 
 export interface DemandOptions {
@@ -1410,6 +1411,10 @@ export interface SimulationConfig {
   unlockedProductIds?: Set<number>
   /** Game difficulty 1-5; raises the minimum items per customer visit. */
   difficulty?: number
+  /** Current game day; raises maxProductsCustomersToBuy (IL: 5 + day/2 + conn + difficulty). */
+  day?: number
+  /** Connected players; raises the per-customer item cap (default 1 = solo). */
+  connections?: number
 }
 
 export interface SimulationResult {
@@ -1421,6 +1426,14 @@ export interface SimulationResult {
   demandCoverage: number
   topMissing: { productId: number; name: string; missed: number }[]
   topLowDemand: { productId: number; name: string; demand: number }[]
+}
+
+/** IL-confirmed per-customer item cap, recomputed at store open (AuxiliarSupermarketOpen). */
+export function maxProductsCustomersToBuy(day: number, connections: number, difficulty: number): number {
+  return Math.min(
+    Math.max(5 + Math.floor(day / 2) + connections + difficulty, 5),
+    25 + connections + difficulty,
+  )
 }
 
 export function simulateCustomers(cfg: SimulationConfig): CalcResult<SimulationResult> {
@@ -1438,12 +1451,14 @@ export function simulateCustomers(cfg: SimulationConfig): CalcResult<SimulationR
   let totalHits = 0
   let missedHits = 0
 
-  // v2.1: real purchase count from GenerateCompensatedList IL:
-  //   k = Random.Range(2 + difficulty, maxProductsCustomersToBuy)
-  // maxProductsCustomersToBuy is a Game Tuning constant = 5.
-  const MAX_PRODUCTS_PER_CUSTOMER = 5
+  // v2.3: real per-customer item cap from AuxiliarSupermarketOpen IL (NOT the .ctor constant 5):
+  //   maxProductsCustomersToBuy = clamp(5 + day/2 + conn + difficulty, 5, 25 + conn + difficulty)
+  //   k = Random.Range(2 + difficulty, maxProductsCustomersToBuy)  // int, upper bound exclusive
   const difficulty = cfg.difficulty ?? 1
-  const minItems = Math.min(2 + difficulty, MAX_PRODUCTS_PER_CUSTOMER)
+  const day = cfg.day ?? 1
+  const connections = cfg.connections ?? 1
+  const maxProducts = maxProductsCustomersToBuy(day, connections, difficulty)
+  const minItems = Math.min(2 + difficulty, maxProducts)
 
   for (let i = 0; i < cfg.n; i++) {
     // pick customer type by weight
@@ -1456,9 +1471,9 @@ export function simulateCustomers(cfg: SimulationConfig): CalcResult<SimulationR
     if (ci >= custs.length) ci = custs.length - 1
     const cust = custs[ci]
     const k =
-      minItems >= MAX_PRODUCTS_PER_CUSTOMER
-        ? MAX_PRODUCTS_PER_CUSTOMER
-        : minItems + Math.floor(Math.random() * (MAX_PRODUCTS_PER_CUSTOMER - minItems))
+      minItems >= maxProducts
+        ? maxProducts
+        : minItems + Math.floor(Math.random() * (maxProducts - minItems))
     // per-item mode weights: compensatedChances = [random, necessity, premium].
     const cc = cust.compensatedChances
     const ccSum = cc.reduce((a, b) => a + b, 0)
@@ -1546,10 +1561,10 @@ export function simulateCustomers(cfg: SimulationConfig): CalcResult<SimulationR
 
   return {
     value: { productHits, missedSales, totalCustomers: cfg.n, totalHits, missedHits, demandCoverage, topMissing, topLowDemand },
-    formula: `Monte Carlo: 抽顧客類型→件數 k=Random.Range(2+difficulty,5)→每件獨立按 compensatedChances[3] 抽模式(0=random/1=necessity/2=premium)→池內均勻抽商品`,
-    sources: [`n=${cfg.n}`, `mode=${cfg.mode}`, `difficulty=${difficulty}`, `customerWeights=${cw.length}`],
+    formula: `Monte Carlo: 抽顧客類型→件數 k=Random.Range(2+difficulty,maxProductsCustomersToBuy)→每件獨立按 compensatedChances[3] 抽模式(0=random/1=necessity/2=premium)→池內均勻抽商品`,
+    sources: [`n=${cfg.n}`, `mode=${cfg.mode}`, `difficulty=${difficulty}`, `day=${day}`, `connections=${connections}`, `customerWeights=${cw.length}`],
     confidence: 'proxy',
-    note: `v2.1 真實演算法: 件數 k=Random.Range(2+difficulty,5)（difficulty=${difficulty}→每顧客 ${minItems}~${MAX_PRODUCTS_PER_CUSTOMER - 1} 件），每件獨立 roll compensatedChances[3] 抽模式。random 模式從全部已解鎖商品均勻抽、necessity 從品類池抽、premium 從 premiumIndexes 抽。`,
+    note: `v2.3 真實演算法: maxProductsCustomersToBuy=clamp(5+day/2+conn+difficulty,5,25+conn+difficulty)（day=${day},conn=${connections},difficulty=${difficulty}→${maxProducts}），件數 k=Random.Range(2+difficulty,${maxProducts})（每顧客 ${minItems}~${Math.max(minItems, maxProducts - 1)} 件）。每件獨立 roll compensatedChances[3] 抽模式：random 從全部已解鎖商品均勻抽、necessity 從品類池抽、premium 從 premiumIndexes 抽。`,
   }
 }
 
