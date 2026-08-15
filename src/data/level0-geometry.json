@@ -1,0 +1,2772 @@
+{
+  "_meta": {
+    "source": "upload/level0",
+    "unityVersion": "2023.2.22f1",
+    "extractedWith": "UnityPy + scripts/extract-level0.py",
+    "objectCounts": {
+      "total": 5734,
+      "gameObjects": 1185,
+      "transforms": 489,
+      "rectTransforms": 696
+    },
+    "skipped": {
+      "ui": 0,
+      "unclassified": 189,
+      "noTransform": 696
+    },
+    "byCategory": {
+      "outerWall": 37,
+      "vent": 3,
+      "wallTop": 3,
+      "pillar": 42,
+      "beam": 143,
+      "floor": 30,
+      "ceiling": 30,
+      "light": 12
+    },
+    "byLayer": {
+      "ground": 112,
+      "ceiling": 188
+    },
+    "topBaseNames": {
+      "Beam": 101,
+      "UModeler_Floor": 25,
+      "UModeler_Ceiling": 25,
+      "PillarTop_BeamCross": 24,
+      "Pillar_BeamCross": 24,
+      "Umodeler_OuterLargeWall": 19,
+      "UMO_SmallOuterWall": 17,
+      "Pillar_Tee": 16,
+      "PillarTop_BeamTee": 16,
+      "1_Shelf": 15,
+      "Shelf_shelf03": 15,
+      "Shelf_shelf01": 15,
+      "Shelf_shelf02": 15,
+      "3_Rice": 9,
+      "171_Teochew": 8,
+      "101_CapsulesPremium": 7,
+      "Neon_dwd6wi": 6,
+      "Point Light": 6,
+      "Portico": 5,
+      "58_ColaBottle": 5,
+      "UModeler_Ceiling2": 5,
+      "UModeler_Floor2": 5,
+      "146_SushiBig": 5,
+      "126_CakePremium": 4,
+      "169_RoseWine": 4,
+      "164_BeerPackFess": 4,
+      "175_WhiskyPremiumJackSublett": 4,
+      "80_ToiletPaperBidet": 4,
+      "Vent": 3,
+      "165_BeerBarrelDEGL": 3
+    },
+    "boundingBox": {
+      "minX": -15.0,
+      "maxX": 15.0,
+      "minZ": -3.0,
+      "maxZ": 48.0
+    }
+  },
+  "objects": [
+    {
+      "name": "UMO_SmallOuterWall (16)",
+      "baseName": "UMO_SmallOuterWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": 12.0,
+      "y": 0.0,
+      "z": 39.0
+    },
+    {
+      "name": "Umodeler_OuterLargeWall (4)",
+      "baseName": "Umodeler_OuterLargeWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": 9.0,
+      "y": 0.0,
+      "z": 16.5
+    },
+    {
+      "name": "Umodeler_OuterLargeWall (7)",
+      "baseName": "Umodeler_OuterLargeWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": 9.0,
+      "y": 0.0,
+      "z": 43.5
+    },
+    {
+      "name": "Vent (2)",
+      "baseName": "Vent",
+      "category": "vent",
+      "layer": "ceiling",
+      "x": -6.0,
+      "y": 4.5,
+      "z": 7.658
+    },
+    {
+      "name": "Vent (1)",
+      "baseName": "Vent",
+      "category": "vent",
+      "layer": "ceiling",
+      "x": 6.0,
+      "y": 4.5,
+      "z": 7.658
+    },
+    {
+      "name": "UMO_SmallOuterWall (15)",
+      "baseName": "UMO_SmallOuterWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": 12.0,
+      "y": 0.0,
+      "z": 30.0
+    },
+    {
+      "name": "UModeler_CrossWall",
+      "baseName": "UModeler_CrossWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": -14.5,
+      "y": 0.0,
+      "z": 11.85
+    },
+    {
+      "name": "UMO_SmallOuterWall (10)",
+      "baseName": "UMO_SmallOuterWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": 12.0,
+      "y": 0.0,
+      "z": 12.0
+    },
+    {
+      "name": "Umodeler_OuterLargeWall (5)",
+      "baseName": "Umodeler_OuterLargeWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": 9.0,
+      "y": 0.0,
+      "z": 25.5
+    },
+    {
+      "name": "UMO_SmallOuterWall (13)",
+      "baseName": "UMO_SmallOuterWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": 12.0,
+      "y": 0.0,
+      "z": 3.0
+    },
+    {
+      "name": "UMO_SmallOuterWall (14)",
+      "baseName": "UMO_SmallOuterWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": 12.0,
+      "y": 0.0,
+      "z": 21.0
+    },
+    {
+      "name": "Umodeler_OuterLargeWall (6)",
+      "baseName": "Umodeler_OuterLargeWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": 9.0,
+      "y": 0.0,
+      "z": 34.5
+    },
+    {
+      "name": "UModeler_WallTop (1)",
+      "baseName": "UModeler_WallTop",
+      "category": "wallTop",
+      "layer": "ground",
+      "x": -6.0,
+      "y": 2.25,
+      "z": -3.0
+    },
+    {
+      "name": "UModeler_WallTop (2)",
+      "baseName": "UModeler_WallTop",
+      "category": "wallTop",
+      "layer": "ground",
+      "x": 6.0,
+      "y": 2.25,
+      "z": -3.0
+    },
+    {
+      "name": "Pillar_Tee (4)",
+      "baseName": "Pillar_Tee",
+      "category": "pillar",
+      "layer": "ground",
+      "x": -15.0,
+      "y": 0.0,
+      "z": 3.0
+    },
+    {
+      "name": "Pillar_Tee (1)",
+      "baseName": "Pillar_Tee",
+      "category": "pillar",
+      "layer": "ground",
+      "x": -3.0,
+      "y": 0.0,
+      "z": -3.0
+    },
+    {
+      "name": "Pillar_Tee (2)",
+      "baseName": "Pillar_Tee",
+      "category": "pillar",
+      "layer": "ground",
+      "x": 3.0,
+      "y": 0.0,
+      "z": -3.0
+    },
+    {
+      "name": "Pillar_Tee (7)",
+      "baseName": "Pillar_Tee",
+      "category": "pillar",
+      "layer": "ground",
+      "x": 15.0,
+      "y": 0.0,
+      "z": 30.0
+    },
+    {
+      "name": "Pillar_Tee (3)",
+      "baseName": "Pillar_Tee",
+      "category": "pillar",
+      "layer": "ground",
+      "x": 9.0,
+      "y": 0.0,
+      "z": -3.0
+    },
+    {
+      "name": "Pillar_Tee (5)",
+      "baseName": "Pillar_Tee",
+      "category": "pillar",
+      "layer": "ground",
+      "x": -15.0,
+      "y": 0.0,
+      "z": 30.0
+    },
+    {
+      "name": "Pillar_Tee (7)",
+      "baseName": "Pillar_Tee",
+      "category": "pillar",
+      "layer": "ground",
+      "x": 15.0,
+      "y": 0.0,
+      "z": 21.0
+    },
+    {
+      "name": "Pillar_Tee (5)",
+      "baseName": "Pillar_Tee",
+      "category": "pillar",
+      "layer": "ground",
+      "x": -15.0,
+      "y": 0.0,
+      "z": 39.0
+    },
+    {
+      "name": "Pillar_Tee (7)",
+      "baseName": "Pillar_Tee",
+      "category": "pillar",
+      "layer": "ground",
+      "x": 15.0,
+      "y": 0.0,
+      "z": 39.0
+    },
+    {
+      "name": "Pillar_Tee (7)",
+      "baseName": "Pillar_Tee",
+      "category": "pillar",
+      "layer": "ground",
+      "x": 15.0,
+      "y": 0.0,
+      "z": 12.0
+    },
+    {
+      "name": "Pillar_Tee (6)",
+      "baseName": "Pillar_Tee",
+      "category": "pillar",
+      "layer": "ground",
+      "x": 15.0,
+      "y": 0.0,
+      "z": 3.0
+    },
+    {
+      "name": "Pillar_Tee (5)",
+      "baseName": "Pillar_Tee",
+      "category": "pillar",
+      "layer": "ground",
+      "x": -15.0,
+      "y": 0.0,
+      "z": 21.0
+    },
+    {
+      "name": "Pillar_Tee (5)",
+      "baseName": "Pillar_Tee",
+      "category": "pillar",
+      "layer": "ground",
+      "x": -15.0,
+      "y": 0.0,
+      "z": 12.0
+    },
+    {
+      "name": "Pillar_Tee (5)",
+      "baseName": "Pillar_Tee",
+      "category": "pillar",
+      "layer": "ground",
+      "x": -15.0,
+      "y": 0.0,
+      "z": 48.0
+    },
+    {
+      "name": "Pillar_Tee (7)",
+      "baseName": "Pillar_Tee",
+      "category": "pillar",
+      "layer": "ground",
+      "x": 15.0,
+      "y": 0.0,
+      "z": 48.0
+    },
+    {
+      "name": "Umodeler_OuterLargeWall",
+      "baseName": "Umodeler_OuterLargeWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": -15.0,
+      "y": 0.0,
+      "z": 7.5
+    },
+    {
+      "name": "Beam",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -9.0,
+      "y": 3.0,
+      "z": 9.0
+    },
+    {
+      "name": "PillarTop_BeamLeft",
+      "baseName": "PillarTop_BeamLeft",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -15.0,
+      "y": 3.0,
+      "z": -3.0
+    },
+    {
+      "name": "UModeler_Floor",
+      "baseName": "UModeler_Floor",
+      "category": "floor",
+      "layer": "ground",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 7.5
+    },
+    {
+      "name": "PillarTop_BeamTee",
+      "baseName": "PillarTop_BeamTee",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 15.0,
+      "y": 3.0,
+      "z": 21.0
+    },
+    {
+      "name": "PillarTop_BeamTee",
+      "baseName": "PillarTop_BeamTee",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -15.0,
+      "y": 3.0,
+      "z": 30.0
+    },
+    {
+      "name": "PillarTop_BeamTee",
+      "baseName": "PillarTop_BeamTee",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 9.0,
+      "y": 3.0,
+      "z": -3.0
+    },
+    {
+      "name": "PillarTop_BeamTee",
+      "baseName": "PillarTop_BeamTee",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 15.0,
+      "y": 3.0,
+      "z": 39.0
+    },
+    {
+      "name": "PillarTop_BeamTee",
+      "baseName": "PillarTop_BeamTee",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -15.0,
+      "y": 3.0,
+      "z": 39.0
+    },
+    {
+      "name": "PillarTop_BeamTee",
+      "baseName": "PillarTop_BeamTee",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -3.0,
+      "y": 3.0,
+      "z": -3.0
+    },
+    {
+      "name": "PillarTop_BeamTee",
+      "baseName": "PillarTop_BeamTee",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 3.0,
+      "y": 3.0,
+      "z": -3.0
+    },
+    {
+      "name": "PillarTop_BeamTee",
+      "baseName": "PillarTop_BeamTee",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -15.0,
+      "y": 3.0,
+      "z": 3.0
+    },
+    {
+      "name": "PillarTop_BeamTee",
+      "baseName": "PillarTop_BeamTee",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 15.0,
+      "y": 3.0,
+      "z": 30.0
+    },
+    {
+      "name": "PillarTop_BeamTee",
+      "baseName": "PillarTop_BeamTee",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 15.0,
+      "y": 3.0,
+      "z": 48.0
+    },
+    {
+      "name": "PillarTop_BeamTee",
+      "baseName": "PillarTop_BeamTee",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -15.0,
+      "y": 3.0,
+      "z": 48.0
+    },
+    {
+      "name": "PillarTop_BeamTee",
+      "baseName": "PillarTop_BeamTee",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 15.0,
+      "y": 3.0,
+      "z": 3.0
+    },
+    {
+      "name": "PillarTop_BeamTee",
+      "baseName": "PillarTop_BeamTee",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -15.0,
+      "y": 3.0,
+      "z": 21.0
+    },
+    {
+      "name": "PillarTop_BeamTee",
+      "baseName": "PillarTop_BeamTee",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 15.0,
+      "y": 3.0,
+      "z": 12.0
+    },
+    {
+      "name": "PillarTop_BeamTee",
+      "baseName": "PillarTop_BeamTee",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -15.0,
+      "y": 3.0,
+      "z": 12.0
+    },
+    {
+      "name": "UMO_SmallOuterWall (11)",
+      "baseName": "UMO_SmallOuterWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": 9.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "name": "PillarTop_BeamCross",
+      "baseName": "PillarTop_BeamCross",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -9.0,
+      "y": 3.0,
+      "z": 3.0
+    },
+    {
+      "name": "UModeler_Ceiling",
+      "baseName": "UModeler_Ceiling",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": 0.0,
+      "y": 0.25,
+      "z": 7.5
+    },
+    {
+      "name": "Pillar_BeamCross (4)",
+      "baseName": "Pillar_BeamCross",
+      "category": "pillar",
+      "layer": "ground",
+      "x": -3.0,
+      "y": 0.0,
+      "z": 30.0
+    },
+    {
+      "name": "Pillar_BeamCross (4)",
+      "baseName": "Pillar_BeamCross",
+      "category": "pillar",
+      "layer": "ground",
+      "x": -3.0,
+      "y": 0.0,
+      "z": 39.0
+    },
+    {
+      "name": "Pillar_BeamCross (5)",
+      "baseName": "Pillar_BeamCross",
+      "category": "pillar",
+      "layer": "ground",
+      "x": 9.0,
+      "y": 0.0,
+      "z": 30.0
+    },
+    {
+      "name": "Pillar_BeamCross (7)",
+      "baseName": "Pillar_BeamCross",
+      "category": "pillar",
+      "layer": "ground",
+      "x": 3.0,
+      "y": 0.0,
+      "z": 12.0
+    },
+    {
+      "name": "Pillar_BeamCross (1)",
+      "baseName": "Pillar_BeamCross",
+      "category": "pillar",
+      "layer": "ground",
+      "x": -3.0,
+      "y": 0.0,
+      "z": 3.0
+    },
+    {
+      "name": "Pillar_BeamCross (2)",
+      "baseName": "Pillar_BeamCross",
+      "category": "pillar",
+      "layer": "ground",
+      "x": 3.0,
+      "y": 0.0,
+      "z": 3.0
+    },
+    {
+      "name": "Pillar_BeamCross (5)",
+      "baseName": "Pillar_BeamCross",
+      "category": "pillar",
+      "layer": "ground",
+      "x": 9.0,
+      "y": 0.0,
+      "z": 21.0
+    },
+    {
+      "name": "Pillar_BeamCross (6)",
+      "baseName": "Pillar_BeamCross",
+      "category": "pillar",
+      "layer": "ground",
+      "x": -9.0,
+      "y": 0.0,
+      "z": 21.0
+    },
+    {
+      "name": "Pillar_BeamCross (4)",
+      "baseName": "Pillar_BeamCross",
+      "category": "pillar",
+      "layer": "ground",
+      "x": -3.0,
+      "y": 0.0,
+      "z": 12.0
+    },
+    {
+      "name": "Pillar_BeamCross (5)",
+      "baseName": "Pillar_BeamCross",
+      "category": "pillar",
+      "layer": "ground",
+      "x": 9.0,
+      "y": 0.0,
+      "z": 12.0
+    },
+    {
+      "name": "Pillar_BeamCross (7)",
+      "baseName": "Pillar_BeamCross",
+      "category": "pillar",
+      "layer": "ground",
+      "x": 3.0,
+      "y": 0.0,
+      "z": 48.0
+    },
+    {
+      "name": "Pillar_BeamCross (6)",
+      "baseName": "Pillar_BeamCross",
+      "category": "pillar",
+      "layer": "ground",
+      "x": -9.0,
+      "y": 0.0,
+      "z": 39.0
+    },
+    {
+      "name": "Pillar_BeamCross (4)",
+      "baseName": "Pillar_BeamCross",
+      "category": "pillar",
+      "layer": "ground",
+      "x": -3.0,
+      "y": 0.0,
+      "z": 48.0
+    },
+    {
+      "name": "Pillar_BeamCross (7)",
+      "baseName": "Pillar_BeamCross",
+      "category": "pillar",
+      "layer": "ground",
+      "x": 3.0,
+      "y": 0.0,
+      "z": 30.0
+    },
+    {
+      "name": "Pillar_BeamCross (4)",
+      "baseName": "Pillar_BeamCross",
+      "category": "pillar",
+      "layer": "ground",
+      "x": -3.0,
+      "y": 0.0,
+      "z": 21.0
+    },
+    {
+      "name": "Pillar_BeamCross (7)",
+      "baseName": "Pillar_BeamCross",
+      "category": "pillar",
+      "layer": "ground",
+      "x": 3.0,
+      "y": 0.0,
+      "z": 39.0
+    },
+    {
+      "name": "Pillar_BeamCross (6)",
+      "baseName": "Pillar_BeamCross",
+      "category": "pillar",
+      "layer": "ground",
+      "x": -9.0,
+      "y": 0.0,
+      "z": 30.0
+    },
+    {
+      "name": "Pillar_BeamCross (3)",
+      "baseName": "Pillar_BeamCross",
+      "category": "pillar",
+      "layer": "ground",
+      "x": 9.0,
+      "y": 0.0,
+      "z": 3.0
+    },
+    {
+      "name": "Pillar_BeamCross (7)",
+      "baseName": "Pillar_BeamCross",
+      "category": "pillar",
+      "layer": "ground",
+      "x": 3.0,
+      "y": 0.0,
+      "z": 21.0
+    },
+    {
+      "name": "Pillar_BeamCross (5)",
+      "baseName": "Pillar_BeamCross",
+      "category": "pillar",
+      "layer": "ground",
+      "x": 9.0,
+      "y": 0.0,
+      "z": 48.0
+    },
+    {
+      "name": "Pillar_BeamCross (5)",
+      "baseName": "Pillar_BeamCross",
+      "category": "pillar",
+      "layer": "ground",
+      "x": 9.0,
+      "y": 0.0,
+      "z": 39.0
+    },
+    {
+      "name": "Pillar_BeamCross (6)",
+      "baseName": "Pillar_BeamCross",
+      "category": "pillar",
+      "layer": "ground",
+      "x": -9.0,
+      "y": 0.0,
+      "z": 48.0
+    },
+    {
+      "name": "Pillar_BeamCross (6)",
+      "baseName": "Pillar_BeamCross",
+      "category": "pillar",
+      "layer": "ground",
+      "x": -9.0,
+      "y": 0.0,
+      "z": 12.0
+    },
+    {
+      "name": "UMO_SmallOuterWall",
+      "baseName": "UMO_SmallOuterWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": -15.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "name": "UModeler_Ceiling (4)",
+      "baseName": "UModeler_Ceiling",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": -12.0,
+      "y": 0.25,
+      "z": 34.5
+    },
+    {
+      "name": "UModeler_Ceiling (3)",
+      "baseName": "UModeler_Ceiling",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": -6.0,
+      "y": 0.25,
+      "z": 43.5
+    },
+    {
+      "name": "UModeler_Ceiling (4)",
+      "baseName": "UModeler_Ceiling",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": -12.0,
+      "y": 0.25,
+      "z": 7.5
+    },
+    {
+      "name": "UModeler_Ceiling (2)",
+      "baseName": "UModeler_Ceiling",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": 12.0,
+      "y": 0.25,
+      "z": 43.5
+    },
+    {
+      "name": "UModeler_Ceiling (3)",
+      "baseName": "UModeler_Ceiling",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": -6.0,
+      "y": 0.25,
+      "z": 16.5
+    },
+    {
+      "name": "UModeler_Ceiling",
+      "baseName": "UModeler_Ceiling",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": 0.0,
+      "y": 0.25,
+      "z": 34.5
+    },
+    {
+      "name": "UModeler_Ceiling (1)",
+      "baseName": "UModeler_Ceiling",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": 6.0,
+      "y": 0.25,
+      "z": 16.5
+    },
+    {
+      "name": "UModeler_Ceiling (4)",
+      "baseName": "UModeler_Ceiling",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": -12.0,
+      "y": 0.25,
+      "z": 25.5
+    },
+    {
+      "name": "UModeler_Ceiling (2)",
+      "baseName": "UModeler_Ceiling",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": 12.0,
+      "y": 0.25,
+      "z": 34.5
+    },
+    {
+      "name": "UModeler_Ceiling",
+      "baseName": "UModeler_Ceiling",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": 0.0,
+      "y": 0.25,
+      "z": 43.5
+    },
+    {
+      "name": "UModeler_Ceiling",
+      "baseName": "UModeler_Ceiling",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": 0.0,
+      "y": 0.25,
+      "z": 16.5
+    },
+    {
+      "name": "UModeler_Ceiling (1)",
+      "baseName": "UModeler_Ceiling",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": 6.0,
+      "y": 0.25,
+      "z": 7.5
+    },
+    {
+      "name": "UModeler_Ceiling (1)",
+      "baseName": "UModeler_Ceiling",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": 6.0,
+      "y": 0.25,
+      "z": 34.5
+    },
+    {
+      "name": "UModeler_Ceiling (3)",
+      "baseName": "UModeler_Ceiling",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": -6.0,
+      "y": 0.25,
+      "z": 25.5
+    },
+    {
+      "name": "UModeler_Ceiling (3)",
+      "baseName": "UModeler_Ceiling",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": -6.0,
+      "y": 0.25,
+      "z": 34.5
+    },
+    {
+      "name": "UModeler_Ceiling (4)",
+      "baseName": "UModeler_Ceiling",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": -12.0,
+      "y": 0.25,
+      "z": 43.5
+    },
+    {
+      "name": "UModeler_Ceiling (2)",
+      "baseName": "UModeler_Ceiling",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": 12.0,
+      "y": 0.25,
+      "z": 16.5
+    },
+    {
+      "name": "UModeler_Ceiling (1)",
+      "baseName": "UModeler_Ceiling",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": 6.0,
+      "y": 0.25,
+      "z": 43.5
+    },
+    {
+      "name": "UModeler_Ceiling",
+      "baseName": "UModeler_Ceiling",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": 0.0,
+      "y": 0.25,
+      "z": 25.5
+    },
+    {
+      "name": "UModeler_Ceiling (4)",
+      "baseName": "UModeler_Ceiling",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": -12.0,
+      "y": 0.25,
+      "z": 16.5
+    },
+    {
+      "name": "UModeler_Ceiling (1)",
+      "baseName": "UModeler_Ceiling",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": 6.0,
+      "y": 0.25,
+      "z": 25.5
+    },
+    {
+      "name": "UModeler_Ceiling (3)",
+      "baseName": "UModeler_Ceiling",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": -6.0,
+      "y": 0.25,
+      "z": 7.5
+    },
+    {
+      "name": "UModeler_Ceiling (2)",
+      "baseName": "UModeler_Ceiling",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": 12.0,
+      "y": 0.25,
+      "z": 7.5
+    },
+    {
+      "name": "UModeler_Ceiling (2)",
+      "baseName": "UModeler_Ceiling",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": 12.0,
+      "y": 0.25,
+      "z": 25.5
+    },
+    {
+      "name": "UMO_SmallOuterWall (9)",
+      "baseName": "UMO_SmallOuterWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": 12.0,
+      "y": 0.0,
+      "z": 3.0
+    },
+    {
+      "name": "PillarTop_BeamLeft",
+      "baseName": "PillarTop_BeamLeft",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 15.0,
+      "y": 3.0,
+      "z": -3.0
+    },
+    {
+      "name": "UModeler_Ceiling2 (1)",
+      "baseName": "UModeler_Ceiling2",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": 6.0,
+      "y": 4.5,
+      "z": 0.0
+    },
+    {
+      "name": "UModeler_Ceiling2 (2)",
+      "baseName": "UModeler_Ceiling2",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": 12.0,
+      "y": 4.5,
+      "z": 0.0
+    },
+    {
+      "name": "UModeler_Ceiling2 (3)",
+      "baseName": "UModeler_Ceiling2",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": -6.0,
+      "y": 4.5,
+      "z": 0.0
+    },
+    {
+      "name": "UModeler_Ceiling2 (4)",
+      "baseName": "UModeler_Ceiling2",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": -12.0,
+      "y": 4.5,
+      "z": 0.0
+    },
+    {
+      "name": "Vent",
+      "baseName": "Vent",
+      "category": "vent",
+      "layer": "ceiling",
+      "x": 0.0,
+      "y": 4.5,
+      "z": 7.658
+    },
+    {
+      "name": "Neon_dwd6wi (1)",
+      "baseName": "Neon_dwd6wi",
+      "category": "light",
+      "layer": "ceiling",
+      "x": -1.33,
+      "y": 4.4,
+      "z": 7.51
+    },
+    {
+      "name": "Neon_dwd6wi (2)",
+      "baseName": "Neon_dwd6wi",
+      "category": "light",
+      "layer": "ceiling",
+      "x": -4.52,
+      "y": 4.4,
+      "z": 7.51
+    },
+    {
+      "name": "Neon_dwd6wi (3)",
+      "baseName": "Neon_dwd6wi",
+      "category": "light",
+      "layer": "ceiling",
+      "x": -7.38,
+      "y": 4.4,
+      "z": 7.51
+    },
+    {
+      "name": "Neon_dwd6wi",
+      "baseName": "Neon_dwd6wi",
+      "category": "light",
+      "layer": "ceiling",
+      "x": 1.3307,
+      "y": 4.4,
+      "z": 7.51
+    },
+    {
+      "name": "Neon_dwd6wi (4)",
+      "baseName": "Neon_dwd6wi",
+      "category": "light",
+      "layer": "ceiling",
+      "x": 4.5,
+      "y": 4.4,
+      "z": 7.51
+    },
+    {
+      "name": "Neon_dwd6wi (5)",
+      "baseName": "Neon_dwd6wi",
+      "category": "light",
+      "layer": "ceiling",
+      "x": 7.53,
+      "y": 4.4,
+      "z": 7.51
+    },
+    {
+      "name": "UMO_SmallOuterWall (6)",
+      "baseName": "UMO_SmallOuterWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": -12.0,
+      "y": 0.0,
+      "z": 39.0
+    },
+    {
+      "name": "UMO_SmallOuterWall (3)",
+      "baseName": "UMO_SmallOuterWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": -12.0,
+      "y": 0.0,
+      "z": 12.0
+    },
+    {
+      "name": "UMO_SmallOuterWall (7)",
+      "baseName": "UMO_SmallOuterWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": -12.0,
+      "y": 0.0,
+      "z": -3.0
+    },
+    {
+      "name": "UMO_SmallOuterWall (4)",
+      "baseName": "UMO_SmallOuterWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": -12.0,
+      "y": 0.0,
+      "z": 21.0
+    },
+    {
+      "name": "UMO_SmallOuterWall (12)",
+      "baseName": "UMO_SmallOuterWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": -9.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "name": "UMO_SmallOuterWall (5)",
+      "baseName": "UMO_SmallOuterWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": -12.0,
+      "y": 0.0,
+      "z": 30.0
+    },
+    {
+      "name": "UMO_SmallOuterWall (8)",
+      "baseName": "UMO_SmallOuterWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": 12.0,
+      "y": 0.0,
+      "z": -3.0
+    },
+    {
+      "name": "UMO_SmallOuterWall (1)",
+      "baseName": "UMO_SmallOuterWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": 15.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "name": "UMO_SmallOuterWall (2)",
+      "baseName": "UMO_SmallOuterWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": -12.0,
+      "y": 0.0,
+      "z": 3.0
+    },
+    {
+      "name": "Umodeler_OuterLargeWall",
+      "baseName": "Umodeler_OuterLargeWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": -15.0,
+      "y": 0.0,
+      "z": 25.5
+    },
+    {
+      "name": "Umodeler_OuterLargeWall (1)",
+      "baseName": "Umodeler_OuterLargeWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": 15.0,
+      "y": 0.0,
+      "z": 25.5
+    },
+    {
+      "name": "Umodeler_OuterLargeWall (5)",
+      "baseName": "Umodeler_OuterLargeWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": -9.0,
+      "y": 0.0,
+      "z": 34.5
+    },
+    {
+      "name": "Umodeler_OuterLargeWall (1)",
+      "baseName": "Umodeler_OuterLargeWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": 15.0,
+      "y": 0.0,
+      "z": 16.5
+    },
+    {
+      "name": "Umodeler_OuterLargeWall (1)",
+      "baseName": "Umodeler_OuterLargeWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": 15.0,
+      "y": 0.0,
+      "z": 34.5
+    },
+    {
+      "name": "Umodeler_OuterLargeWall",
+      "baseName": "Umodeler_OuterLargeWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": -15.0,
+      "y": 0.0,
+      "z": 16.5
+    },
+    {
+      "name": "Umodeler_OuterLargeWall (1)",
+      "baseName": "Umodeler_OuterLargeWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": 15.0,
+      "y": 0.0,
+      "z": 7.5
+    },
+    {
+      "name": "Umodeler_OuterLargeWall (3)",
+      "baseName": "Umodeler_OuterLargeWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": 9.0,
+      "y": 0.0,
+      "z": 7.5
+    },
+    {
+      "name": "Umodeler_OuterLargeWall",
+      "baseName": "Umodeler_OuterLargeWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": -15.0,
+      "y": 0.0,
+      "z": 43.5
+    },
+    {
+      "name": "Umodeler_OuterLargeWall (1)",
+      "baseName": "Umodeler_OuterLargeWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": 15.0,
+      "y": 0.0,
+      "z": 43.5
+    },
+    {
+      "name": "Umodeler_OuterLargeWall (2)",
+      "baseName": "Umodeler_OuterLargeWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": -9.0,
+      "y": 0.0,
+      "z": 43.5
+    },
+    {
+      "name": "Umodeler_OuterLargeWall (2)",
+      "baseName": "Umodeler_OuterLargeWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": -9.0,
+      "y": 0.0,
+      "z": 7.5
+    },
+    {
+      "name": "Umodeler_OuterLargeWall (4)",
+      "baseName": "Umodeler_OuterLargeWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": -9.0,
+      "y": 0.0,
+      "z": 25.5
+    },
+    {
+      "name": "Umodeler_OuterLargeWall",
+      "baseName": "Umodeler_OuterLargeWall",
+      "category": "outerWall",
+      "layer": "ground",
+      "x": -15.0,
+      "y": 0.0,
+      "z": 34.5
+    },
+    {
+      "name": "UModeler_WallTop",
+      "baseName": "UModeler_WallTop",
+      "category": "wallTop",
+      "layer": "ground",
+      "x": 0.0,
+      "y": 2.25,
+      "z": -3.0
+    },
+    {
+      "name": "Beam (1)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -9.0,
+      "y": 3.0,
+      "z": 42.0
+    },
+    {
+      "name": "Beam (9)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 0.0,
+      "y": 3.0,
+      "z": 3.0
+    },
+    {
+      "name": "Beam (24)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 12.0,
+      "y": 3.0,
+      "z": 12.0
+    },
+    {
+      "name": "Beam (19)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -0.0,
+      "y": 3.0,
+      "z": -3.0
+    },
+    {
+      "name": "Beam (16)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 3.0,
+      "y": 3.0,
+      "z": 0.0
+    },
+    {
+      "name": "Beam (4)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 3.0,
+      "y": 3.0,
+      "z": 9.0
+    },
+    {
+      "name": "Beam (7)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 9.0,
+      "y": 3.0,
+      "z": 24.0
+    },
+    {
+      "name": "Beam (31)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -15.0,
+      "y": 3.0,
+      "z": 45.0
+    },
+    {
+      "name": "Beam (5)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 3.0,
+      "y": 3.0,
+      "z": 24.0
+    },
+    {
+      "name": "Beam (32)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -15.0,
+      "y": 3.0,
+      "z": 24.0
+    },
+    {
+      "name": "Beam",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -9.0,
+      "y": 3.0,
+      "z": 36.0
+    },
+    {
+      "name": "Beam (30)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 15.0,
+      "y": 3.0,
+      "z": 15.0
+    },
+    {
+      "name": "Beam (12)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 0.0,
+      "y": 3.0,
+      "z": 39.0
+    },
+    {
+      "name": "Beam (24)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 12.0,
+      "y": 3.0,
+      "z": 48.0
+    },
+    {
+      "name": "Beam (29)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 15.0,
+      "y": 3.0,
+      "z": 27.0
+    },
+    {
+      "name": "Beam (2)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -3.0,
+      "y": 3.0,
+      "z": 45.0
+    },
+    {
+      "name": "Beam (26)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 12.0,
+      "y": 3.0,
+      "z": -3.0
+    },
+    {
+      "name": "Beam (28)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 15.0,
+      "y": 3.0,
+      "z": -0.0
+    },
+    {
+      "name": "Beam (11)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 6.0,
+      "y": 3.0,
+      "z": 48.0
+    },
+    {
+      "name": "Beam (3)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -3.0,
+      "y": 3.0,
+      "z": 24.0
+    },
+    {
+      "name": "Beam",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -9.0,
+      "y": 3.0,
+      "z": 18.0
+    },
+    {
+      "name": "Beam (12)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 0.0,
+      "y": 3.0,
+      "z": 12.0
+    },
+    {
+      "name": "Beam (11)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 6.0,
+      "y": 3.0,
+      "z": 12.0
+    },
+    {
+      "name": "Beam (1)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -9.0,
+      "y": 3.0,
+      "z": 6.0
+    },
+    {
+      "name": "Beam (2)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -3.0,
+      "y": 3.0,
+      "z": 27.0
+    },
+    {
+      "name": "Beam (4)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 3.0,
+      "y": 3.0,
+      "z": 36.0
+    },
+    {
+      "name": "Beam (11)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 6.0,
+      "y": 3.0,
+      "z": 21.0
+    },
+    {
+      "name": "Beam (31)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -15.0,
+      "y": 3.0,
+      "z": 27.0
+    },
+    {
+      "name": "Beam (5)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 3.0,
+      "y": 3.0,
+      "z": 33.0
+    },
+    {
+      "name": "Beam (3)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -3.0,
+      "y": 3.0,
+      "z": 42.0
+    },
+    {
+      "name": "Beam (23)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -12.0,
+      "y": 3.0,
+      "z": -3.0
+    },
+    {
+      "name": "Beam (3)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -3.0,
+      "y": 3.0,
+      "z": 6.0
+    },
+    {
+      "name": "Beam (6)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 9.0,
+      "y": 3.0,
+      "z": 36.0
+    },
+    {
+      "name": "Beam (3)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -3.0,
+      "y": 3.0,
+      "z": 15.0
+    },
+    {
+      "name": "Beam (1)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -9.0,
+      "y": 3.0,
+      "z": 24.0
+    },
+    {
+      "name": "Beam (7)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 9.0,
+      "y": 3.0,
+      "z": 15.0
+    },
+    {
+      "name": "Beam (5)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 3.0,
+      "y": 3.0,
+      "z": 42.0
+    },
+    {
+      "name": "Beam (20)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -6.0,
+      "y": 3.0,
+      "z": -3.0
+    },
+    {
+      "name": "Beam (15)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -3.0,
+      "y": 3.0,
+      "z": 0.0
+    },
+    {
+      "name": "Beam (13)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -6.0,
+      "y": 3.0,
+      "z": 48.0
+    },
+    {
+      "name": "Beam (12)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 0.0,
+      "y": 3.0,
+      "z": 48.0
+    },
+    {
+      "name": "Beam (6)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 9.0,
+      "y": 3.0,
+      "z": 18.0
+    },
+    {
+      "name": "Beam",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -9.0,
+      "y": 3.0,
+      "z": 27.0
+    },
+    {
+      "name": "Beam (7)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 9.0,
+      "y": 3.0,
+      "z": 6.0
+    },
+    {
+      "name": "Beam (29)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 15.0,
+      "y": 3.0,
+      "z": 18.0
+    },
+    {
+      "name": "Beam (21)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -12.0,
+      "y": 3.0,
+      "z": 48.0
+    },
+    {
+      "name": "Beam (12)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 0.0,
+      "y": 3.0,
+      "z": 30.0
+    },
+    {
+      "name": "Beam (2)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -3.0,
+      "y": 3.0,
+      "z": 9.0
+    },
+    {
+      "name": "Beam (30)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 15.0,
+      "y": 3.0,
+      "z": 33.0
+    },
+    {
+      "name": "Beam",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -9.0,
+      "y": 3.0,
+      "z": 45.0
+    },
+    {
+      "name": "Beam (6)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 9.0,
+      "y": 3.0,
+      "z": 9.0
+    },
+    {
+      "name": "Beam (4)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 3.0,
+      "y": 3.0,
+      "z": 18.0
+    },
+    {
+      "name": "Beam (22)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -12.0,
+      "y": 3.0,
+      "z": 3.0
+    },
+    {
+      "name": "Beam (18)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 6.0,
+      "y": 3.0,
+      "z": -3.0
+    },
+    {
+      "name": "Beam (29)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 15.0,
+      "y": 3.0,
+      "z": 9.0
+    },
+    {
+      "name": "Beam (13)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -6.0,
+      "y": 3.0,
+      "z": 30.0
+    },
+    {
+      "name": "Beam (13)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -6.0,
+      "y": 3.0,
+      "z": 12.0
+    },
+    {
+      "name": "Beam (2)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -3.0,
+      "y": 3.0,
+      "z": 36.0
+    },
+    {
+      "name": "Beam (24)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 12.0,
+      "y": 3.0,
+      "z": 30.0
+    },
+    {
+      "name": "Beam (32)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -15.0,
+      "y": 3.0,
+      "z": 42.0
+    },
+    {
+      "name": "Beam (29)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 15.0,
+      "y": 3.0,
+      "z": 45.0
+    },
+    {
+      "name": "Beam (13)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -6.0,
+      "y": 3.0,
+      "z": 39.0
+    },
+    {
+      "name": "Beam (21)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -12.0,
+      "y": 3.0,
+      "z": 12.0
+    },
+    {
+      "name": "Beam (17)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 9.0,
+      "y": 3.0,
+      "z": 0.0
+    },
+    {
+      "name": "Beam (29)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 15.0,
+      "y": 3.0,
+      "z": 36.0
+    },
+    {
+      "name": "Beam (14)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -9.0,
+      "y": 3.0,
+      "z": 0.0
+    },
+    {
+      "name": "Beam (30)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 15.0,
+      "y": 3.0,
+      "z": 42.0
+    },
+    {
+      "name": "Beam (8)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 6.0,
+      "y": 3.0,
+      "z": 3.0
+    },
+    {
+      "name": "Beam (10)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -6.0,
+      "y": 3.0,
+      "z": 3.0
+    },
+    {
+      "name": "Beam (11)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 6.0,
+      "y": 3.0,
+      "z": 30.0
+    },
+    {
+      "name": "Beam (1)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -9.0,
+      "y": 3.0,
+      "z": 15.0
+    },
+    {
+      "name": "Beam (32)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -15.0,
+      "y": 3.0,
+      "z": 6.0
+    },
+    {
+      "name": "Beam (11)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 6.0,
+      "y": 3.0,
+      "z": 39.0
+    },
+    {
+      "name": "Beam (21)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -12.0,
+      "y": 3.0,
+      "z": 21.0
+    },
+    {
+      "name": "Beam (24)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 12.0,
+      "y": 3.0,
+      "z": 21.0
+    },
+    {
+      "name": "Beam (5)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 3.0,
+      "y": 3.0,
+      "z": 15.0
+    },
+    {
+      "name": "Beam (30)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 15.0,
+      "y": 3.0,
+      "z": 24.0
+    },
+    {
+      "name": "Beam (21)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -12.0,
+      "y": 3.0,
+      "z": 30.0
+    },
+    {
+      "name": "Beam (6)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 9.0,
+      "y": 3.0,
+      "z": 27.0
+    },
+    {
+      "name": "Beam (3)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -3.0,
+      "y": 3.0,
+      "z": 33.0
+    },
+    {
+      "name": "Beam (5)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 3.0,
+      "y": 3.0,
+      "z": 6.0
+    },
+    {
+      "name": "Beam (31)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -15.0,
+      "y": 3.0,
+      "z": 9.0
+    },
+    {
+      "name": "Beam (24)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 12.0,
+      "y": 3.0,
+      "z": 39.0
+    },
+    {
+      "name": "Beam (4)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 3.0,
+      "y": 3.0,
+      "z": 45.0
+    },
+    {
+      "name": "Beam (2)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -3.0,
+      "y": 3.0,
+      "z": 18.0
+    },
+    {
+      "name": "Beam (25)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 12.0,
+      "y": 3.0,
+      "z": 3.0
+    },
+    {
+      "name": "Beam (31)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -15.0,
+      "y": 3.0,
+      "z": 18.0
+    },
+    {
+      "name": "Beam (32)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -15.0,
+      "y": 3.0,
+      "z": 33.0
+    },
+    {
+      "name": "Beam (6)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 9.0,
+      "y": 3.0,
+      "z": 45.0
+    },
+    {
+      "name": "Beam (31)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -15.0,
+      "y": 3.0,
+      "z": 36.0
+    },
+    {
+      "name": "Beam (21)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -12.0,
+      "y": 3.0,
+      "z": 39.0
+    },
+    {
+      "name": "Beam (4)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 3.0,
+      "y": 3.0,
+      "z": 27.0
+    },
+    {
+      "name": "Beam (1)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -9.0,
+      "y": 3.0,
+      "z": 33.0
+    },
+    {
+      "name": "Beam (7)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 9.0,
+      "y": 3.0,
+      "z": 33.0
+    },
+    {
+      "name": "Beam (7)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 9.0,
+      "y": 3.0,
+      "z": 42.0
+    },
+    {
+      "name": "Beam (13)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -6.0,
+      "y": 3.0,
+      "z": 21.0
+    },
+    {
+      "name": "Beam (32)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -15.0,
+      "y": 3.0,
+      "z": 15.0
+    },
+    {
+      "name": "Beam (27)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -15.0,
+      "y": 3.0,
+      "z": 0.0
+    },
+    {
+      "name": "Beam (12)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 0.0,
+      "y": 3.0,
+      "z": 21.0
+    },
+    {
+      "name": "Beam (30)",
+      "baseName": "Beam",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 15.0,
+      "y": 3.0,
+      "z": 6.0
+    },
+    {
+      "name": "Pillar_Corner",
+      "baseName": "Pillar_Corner",
+      "category": "pillar",
+      "layer": "ground",
+      "x": -15.0,
+      "y": 0.0,
+      "z": -3.0
+    },
+    {
+      "name": "UModeler_Floor2 (2)",
+      "baseName": "UModeler_Floor2",
+      "category": "floor",
+      "layer": "ground",
+      "x": 12.0,
+      "y": -1.0,
+      "z": -0.25
+    },
+    {
+      "name": "UModeler_Floor2 (3)",
+      "baseName": "UModeler_Floor2",
+      "category": "floor",
+      "layer": "ground",
+      "x": -6.0,
+      "y": -1.0,
+      "z": -0.25
+    },
+    {
+      "name": "UModeler_Floor2 (4)",
+      "baseName": "UModeler_Floor2",
+      "category": "floor",
+      "layer": "ground",
+      "x": -12.0,
+      "y": -1.0,
+      "z": -0.25
+    },
+    {
+      "name": "UModeler_Floor2 (1)",
+      "baseName": "UModeler_Floor2",
+      "category": "floor",
+      "layer": "ground",
+      "x": 6.0,
+      "y": -1.0,
+      "z": -0.25
+    },
+    {
+      "name": "UModeler_Ceiling2",
+      "baseName": "UModeler_Ceiling2",
+      "category": "ceiling",
+      "layer": "ceiling",
+      "x": 0.0,
+      "y": 4.5,
+      "z": 0.0
+    },
+    {
+      "name": "PillarTop_BeamCross",
+      "baseName": "PillarTop_BeamCross",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -9.0,
+      "y": 3.0,
+      "z": 12.0
+    },
+    {
+      "name": "PillarTop_BeamCross",
+      "baseName": "PillarTop_BeamCross",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -9.0,
+      "y": 3.0,
+      "z": 48.0
+    },
+    {
+      "name": "PillarTop_BeamCross",
+      "baseName": "PillarTop_BeamCross",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 9.0,
+      "y": 3.0,
+      "z": 39.0
+    },
+    {
+      "name": "PillarTop_BeamCross",
+      "baseName": "PillarTop_BeamCross",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 9.0,
+      "y": 3.0,
+      "z": 48.0
+    },
+    {
+      "name": "PillarTop_BeamCross",
+      "baseName": "PillarTop_BeamCross",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 9.0,
+      "y": 3.0,
+      "z": 3.0
+    },
+    {
+      "name": "PillarTop_BeamCross",
+      "baseName": "PillarTop_BeamCross",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 3.0,
+      "y": 3.0,
+      "z": 21.0
+    },
+    {
+      "name": "PillarTop_BeamCross",
+      "baseName": "PillarTop_BeamCross",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -9.0,
+      "y": 3.0,
+      "z": 30.0
+    },
+    {
+      "name": "PillarTop_BeamCross",
+      "baseName": "PillarTop_BeamCross",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 3.0,
+      "y": 3.0,
+      "z": 39.0
+    },
+    {
+      "name": "PillarTop_BeamCross",
+      "baseName": "PillarTop_BeamCross",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -3.0,
+      "y": 3.0,
+      "z": 21.0
+    },
+    {
+      "name": "PillarTop_BeamCross",
+      "baseName": "PillarTop_BeamCross",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 3.0,
+      "y": 3.0,
+      "z": 30.0
+    },
+    {
+      "name": "PillarTop_BeamCross",
+      "baseName": "PillarTop_BeamCross",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -3.0,
+      "y": 3.0,
+      "z": 48.0
+    },
+    {
+      "name": "PillarTop_BeamCross",
+      "baseName": "PillarTop_BeamCross",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 3.0,
+      "y": 3.0,
+      "z": 48.0
+    },
+    {
+      "name": "PillarTop_BeamCross",
+      "baseName": "PillarTop_BeamCross",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -9.0,
+      "y": 3.0,
+      "z": 39.0
+    },
+    {
+      "name": "PillarTop_BeamCross",
+      "baseName": "PillarTop_BeamCross",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 9.0,
+      "y": 3.0,
+      "z": 12.0
+    },
+    {
+      "name": "PillarTop_BeamCross",
+      "baseName": "PillarTop_BeamCross",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -3.0,
+      "y": 3.0,
+      "z": 12.0
+    },
+    {
+      "name": "PillarTop_BeamCross",
+      "baseName": "PillarTop_BeamCross",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -9.0,
+      "y": 3.0,
+      "z": 21.0
+    },
+    {
+      "name": "PillarTop_BeamCross",
+      "baseName": "PillarTop_BeamCross",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 9.0,
+      "y": 3.0,
+      "z": 21.0
+    },
+    {
+      "name": "PillarTop_BeamCross",
+      "baseName": "PillarTop_BeamCross",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 3.0,
+      "y": 3.0,
+      "z": 3.0
+    },
+    {
+      "name": "PillarTop_BeamCross",
+      "baseName": "PillarTop_BeamCross",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 3.0,
+      "y": 3.0,
+      "z": 12.0
+    },
+    {
+      "name": "PillarTop_BeamCross",
+      "baseName": "PillarTop_BeamCross",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -3.0,
+      "y": 3.0,
+      "z": 3.0
+    },
+    {
+      "name": "PillarTop_BeamCross",
+      "baseName": "PillarTop_BeamCross",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -3.0,
+      "y": 3.0,
+      "z": 39.0
+    },
+    {
+      "name": "PillarTop_BeamCross",
+      "baseName": "PillarTop_BeamCross",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": 9.0,
+      "y": 3.0,
+      "z": 30.0
+    },
+    {
+      "name": "PillarTop_BeamCross",
+      "baseName": "PillarTop_BeamCross",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -3.0,
+      "y": 3.0,
+      "z": 30.0
+    },
+    {
+      "name": "UModeler_Floor2",
+      "baseName": "UModeler_Floor2",
+      "category": "floor",
+      "layer": "ground",
+      "x": 0.0,
+      "y": -1.0,
+      "z": -0.25
+    },
+    {
+      "name": "Pillar_BeamCross",
+      "baseName": "Pillar_BeamCross",
+      "category": "pillar",
+      "layer": "ground",
+      "x": -9.0,
+      "y": 0.0,
+      "z": 3.0
+    },
+    {
+      "name": "Pillar_Corner (1)",
+      "baseName": "Pillar_Corner",
+      "category": "pillar",
+      "layer": "ground",
+      "x": 15.0,
+      "y": 0.0,
+      "z": -3.0
+    },
+    {
+      "name": "PillarTop_BeamTee",
+      "baseName": "PillarTop_BeamTee",
+      "category": "beam",
+      "layer": "ceiling",
+      "x": -9.0,
+      "y": 3.0,
+      "z": -3.0
+    },
+    {
+      "name": "Pillar_Tee",
+      "baseName": "Pillar_Tee",
+      "category": "pillar",
+      "layer": "ground",
+      "x": -9.0,
+      "y": 0.0,
+      "z": -3.0
+    },
+    {
+      "name": "Point Light",
+      "baseName": "Point Light",
+      "category": "light",
+      "layer": "ceiling",
+      "x": 1.3307,
+      "y": 4.17,
+      "z": 7.51
+    },
+    {
+      "name": "Point Light",
+      "baseName": "Point Light",
+      "category": "light",
+      "layer": "ceiling",
+      "x": 7.53,
+      "y": 4.17,
+      "z": 7.51
+    },
+    {
+      "name": "Point Light",
+      "baseName": "Point Light",
+      "category": "light",
+      "layer": "ceiling",
+      "x": 4.5,
+      "y": 4.17,
+      "z": 7.51
+    },
+    {
+      "name": "Point Light",
+      "baseName": "Point Light",
+      "category": "light",
+      "layer": "ceiling",
+      "x": -4.52,
+      "y": 4.17,
+      "z": 7.51
+    },
+    {
+      "name": "Point Light",
+      "baseName": "Point Light",
+      "category": "light",
+      "layer": "ceiling",
+      "x": -7.38,
+      "y": 4.17,
+      "z": 7.51
+    },
+    {
+      "name": "Point Light",
+      "baseName": "Point Light",
+      "category": "light",
+      "layer": "ceiling",
+      "x": -1.33,
+      "y": 4.17,
+      "z": 7.51
+    },
+    {
+      "name": "UModeler_Floor",
+      "baseName": "UModeler_Floor",
+      "category": "floor",
+      "layer": "ground",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 25.5
+    },
+    {
+      "name": "UModeler_Floor (1)",
+      "baseName": "UModeler_Floor",
+      "category": "floor",
+      "layer": "ground",
+      "x": 6.0,
+      "y": 0.0,
+      "z": 43.5
+    },
+    {
+      "name": "UModeler_Floor (4)",
+      "baseName": "UModeler_Floor",
+      "category": "floor",
+      "layer": "ground",
+      "x": -12.0,
+      "y": 0.0,
+      "z": 25.5
+    },
+    {
+      "name": "UModeler_Floor (1)",
+      "baseName": "UModeler_Floor",
+      "category": "floor",
+      "layer": "ground",
+      "x": 6.0,
+      "y": 0.0,
+      "z": 25.5
+    },
+    {
+      "name": "UModeler_Floor",
+      "baseName": "UModeler_Floor",
+      "category": "floor",
+      "layer": "ground",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 34.5
+    },
+    {
+      "name": "UModeler_Floor (4)",
+      "baseName": "UModeler_Floor",
+      "category": "floor",
+      "layer": "ground",
+      "x": -12.0,
+      "y": 0.0,
+      "z": 7.5
+    },
+    {
+      "name": "UModeler_Floor (1)",
+      "baseName": "UModeler_Floor",
+      "category": "floor",
+      "layer": "ground",
+      "x": 6.0,
+      "y": 0.0,
+      "z": 7.5
+    },
+    {
+      "name": "UModeler_Floor (2)",
+      "baseName": "UModeler_Floor",
+      "category": "floor",
+      "layer": "ground",
+      "x": 12.0,
+      "y": 0.0,
+      "z": 16.5
+    },
+    {
+      "name": "UModeler_Floor (2)",
+      "baseName": "UModeler_Floor",
+      "category": "floor",
+      "layer": "ground",
+      "x": 12.0,
+      "y": 0.0,
+      "z": 7.5
+    },
+    {
+      "name": "UModeler_Floor (3)",
+      "baseName": "UModeler_Floor",
+      "category": "floor",
+      "layer": "ground",
+      "x": -6.0,
+      "y": 0.0,
+      "z": 34.5
+    },
+    {
+      "name": "UModeler_Floor",
+      "baseName": "UModeler_Floor",
+      "category": "floor",
+      "layer": "ground",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 43.5
+    },
+    {
+      "name": "UModeler_Floor (3)",
+      "baseName": "UModeler_Floor",
+      "category": "floor",
+      "layer": "ground",
+      "x": -6.0,
+      "y": 0.0,
+      "z": 25.5
+    },
+    {
+      "name": "UModeler_Floor (4)",
+      "baseName": "UModeler_Floor",
+      "category": "floor",
+      "layer": "ground",
+      "x": -12.0,
+      "y": 0.0,
+      "z": 34.5
+    },
+    {
+      "name": "UModeler_Floor (2)",
+      "baseName": "UModeler_Floor",
+      "category": "floor",
+      "layer": "ground",
+      "x": 12.0,
+      "y": 0.0,
+      "z": 43.5
+    },
+    {
+      "name": "UModeler_Floor (4)",
+      "baseName": "UModeler_Floor",
+      "category": "floor",
+      "layer": "ground",
+      "x": -12.0,
+      "y": 0.0,
+      "z": 16.5
+    },
+    {
+      "name": "UModeler_Floor",
+      "baseName": "UModeler_Floor",
+      "category": "floor",
+      "layer": "ground",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 16.5
+    },
+    {
+      "name": "UModeler_Floor (2)",
+      "baseName": "UModeler_Floor",
+      "category": "floor",
+      "layer": "ground",
+      "x": 12.0,
+      "y": 0.0,
+      "z": 34.5
+    },
+    {
+      "name": "UModeler_Floor (3)",
+      "baseName": "UModeler_Floor",
+      "category": "floor",
+      "layer": "ground",
+      "x": -6.0,
+      "y": 0.0,
+      "z": 7.5
+    },
+    {
+      "name": "UModeler_Floor (4)",
+      "baseName": "UModeler_Floor",
+      "category": "floor",
+      "layer": "ground",
+      "x": -12.0,
+      "y": 0.0,
+      "z": 43.5
+    },
+    {
+      "name": "UModeler_Floor (1)",
+      "baseName": "UModeler_Floor",
+      "category": "floor",
+      "layer": "ground",
+      "x": 6.0,
+      "y": 0.0,
+      "z": 34.5
+    },
+    {
+      "name": "UModeler_Floor (3)",
+      "baseName": "UModeler_Floor",
+      "category": "floor",
+      "layer": "ground",
+      "x": -6.0,
+      "y": 0.0,
+      "z": 43.5
+    },
+    {
+      "name": "UModeler_Floor (3)",
+      "baseName": "UModeler_Floor",
+      "category": "floor",
+      "layer": "ground",
+      "x": -6.0,
+      "y": 0.0,
+      "z": 16.5
+    },
+    {
+      "name": "UModeler_Floor (1)",
+      "baseName": "UModeler_Floor",
+      "category": "floor",
+      "layer": "ground",
+      "x": 6.0,
+      "y": 0.0,
+      "z": 16.5
+    },
+    {
+      "name": "UModeler_Floor (2)",
+      "baseName": "UModeler_Floor",
+      "category": "floor",
+      "layer": "ground",
+      "x": 12.0,
+      "y": 0.0,
+      "z": 25.5
+    }
+  ]
+}

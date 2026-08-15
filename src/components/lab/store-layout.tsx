@@ -1,11 +1,20 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useSaveStore, useRoomStore } from '@/lib/store'
 import { encyclopedia as ENC } from '@/lib/data-loader'
 import { computeShelfEfficiency, computeDemandProxy } from '@/lib/engine'
 import type { PropEfficiency } from '@/lib/engine'
-import { useLang, productNameFor, groupIdNameFor, buildableIdNameFor } from '@/lib/i18n'
+import { useLang, productNameFor, groupIdNameFor, buildableIdNameFor, layoutLabel } from '@/lib/i18n'
+import {
+  level0Geometry,
+  storeBounds,
+  structureByCategory,
+  DOOR_POSITIONS,
+  doorStateFromInt,
+  type StructureObject,
+  type DoorState,
+} from '@/lib/level0-types'
 import {
   ConfidenceBadge,
   StatCard,
@@ -45,6 +54,10 @@ import {
   Layers,
   AlertCircle,
   ArrowRight,
+  ZoomIn,
+  ZoomOut,
+  Maximize,
+  DoorOpen,
 } from 'lucide-react'
 import type { LayoutProp } from '@/lib/types'
 
@@ -75,6 +88,27 @@ const BUILDABLE_PALETTE: Record<number, string> = {
   3: '#6366f1', // indigo-500 — Double Fridge
 }
 const FALLBACK_COLOR = '#a1a1aa'
+
+// Door state → color (mirrors `doorStateFromInt`).
+const DOOR_COLORS: Record<DoorState, string> = {
+  closed: '#ef4444', // red-500
+  open: '#22c55e', // green-500
+  auto: '#3b82f6', // blue-500
+  unknown: '#9ca3af', // gray-400
+}
+
+// Layer visibility defaults
+const DEFAULT_LAYERS = {
+  structure: true,
+  activity: true,
+  ceiling: false,
+  doors: true,
+}
+type LayerKey = keyof typeof DEFAULT_LAYERS
+type LayerState = Record<LayerKey, boolean>
+
+// View padding around the store bounding box (in world units).
+const VIEW_PAD = 2
 
 type SortKey = 'efficiency' | 'shelfValue' | 'totalUnits' | 'demandCoverage' | 'emptySlots' | 'distinctProducts'
 
@@ -119,16 +153,143 @@ export function StoreLayout() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [assignPlayerId, setAssignPlayerId] = useState<string | undefined>(undefined)
 
+  // ---- Layer visibility (structure / activity / ceiling / doors) ----
+  const [layers, setLayers] = useState<LayerState>({ ...DEFAULT_LAYERS })
+
+  // ---- Zoom & pan state for the SVG map ----
+  const [scale, setScale] = useState(1)
+  const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
+  const [isDragging, setIsDragging] = useState(false)
+  const dragRef = useRef<{ sx: number; sy: number; ox: number; oy: number } | null>(null)
+  const svgRef = useRef<SVGSVGElement | null>(null)
+
+  const resetView = () => {
+    setScale(1)
+    setPan({ x: 0, y: 0 })
+  }
+
+  // Convert a client-space point (clientX, clientY) → SVG user-space point
+  // using the SVG's screen CTM (handles viewBox + flip).
+  const clientToSvg = (clientX: number, clientY: number): { x: number; y: number } | null => {
+    const svg = svgRef.current
+    if (!svg) return null
+    const ctm = svg.getScreenCTM()
+    if (!ctm) return null
+    const pt = svg.createSVGPoint()
+    pt.x = clientX
+    pt.y = clientY
+    const transformed = pt.matrixTransform(ctm.inverse())
+    return { x: transformed.x, y: transformed.y }
+  }
+
+  const handleWheel = (e: React.WheelEvent<SVGSVGElement>) => {
+    // Zoom toward cursor (cursor stays anchored to the same world point).
+    const cursor = clientToSvg(e.clientX, e.clientY)
+    if (!cursor) return
+    const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15
+    const newScale = Math.max(0.4, Math.min(8, scale * factor))
+    const actualFactor = newScale / scale
+    // We apply <g transform={`translate(${pan.x} ${pan.y}) scale(${scale})`}> inside
+    // the SVG, so a world point P maps to viewport point (scale * P + pan).
+    // Solve for newPan that keeps `cursor` fixed: newPan = cursor - actualFactor * (cursor - pan)
+    setPan({
+      x: cursor.x - actualFactor * (cursor.x - pan.x),
+      y: cursor.y - actualFactor * (cursor.y - pan.y),
+    })
+    setScale(newScale)
+  }
+
+  const handlePointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
+    // Only pan on left-click drag (button 0); ignore right-click.
+    if (e.button !== 0) return
+    const cursor = clientToSvg(e.clientX, e.clientY)
+    if (!cursor) return
+    // Record the drag start, but don't capture the pointer or mark as
+    // dragging yet — a simple click on a shelf should still fire the
+    // shelf's onClick handler. We only "drag" once the cursor moves
+    // more than a small threshold.
+    dragRef.current = { sx: cursor.x, sy: cursor.y, ox: pan.x, oy: pan.y }
+  }
+  const handlePointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (!dragRef.current) return
+    const cursor = clientToSvg(e.clientX, e.clientY)
+    if (!cursor) return
+    const dx = cursor.x - dragRef.current.sx
+    const dy = cursor.y - dragRef.current.sy
+    // Threshold: ignore tiny movements (treat as click, not drag).
+    if (!isDragging && Math.hypot(dx, dy) < 0.15) return
+    if (!isDragging) {
+      setIsDragging(true)
+      e.currentTarget.setPointerCapture?.(e.pointerId)
+    }
+    setPan({
+      x: dragRef.current.ox + dx,
+      y: dragRef.current.oy + dy,
+    })
+  }
+  const handlePointerUp = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (isDragging) {
+      e.currentTarget.releasePointerCapture?.(e.pointerId)
+    }
+    dragRef.current = null
+    setIsDragging(false)
+  }
+
+  // ---- Door states from save.json ----
+  // Primary: snapshot.doorStates (already parsed by es3-parser).
+  // Fallback: raw extraction from snapshot.decoded.DoorStates.value.array.
+  const doorStates: number[] = useMemo(() => {
+    if (snapshot?.doorStates && snapshot.doorStates.length > 0) {
+      return snapshot.doorStates
+    }
+    // The SaveSnapshot type doesn't expose `decoded` (raw ES3 wrapper),
+    // but the runtime object may carry it. Cast to any for safe probing.
+    const raw = (snapshot as unknown as {
+      decoded?: { DoorStates?: { value?: { array?: { value?: unknown }[] } } }
+    })?.decoded?.DoorStates?.value?.array
+    if (Array.isArray(raw)) {
+      return raw
+        .map((d) => (typeof d === 'object' && d !== null ? (d as { value?: unknown }).value : d))
+        .filter((v): v is number => typeof v === 'number')
+    }
+    return []
+  }, [snapshot])
+
+  // ---- Structure object groups by category (pre-computed once) ----
+  const structureGroups = useMemo(() => {
+    const g = structureByCategory
+    return {
+      floor: g.floor ?? [],
+      outerWall: g.outerWall ?? [],
+      wallTop: g.wallTop ?? [],
+      pillar: g.pillar ?? [],
+      ceiling: g.ceiling ?? [],
+      beam: g.beam ?? [],
+      light: g.light ?? [],
+      vent: g.vent ?? [],
+    }
+  }, [])
+
   // Map bounds (with padding) for the SVG viewBox.
+  // Prefer the level0 storeBounds (covers the full Unity scene), but fall
+  // back to shelf-derived bounds if level0 data is somehow missing.
   const bounds = useMemo(() => {
-    if (layout.length === 0) return { minX: 0, minY: 0, w: 10, h: 10 }
+    const hasLevel0 = level0Geometry.objects.length > 0
+    if (hasLevel0 && storeBounds) {
+      const minX = storeBounds.minX - VIEW_PAD
+      const maxX = storeBounds.maxX + VIEW_PAD
+      const minZ = storeBounds.minZ - VIEW_PAD
+      const maxZ = storeBounds.maxZ + VIEW_PAD
+      return { minX, minZ, maxX, maxZ, w: maxX - minX, h: maxZ - minZ }
+    }
+    if (layout.length === 0) return { minX: 0, minZ: 0, maxX: 10, maxZ: 10, w: 10, h: 10 }
     const xs = layout.map((p) => p.posX)
     const zs = layout.map((p) => p.posZ)
     const minX = Math.min(...xs) - 1
     const maxX = Math.max(...xs) + 1
     const minZ = Math.min(...zs) - 1
     const maxZ = Math.max(...zs) + 1
-    return { minX, minZ, w: maxX - minX, h: maxZ - minZ }
+    return { minX, minZ, maxX, maxZ, w: maxX - minX, h: maxZ - minZ }
   }, [layout])
 
   // Highlight thresholds.
@@ -340,141 +501,491 @@ export function StoreLayout() {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <CardTitle className="flex items-center gap-2 text-base">
               <MapIcon className="h-4 w-4 text-emerald-500" />
-              俯視地圖
+              {lang === 'en' ? 'Top-down Map' : '俯視地圖'}
+              <span className="text-xs font-normal text-muted-foreground">
+                {lang === 'en'
+                  ? `bounds X[${storeBounds.minX}, ${storeBounds.maxX}] · Z[${storeBounds.minZ}, ${storeBounds.maxZ}]`
+                  : `範圍 X[${storeBounds.minX}, ${storeBounds.maxX}] · Z[${storeBounds.minZ}, ${storeBounds.maxZ}]`}
+              </span>
             </CardTitle>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs text-muted-foreground">高亮模式:</span>
+              <span className="text-xs text-muted-foreground">{layoutLabel('layout.layers.label', lang)}:</span>
               <ToggleGroup
-                type="single"
-                value={highlight}
-                onValueChange={(v) => v && setHighlight(v as HighlightMode)}
+                type="multiple"
+                value={(Object.entries(layers) as [LayerKey, boolean][])
+                  .filter(([, v]) => v)
+                  .map(([k]) => k)}
+                onValueChange={(vals) => {
+                  const next: LayerState = {
+                    structure: false,
+                    activity: false,
+                    ceiling: false,
+                    doors: false,
+                  }
+                  for (const v of vals as LayerKey[]) {
+                    if (v in next) next[v] = true
+                  }
+                  setLayers(next)
+                }}
                 variant="outline"
                 size="sm"
                 className="flex-wrap"
               >
-                {HIGHLIGHT_LABELS.map((h) => (
-                  <ToggleGroupItem key={h.value} value={h.value} className="text-xs">
-                    <span
-                      className="mr-1 inline-block h-2 w-2 rounded-full"
-                      style={{ backgroundColor: h.color }}
-                    />
-                    {h.label}
-                  </ToggleGroupItem>
-                ))}
+                <ToggleGroupItem value="structure" className="text-xs">
+                  <Layers className="mr-1 h-3 w-3" />
+                  {layoutLabel('layout.layer.structure', lang)}
+                </ToggleGroupItem>
+                <ToggleGroupItem value="activity" className="text-xs">
+                  <Boxes className="mr-1 h-3 w-3" />
+                  {layoutLabel('layout.layer.activity', lang)}
+                </ToggleGroupItem>
+                <ToggleGroupItem value="ceiling" className="text-xs">
+                  {layoutLabel('layout.layer.ceiling', lang)}
+                </ToggleGroupItem>
+                <ToggleGroupItem value="doors" className="text-xs">
+                  <DoorOpen className="mr-1 h-3 w-3" />
+                  {layoutLabel('layout.layer.doors', lang)}
+                </ToggleGroupItem>
               </ToggleGroup>
+              <span className="ml-1 text-xs text-muted-foreground">{layoutLabel('layout.zoom.label', lang)}:</span>
+              <div className="flex items-center gap-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 w-7 p-0"
+                  onClick={() => setScale((s) => Math.max(0.4, s / 1.2))}
+                  aria-label={layoutLabel('layout.zoom.out', lang)}
+                >
+                  <ZoomOut className="h-3.5 w-3.5" />
+                </Button>
+                <span className="w-10 text-center font-mono text-xs">{Math.round(scale * 100)}%</span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 w-7 p-0"
+                  onClick={() => setScale((s) => Math.min(8, s * 1.2))}
+                  aria-label={layoutLabel('layout.zoom.in', lang)}
+                >
+                  <ZoomIn className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 gap-1 px-2"
+                  onClick={resetView}
+                  aria-label={layoutLabel('layout.zoom.reset', lang)}
+                >
+                  <Maximize className="h-3.5 w-3.5" />
+                  <span className="text-xs">{layoutLabel('layout.zoom.reset', lang)}</span>
+                </Button>
+              </div>
             </div>
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <span className="text-xs text-muted-foreground">{lang === 'en' ? 'Highlight mode:' : '高亮模式:'}</span>
+            <ToggleGroup
+              type="single"
+              value={highlight}
+              onValueChange={(v) => v && setHighlight(v as HighlightMode)}
+              variant="outline"
+              size="sm"
+              className="flex-wrap"
+            >
+              {HIGHLIGHT_LABELS.map((h) => (
+                <ToggleGroupItem key={h.value} value={h.value} className="text-xs">
+                  <span
+                    className="mr-1 inline-block h-2 w-2 rounded-full"
+                    style={{ backgroundColor: h.color }}
+                  />
+                  {h.label}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
           </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
             {/* SVG map */}
             <div className="lg:col-span-2">
-              <div className="overflow-x-auto scrollbar-thin">
+              <div className="overflow-hidden rounded-md border bg-muted/30">
                 <svg
+                  ref={svgRef}
                   viewBox={`${bounds.minX} ${bounds.minZ} ${bounds.w} ${bounds.h}`}
                   preserveAspectRatio="xMidYMid meet"
-                  className="w-full min-w-[480px] rounded-md border bg-muted/30"
-                  style={{ aspectRatio: `${bounds.w} / ${bounds.h}` }}
+                  className="w-full touch-none select-none"
+                  style={{
+                    aspectRatio: `${bounds.w} / ${bounds.h}`,
+                    cursor: isDragging ? 'grabbing' : 'grab',
+                  }}
+                  onWheel={handleWheel}
+                  onPointerDown={handlePointerDown}
+                  onPointerMove={handlePointerMove}
+                  onPointerUp={handlePointerUp}
+                  onPointerCancel={handlePointerUp}
                 >
-                  {/* Grid lines */}
                   <defs>
                     <pattern id="grid" width="1" height="1" patternUnits="userSpaceOnUse">
-                      <path d="M 1 0 L 0 0 0 1" fill="none" stroke="currentColor" strokeWidth="0.02" className="text-muted-foreground/30" />
+                      <path
+                        d="M 1 0 L 0 0 0 1"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="0.02"
+                        className="text-muted-foreground/30"
+                      />
                     </pattern>
+                    <radialGradient id="lightGlow">
+                      <stop offset="0%" stopColor="#fde68a" stopOpacity="0.95" />
+                      <stop offset="55%" stopColor="#fcd34d" stopOpacity="0.45" />
+                      <stop offset="100%" stopColor="#fcd34d" stopOpacity="0" />
+                    </radialGradient>
                   </defs>
+
+                  {/* Background grid (covers full viewport, not flipped) */}
                   <rect
                     x={bounds.minX}
                     y={bounds.minZ}
                     width={bounds.w}
                     height={bounds.h}
                     fill="url(#grid)"
+                    className="text-muted-foreground/20"
                   />
 
-                  {/* Props */}
-                  {layout.map((prop) => {
-                    const eff = efficiencies.find((e) => e.propIndex === prop.index)
-                    if (!eff) return null
-                    const color = BUILDABLE_PALETTE[prop.buildableId] ?? FALLBACK_COLOR
-                    const hl = getHighlight(eff)
-                    const assignment = room?.shelfAssignments[String(prop.index)]
-                    const assignedMember = assignment ? room?.members.find((m) => m.id === assignment) : null
-                    const isSelected = selectedIdx === prop.index
-                    const rectW = 0.6
-                    const rectH = 0.4
-                    return (
-                      <g
-                        key={prop.index}
-                        transform={`translate(${prop.posX}, ${prop.posZ}) rotate(${prop.angle})`}
-                        onClick={() => setSelectedIdx(prop.index)}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        {/* Assigned player ring */}
-                        {assignedMember && (
-                          <rect
-                            x={-rectW / 2 - 0.08}
-                            y={-rectH / 2 - 0.08}
-                            width={rectW + 0.16}
-                            height={rectH + 0.16}
-                            fill="none"
-                            stroke={assignedMember.color}
-                            strokeWidth={0.06}
-                            rx={0.05}
-                          />
-                        )}
-                        {/* Prop body */}
-                        <rect
-                          x={-rectW / 2}
-                          y={-rectH / 2}
-                          width={rectW}
-                          height={rectH}
-                          fill={color}
-                          stroke={hl?.stroke ?? (isSelected ? '#0a0a0a' : '#00000033')}
-                          strokeWidth={hl?.width ?? (isSelected ? 0.08 : 0.02)}
-                          rx={0.04}
-                          className={hl?.blink ? 'animate-pulse' : ''}
+                  {/* Zoom/pan wrapper */}
+                  <g transform={`translate(${pan.x} ${pan.y}) scale(${scale})`}>
+                    {/* Y-flip wrapper: world Z increases UPWARD on screen,
+                        so the entrance (Z=-3) appears at the BOTTOM of the map. */}
+                    <g transform={`matrix(1 0 0 -1 0 ${bounds.minZ + bounds.maxZ})`}>
+                      {/* ===== STRUCTURE LAYER ===== */}
+                      {layers.structure && (
+                        <StructureLayerView
+                          floor={structureGroups.floor}
+                          outerWall={structureGroups.outerWall}
+                          wallTop={structureGroups.wallTop}
+                          pillar={structureGroups.pillar}
+                          minX={bounds.minX}
+                          maxX={bounds.maxX}
+                          minZ={bounds.minZ}
+                          maxZ={bounds.maxZ}
                         />
-                        {/* Inventory count label */}
-                        <text
-                          x={0}
-                          y={0}
-                          textAnchor="middle"
-                          dominantBaseline="central"
-                          fontSize={0.28}
-                          className="fill-white font-bold pointer-events-none"
-                          style={{ paintOrder: 'stroke', stroke: '#00000080', strokeWidth: 0.03 }}
-                        >
-                          {eff.totalUnits}
-                        </text>
-                        {/* Prop index (small, top-right) */}
-                        <text
-                          x={rectW / 2 - 0.04}
-                          y={-rectH / 2 + 0.04}
-                          textAnchor="end"
-                          dominantBaseline="hanging"
-                          fontSize={0.13}
-                          className="fill-white/80 pointer-events-none"
-                        >
-                          #{prop.index}
-                        </text>
-                      </g>
-                    )
-                  })}
+                      )}
+
+                      {/* ===== CEILING LAYER (overlay, rendered above structure but below activity) ===== */}
+                      {layers.ceiling && (
+                        <g opacity={0.4} style={{ pointerEvents: 'none' }}>
+                          {/* Ceiling tiles — translucent rectangles over the floor area */}
+                          {structureGroups.ceiling.map((o, i) => (
+                            <rect
+                              key={`ceil-${i}`}
+                              x={o.x - 2.5}
+                              y={o.z - 4}
+                              width={5}
+                              height={8}
+                              fill="#cbd5e1"
+                              fillOpacity={0.35}
+                              stroke="#94a3b8"
+                              strokeOpacity={0.4}
+                              strokeWidth={0.04}
+                            />
+                          ))}
+                          {/* Beams — thin dark lines at each beam position */}
+                          {structureGroups.beam.map((o, i) => (
+                            <rect
+                              key={`beam-${i}`}
+                              x={o.x - 1.5}
+                              y={o.z - 0.08}
+                              width={3}
+                              height={0.16}
+                              fill="#475569"
+                              fillOpacity={0.55}
+                            />
+                          ))}
+                          {/* Lights — small yellow circles with glow halo */}
+                          {structureGroups.light.map((o, i) => (
+                            <g key={`light-${i}`}>
+                              <circle cx={o.x} cy={o.z} r={1.2} fill="url(#lightGlow)" />
+                              <circle cx={o.x} cy={o.z} r={0.18} fill="#fde68a" stroke="#f59e0b" strokeWidth={0.04} />
+                            </g>
+                          ))}
+                          {/* Vents — small blue squares */}
+                          {structureGroups.vent.map((o, i) => (
+                            <rect
+                              key={`vent-${i}`}
+                              x={o.x - 0.35}
+                              y={o.z - 0.35}
+                              width={0.7}
+                              height={0.7}
+                              fill="#3b82f6"
+                              fillOpacity={0.7}
+                              stroke="#1d4ed8"
+                              strokeWidth={0.04}
+                              rx={0.06}
+                            />
+                          ))}
+                        </g>
+                      )}
+
+                      {/* ===== ACTIVITY LAYER (shelves) ===== */}
+                      {layers.activity &&
+                        layout.map((prop) => {
+                          const eff = efficiencies.find((e) => e.propIndex === prop.index)
+                          if (!eff) return null
+                          const color = BUILDABLE_PALETTE[prop.buildableId] ?? FALLBACK_COLOR
+                          const hl = getHighlight(eff)
+                          const assignment = room?.shelfAssignments[String(prop.index)]
+                          const assignedMember = assignment
+                            ? room?.members.find((m) => m.id === assignment)
+                            : null
+                          const isSelected = selectedIdx === prop.index
+                          const rectW = 0.6
+                          const rectH = 0.4
+                          return (
+                            <g
+                              key={prop.index}
+                              transform={`translate(${prop.posX}, ${prop.posZ}) rotate(${-prop.angle})`}
+                              onClick={() => setSelectedIdx(prop.index)}
+                              style={{ cursor: 'pointer' }}
+                            >
+                              {/* Assigned player ring */}
+                              {assignedMember && (
+                                <rect
+                                  x={-rectW / 2 - 0.08}
+                                  y={-rectH / 2 - 0.08}
+                                  width={rectW + 0.16}
+                                  height={rectH + 0.16}
+                                  fill="none"
+                                  stroke={assignedMember.color}
+                                  strokeWidth={0.06}
+                                  rx={0.05}
+                                />
+                              )}
+                              {/* Prop body */}
+                              <rect
+                                x={-rectW / 2}
+                                y={-rectH / 2}
+                                width={rectW}
+                                height={rectH}
+                                fill={color}
+                                stroke={hl?.stroke ?? (isSelected ? '#0a0a0a' : '#00000033')}
+                                strokeWidth={hl?.width ?? (isSelected ? 0.08 : 0.02)}
+                                rx={0.04}
+                                className={hl?.blink ? 'animate-pulse' : ''}
+                              />
+                            </g>
+                          )
+                        })}
+
+                      {/* ===== DOOR LAYER ===== */}
+                      {layers.doors &&
+                        DOOR_POSITIONS.map((door, i) => {
+                          const state = doorStateFromInt(doorStates[i])
+                          const color = DOOR_COLORS[state]
+                          return (
+                            <g key={`door-${i}`} transform={`translate(${door.x} ${door.z})`}>
+                              {/* Door swing arc — faint quarter-circle hinting open direction */}
+                              <path
+                                d="M 0 0 L 1.4 0 A 1.4 1.4 0 0 1 0 1.4 Z"
+                                fill={color}
+                                fillOpacity={state === 'open' ? 0.35 : 0.12}
+                                stroke={color}
+                                strokeOpacity={0.5}
+                                strokeWidth={0.04}
+                              />
+                              {/* Door leaf — a horizontal bar across the entrance gap */}
+                              <rect
+                                x={-0.85}
+                                y={-0.1}
+                                width={1.7}
+                                height={0.2}
+                                fill={color}
+                                stroke="#00000055"
+                                strokeWidth={0.03}
+                                rx={0.04}
+                              />
+                              {/* State indicator dot in the center */}
+                              <circle
+                                cx={0}
+                                cy={0}
+                                r={0.12}
+                                fill="#ffffff"
+                                stroke={color}
+                                strokeWidth={0.05}
+                              />
+                            </g>
+                          )
+                        })}
+                    </g>
+
+                    {/* ===== TEXT LAYER =====
+                        Rendered OUTSIDE the Y-flip wrapper so glyphs stay upright.
+                        Positions are manually flipped via flippedY = (minZ + maxZ) - z. */}
+                    <g style={{ pointerEvents: 'none' }}>
+                      {layers.activity &&
+                        layout.map((prop) => {
+                          const eff = efficiencies.find((e) => e.propIndex === prop.index)
+                          if (!eff) return null
+                          const flippedY = bounds.minZ + bounds.maxZ - prop.posZ
+                          const rectW = 0.6
+                          const rectH = 0.4
+                          return (
+                            <g key={`txt-${prop.index}`} transform={`translate(${prop.posX} ${flippedY})`}>
+                              <text
+                                x={0}
+                                y={0}
+                                textAnchor="middle"
+                                dominantBaseline="central"
+                                fontSize={0.28}
+                                className="fill-white font-bold"
+                                style={{ paintOrder: 'stroke', stroke: '#00000080', strokeWidth: 0.03 }}
+                              >
+                                {eff.totalUnits}
+                              </text>
+                              <text
+                                x={rectW / 2 - 0.04}
+                                y={-rectH / 2 + 0.04}
+                                textAnchor="end"
+                                dominantBaseline="hanging"
+                                fontSize={0.13}
+                                className="fill-white/80"
+                              >
+                                #{prop.index}
+                              </text>
+                            </g>
+                          )
+                        })}
+                      {layers.doors &&
+                        DOOR_POSITIONS.map((door, i) => {
+                          const state = doorStateFromInt(doorStates[i])
+                          const color = DOOR_COLORS[state]
+                          const flippedY = bounds.minZ + bounds.maxZ - door.z
+                          return (
+                            <g key={`door-txt-${i}`} transform={`translate(${door.x} ${flippedY})`}>
+                              <text
+                                x={0}
+                                y={0.55}
+                                textAnchor="middle"
+                                dominantBaseline="hanging"
+                                fontSize={0.42}
+                                className="fill-foreground font-bold"
+                                style={{ paintOrder: 'stroke', stroke: '#ffffffaa', strokeWidth: 0.04 }}
+                              >
+                                {door.label}
+                              </text>
+                              <text
+                                x={0}
+                                y={1.05}
+                                textAnchor="middle"
+                                dominantBaseline="hanging"
+                                fontSize={0.28}
+                                fontWeight="600"
+                                fill={color}
+                                style={{ paintOrder: 'stroke', stroke: '#ffffffaa', strokeWidth: 0.03 }}
+                              >
+                                {layoutLabel(`layout.door.${state}`, lang)}
+                              </text>
+                            </g>
+                          )
+                        })}
+                      {/* Orientation labels (entrance / back of store) */}
+                      <text
+                        x={(bounds.minX + bounds.maxX) / 2}
+                        y={bounds.maxZ - 0.4}
+                        textAnchor="middle"
+                        dominantBaseline="auto"
+                        fontSize={0.55}
+                        className="fill-emerald-600/80 dark:fill-emerald-400/80 font-bold"
+                      >
+                        {layoutLabel('layout.entrance', lang)} ↓
+                      </text>
+                      <text
+                        x={(bounds.minX + bounds.maxX) / 2}
+                        y={bounds.minZ + 0.4}
+                        textAnchor="middle"
+                        dominantBaseline="hanging"
+                        fontSize={0.45}
+                        className="fill-muted-foreground"
+                      >
+                        {layoutLabel('layout.back', lang)}
+                      </text>
+                    </g>
+                  </g>
                 </svg>
               </div>
+              <div className="mt-1 text-[10px] text-muted-foreground">{layoutLabel('layout.hint.pan', lang)}</div>
 
               {/* Legend */}
-              <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
-                <span className="text-muted-foreground">Buildable 顏色:</span>
-                {[0, 1, 2, 3].map((id) => (
-                  <div key={id} className="flex items-center gap-1.5">
-                    <span
-                      className="inline-block h-3 w-3 rounded-sm"
-                      style={{ backgroundColor: BUILDABLE_PALETTE[id] ?? FALLBACK_COLOR }}
-                    />
-                    <span>{buildableIdNameFor(id, lang)}</span>
+              <div className="mt-2 space-y-2 text-xs">
+                {/* Shelves legend */}
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-muted-foreground">{layoutLabel('layout.legend.activity', lang)}:</span>
+                  {[0, 1, 2, 3].map((id) => (
+                    <div key={id} className="flex items-center gap-1.5">
+                      <span
+                        className="inline-block h-3 w-3 rounded-sm"
+                        style={{ backgroundColor: BUILDABLE_PALETTE[id] ?? FALLBACK_COLOR }}
+                      />
+                      <span>{buildableIdNameFor(id, lang)}</span>
+                    </div>
+                  ))}
+                  <span className="ml-1 text-muted-foreground">{lang === 'en' ? 'number = total units' : '數字 = 該貨架總庫存單位'}</span>
+                </div>
+                {/* Structure legend */}
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-muted-foreground">{layoutLabel('layout.legend.structure', lang)}:</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-block h-3 w-3 rounded-sm border border-slate-400 bg-slate-200 dark:bg-slate-800" />
+                    <span>{layoutLabel('layout.struct.floor', lang)}</span>
                   </div>
-                ))}
-                <span className="ml-2 text-muted-foreground">數字 = 該貨架總庫存單位</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-block h-3 w-3 border-2 border-slate-600 dark:border-slate-400" />
+                    <span>{layoutLabel('layout.struct.outerWall', lang)}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-block h-2 w-2 rounded-sm bg-slate-500" />
+                    <span>{layoutLabel('layout.struct.pillar', lang)}</span>
+                  </div>
+                </div>
+                {/* Door legend */}
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-muted-foreground">{layoutLabel('layout.legend.doors', lang)}:</span>
+                  {(['closed', 'open', 'auto', 'unknown'] as DoorState[]).map((s) => (
+                    <div key={s} className="flex items-center gap-1.5">
+                      <span
+                        className="inline-block h-3 w-3 rounded-sm"
+                        style={{ backgroundColor: DOOR_COLORS[s] }}
+                      />
+                      <span>{layoutLabel(`layout.door.${s}`, lang)}</span>
+                    </div>
+                  ))}
+                  <span className="ml-1 text-muted-foreground">
+                    {doorStates.length > 0
+                      ? lang === 'en'
+                        ? `save: [${doorStates.join(', ')}]`
+                        : `存檔: [${doorStates.join(', ')}]`
+                      : layoutLabel('layout.door.noSave', lang)}
+                  </span>
+                </div>
+                {/* Ceiling legend (only shown when ceiling layer is enabled) */}
+                {layers.ceiling && (
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="text-muted-foreground">{layoutLabel('layout.legend.ceiling', lang)}:</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="inline-block h-3 w-3 rounded-sm border border-slate-400 bg-slate-300/40" />
+                      <span>{layoutLabel('layout.ceil.ceiling', lang)}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="inline-block h-3 w-3 bg-slate-600" />
+                      <span>{layoutLabel('layout.ceil.beam', lang)}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="inline-block h-2 w-2 rounded-full bg-amber-300" />
+                      <span>{layoutLabel('layout.ceil.light', lang)}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="inline-block h-3 w-3 rounded-sm bg-blue-500" />
+                      <span>{layoutLabel('layout.ceil.vent', lang)}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -493,8 +1004,8 @@ export function StoreLayout() {
               ) : (
                 <div className="flex h-full flex-col items-center justify-center rounded-md border border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground">
                   <MapIcon className="mb-2 h-8 w-8 opacity-50" />
-                  <div>點擊地圖上任一貨架查看詳細資訊</div>
-                  <div className="mt-1 text-xs">含庫存清單、效率、缺漏、負庫存異常</div>
+                  <div>{lang === 'en' ? 'Click any shelf on the map to see details' : '點擊地圖上任一貨架查看詳細資訊'}</div>
+                  <div className="mt-1 text-xs">{lang === 'en' ? 'Inventory, efficiency, gaps, anomalies' : '含庫存清單、效率、缺漏、負庫存異常'}</div>
                 </div>
               )}
             </div>
@@ -825,6 +1336,170 @@ export function StoreLayout() {
         </Card>
       )}
     </div>
+  )
+}
+
+// ============================================================
+// Structure layer — static geometry from level0 scene
+// (floor tiles, outer walls, wall tops, pillars).
+// Rendered inside the Y-flip wrapper so coords are natural Unity
+// world coords (SVG x = world X, SVG y = world Z).
+// ============================================================
+function StructureLayerView({
+  floor,
+  outerWall,
+  wallTop,
+  pillar,
+  minX,
+  maxX,
+  minZ,
+  maxZ,
+}: {
+  floor: StructureObject[]
+  outerWall: StructureObject[]
+  wallTop: StructureObject[]
+  pillar: StructureObject[]
+  minX: number
+  maxX: number
+  minZ: number
+  maxZ: number
+}) {
+  return (
+    <g style={{ pointerEvents: 'none' }}>
+      {/* Full-floor muted rectangle so the store footprint reads as one shape */}
+      <rect
+        x={minX + VIEW_PAD}
+        y={minZ + VIEW_PAD}
+        width={maxX - minX - 2 * VIEW_PAD}
+        height={maxZ - minZ - 2 * VIEW_PAD}
+        className="fill-muted"
+        stroke="#94a3b8"
+        strokeOpacity={0.4}
+        strokeWidth={0.04}
+        rx={0.2}
+      />
+
+      {/* Floor tiles — subtle grid pattern showing individual tiles */}
+      {floor.map((o, i) => (
+        <rect
+          key={`floor-${i}`}
+          x={o.x - 2.5}
+          y={o.z - 4}
+          width={5}
+          height={8}
+          fill="#f1f5f9"
+          fillOpacity={0.5}
+          className="dark:fill-slate-800"
+          stroke="#cbd5e1"
+          strokeOpacity={0.6}
+          strokeWidth={0.03}
+        />
+      ))}
+
+      {/* Outer walls — thick dark strokes along the perimeter.
+          We draw the 4 perimeter edges (left/right/front/back) using the
+          level0 bounding box, plus small markers at each outerWall object
+          position to show the actual wall-segment grid. */}
+      <g stroke="#475569" strokeWidth={0.4} strokeLinecap="round" className="dark:stroke-slate-400">
+        {/* Left wall (X = minX+pad) */}
+        <line
+          x1={minX + VIEW_PAD}
+          y1={minZ + VIEW_PAD}
+          x2={minX + VIEW_PAD}
+          y2={maxZ - VIEW_PAD}
+        />
+        {/* Right wall (X = maxX-pad) */}
+        <line
+          x1={maxX - VIEW_PAD}
+          y1={minZ + VIEW_PAD}
+          x2={maxX - VIEW_PAD}
+          y2={maxZ - VIEW_PAD}
+        />
+        {/* Back wall (Z = maxZ-pad) — solid, no doors */}
+        <line
+          x1={minX + VIEW_PAD}
+          y1={maxZ - VIEW_PAD}
+          x2={maxX - VIEW_PAD}
+          y2={maxZ - VIEW_PAD}
+        />
+        {/* Front wall (Z = minZ+pad) — has 4 door gaps at X = -9, -3, 3, 9 */}
+        <line
+          x1={minX + VIEW_PAD}
+          y1={minZ + VIEW_PAD}
+          x2={-10.5}
+          y2={minZ + VIEW_PAD}
+        />
+        <line
+          x1={-7.5}
+          y1={minZ + VIEW_PAD}
+          x2={-4.5}
+          y2={minZ + VIEW_PAD}
+        />
+        <line
+          x1={-1.5}
+          y1={minZ + VIEW_PAD}
+          x2={1.5}
+          y2={minZ + VIEW_PAD}
+        />
+        <line
+          x1={4.5}
+          y1={minZ + VIEW_PAD}
+          x2={7.5}
+          y2={minZ + VIEW_PAD}
+        />
+        <line
+          x1={10.5}
+          y1={minZ + VIEW_PAD}
+          x2={maxX - VIEW_PAD}
+          y2={minZ + VIEW_PAD}
+        />
+      </g>
+
+      {/* Outer-wall object markers — small squares at each wall-segment pivot */}
+      {outerWall.map((o, i) => (
+        <rect
+          key={`ow-${i}`}
+          x={o.x - 0.2}
+          y={o.z - 0.2}
+          width={0.4}
+          height={0.4}
+          fill="#64748b"
+          fillOpacity={0.65}
+          className="dark:fill-slate-500"
+        />
+      ))}
+
+      {/* Wall-top highlight — thin lighter line above the front wall */}
+      {wallTop.map((o, i) => (
+        <rect
+          key={`wt-${i}`}
+          x={o.x - 2.5}
+          y={o.z - 0.1}
+          width={5}
+          height={0.2}
+          fill="#94a3b8"
+          fillOpacity={0.7}
+          className="dark:fill-slate-500"
+        />
+      ))}
+
+      {/* Pillars — small filled squares at each pillar position */}
+      {pillar.map((o, i) => (
+        <rect
+          key={`pillar-${i}`}
+          x={o.x - 0.3}
+          y={o.z - 0.3}
+          width={0.6}
+          height={0.6}
+          fill="#64748b"
+          className="dark:fill-slate-500"
+          stroke="#334155"
+          strokeOpacity={0.6}
+          strokeWidth={0.04}
+          rx={0.04}
+        />
+      ))}
+    </g>
   )
 }
 

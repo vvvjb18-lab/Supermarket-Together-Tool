@@ -983,3 +983,177 @@ Stage Summary:
 - 本地 production build 已確認 env vars 正確 inline 進 client bundle
 - commit ed1e112 已建立，待 push 到 GitHub → Vercel auto-redeploy → Room 頁面會顯示綠色 banner
 - 用戶下一步：push commit 到 GitHub（需新 PAT，舊的已暴露建議 revoke）
+
+---
+Task ID: LAYOUT-REWRITE
+Agent: full-stack-developer
+Task: Rewrite store-layout.tsx with two-layer SVG map (level0 structure + save activity)
+
+Work Log:
+- Read worklog.md (project context: Supermarket Together Lab — Next.js 16 + TS + Tailwind + shadcn/ui), level0-types.ts (300 structure objects in 8 categories), and current store-layout.tsx (1027 lines — leaderboard, prop detail card, highlight modes, efficiency stats).
+- Verified level0-geometry.json data shape: 30 floor tiles on a 5×6 grid, 37 outerWall segments, 42 pillars, 143 beams, 12 lights, 3 vents, 30 ceiling tiles, 3 wallTop strips. Store bounds: X[-15,15], Z[-3,48].
+- Verified save.json's DoorStates structure: `decoded.DoorStates.value.array` is `[{__type:'int', value:N}, ...]` with 4 entries. The es3-parser already extracts this into `snapshot.doorStates: number[]`. The provided upload/save.json has values [2, 0, 1, 1] = [auto, closed, open, open].
+
+Changes Made:
+
+1. **src/lib/i18n.ts** (+72 lines, append-only):
+   - Added `LAYOUT_STRINGS` constant with 27 keys under `layout.*` prefix:
+     - `layout.layer.{structure,activity,ceiling,doors}` — layer toggle labels
+     - `layout.layers.label`, `layout.zoom.{label,in,out,reset,level}` — toolbar chrome
+     - `layout.hint.pan`, `layout.entrance`, `layout.back` — map orientation hints
+     - `layout.legend{,.structure,.activity,.ceiling,.doors}` — legend headings
+     - `layout.struct.{floor,outerWall,wallTop,pillar}` — structure element labels
+     - `layout.ceil.{ceiling,beam,light,vent}` — ceiling element labels
+     - `layout.door.{label,states,closed,open,auto,unknown,noSave}` — door state labels
+   - Exported `layoutLabel(key, lang)` resolver and `useLayoutLabel()` hook.
+
+2. **src/components/lab/store-layout.tsx** (1027 → 1689 lines):
+   - Added imports: `useRef` from react, `layoutLabel` from i18n, `level0Geometry`/`storeBounds`/`structureByCategory`/`DOOR_POSITIONS`/`doorStateFromInt`/`StructureObject`/`DoorState` from level0-types, `ZoomIn`/`ZoomOut`/`Maximize`/`DoorOpen` from lucide-react.
+   - Added `DOOR_COLORS` map (closed→#ef4444, open→#22c55e, auto→#3b82f6, unknown→#9ca3af).
+   - Added `DEFAULT_LAYERS` ({structure:true, activity:true, ceiling:false, doors:true}) and `LayerState` type.
+   - Added `VIEW_PAD=2` constant for viewBox padding.
+   - Replaced `bounds` useMemo to prefer `storeBounds` (full Unity scene) over shelf-derived bounds, with fallback.
+   - Added `doorStates` useMemo: reads `snapshot.doorStates` first, falls back to raw extraction from `snapshot.decoded.DoorStates.value.array` via typed cast.
+   - Added `structureGroups` useMemo pre-computing per-category arrays from `structureByCategory`.
+   - Added `layers` state + `ToggleGroup type="multiple"` for layer visibility (4 buttons).
+   - Added zoom/pan state: `scale` (0.4–8), `pan` ({x,y}), `isDragging`, `dragRef`, `svgRef`.
+   - Implemented `clientToSvg()` using `svg.getScreenCTM().inverse()` + `createSVGPoint()` for cursor→world coord conversion (handles viewBox + Y-flip).
+   - Implemented `handleWheel()` for cursor-anchored zoom (solves newPan = cursor - actualFactor*(cursor - pan)).
+   - Implemented pointer drag handlers with 0.15-unit movement threshold before activating drag (so simple clicks on shelves still fire their onClick — setPointerCapture only called when actual drag begins).
+   - Rewrote SVG section with new structure:
+     - `<defs>`: grid pattern + radial gradient `lightGlow` for ceiling lights.
+     - Background grid `<rect>` (full viewport, not flipped).
+     - Zoom/pan wrapper `<g transform="translate(pan) scale(scale)">`.
+     - **Y-flip wrapper** `<g transform="matrix(1 0 0 -1 0 minZ+maxZ)">` so entrance (Z=-3) appears at the BOTTOM of the map.
+     - **Structure layer** (new `StructureLayerView` component): full-floor muted rect, 30 floor tiles (5×8 rects with slate-200/slate-800 dark mode), 4 perimeter walls as thick strokes (front wall has 4 door gaps at X=-9/-3/3/9), 37 outerWall markers, 3 wallTop highlights, 42 pillars (0.6×0.6 slate-500 squares).
+     - **Ceiling layer** (opacity 0.4, pointerEvents none): 30 ceiling tiles (translucent slate-300), 143 beams (3×0.16 slate-600 rects), 12 lights (radialGradient halo + amber center), 3 vents (0.7×0.7 blue squares).
+     - **Activity layer** (existing shelves): rotated rect with `-prop.angle` (negated to compensate for Y-flip), keep existing click-to-select + assigned-player ring + highlight modes. Text labels extracted OUTSIDE the flip wrapper to keep glyphs upright.
+     - **Door layer**: 4 doors at DOOR_POSITIONS, each with swing arc path + horizontal leaf rect + center indicator dot, colored by `doorStateFromInt(doorStates[i])`.
+     - **Text layer** (outside flip wrapper): shelf count labels + prop index, door labels ("門 1".."門 4") + state text (關閉/開啟/自動/未知), entrance "入口 ↓" and back "店面後方" orientation labels.
+   - Enhanced legend: 4 sections (shelves/structure/doors/ceiling) with colored swatches and labels; door legend shows raw save values `[2, 0, 1, 1]` or "未載入存檔" fallback; ceiling legend only shown when ceiling layer is toggled on.
+   - Added zoom controls (ZoomOut/ZoomIn/Reset buttons + percentage display).
+   - Added `StructureLayerView` component (156 lines) at bottom of file.
+
+Quality Verification:
+- `bun run lint` → 0 errors (initial ref-during-render error fixed by adding `isDragging` state instead of reading `dragRef.current` in render).
+- `bunx tsc --noEmit` → 0 errors in store-layout.tsx and i18n.ts (only pre-existing errors in skills/ folder and SkillsDataTable.tsx).
+- agent-browser end-to-end test on http://localhost:3000/ → store-layout page renders cleanly:
+  - "店面平面圖分析" heading + bounds display "範圍 X[-15, 15] · Z[-3, 48]" ✓
+  - Layer toggle group with 4 buttons (結構層/活動層/天花板層/大門) — clicking 天花板層 reveals ceiling legend (天花板板/橫樑/燈具/通風口) ✓
+  - Zoom controls work (100% → 120% after clicking 放大) ✓
+  - 41 SVG shelf groups render with click handlers — clicking opens detail card (posX/posZ/angle/總單位/庫存清單) ✓
+  - 4 doors render with "門 1".."門 4" labels + "未知" state (no save loaded) ✓
+  - "入口 ↓" orientation label at bottom ✓
+  - Legend shows all 4 sections with correct colors ✓
+  - Language switch EN: all labels translate (Structure/Activity/Ceiling/Doors/Zoom/Reset/Entrance/Closed/Open/Auto/Unknown) ✓
+  - 0 console errors after all interactions ✓
+
+Stage Summary:
+- Store Layout page enhanced from a single-layer SVG (shelves only) to a full two-layer map combining level0 static structure (300 Unity scene objects) + save.json dynamic activity (shelves + door states).
+- New toggleable layers: Structure (default on), Activity (default on), Ceiling (default off, opacity 0.4 overlay), Doors (default on).
+- New zoom/pan: cursor-anchored wheel zoom (0.4×–8×), pointer drag pan with 0.15-unit click-vs-drag threshold (preserves shelf click-to-select).
+- Y-flip wrapper puts entrance at bottom of map (intuitive UX); text labels rendered outside flip wrapper to stay upright.
+- Door states read from `snapshot.doorStates` (populated by es3-parser from `decoded.DoorStates.value.array`); 4 doors colored red/green/blue/gray for closed/open/auto/unknown.
+- 27 new i18n keys under `layout.*` prefix (both en + zhHant); language switcher tested and verified.
+- All existing functionality preserved: leaderboard table, prop detail card, highlight modes (8), efficiency stats, room shelf assignment, Top 5 problematic shelves, recommended swaps.
+- `bun run lint` 0 errors; `bunx tsc --noEmit` 0 new errors in changed files; agent-browser end-to-end QA green (0 console errors, all toggles + zoom + click + language switch verified).
+
+---
+Task ID: LEVEL0-EXTRACT
+Agent: orchestrator (main)
+Task: 依照用戶提供的 level0 靜態結構規格，從 Unity level0 場景檔提取結構幾何，整合到店面平面圖。
+
+Work Log:
+- 安裝 UnityPy 1.25.3 (pip install --break-system-packages UnityPy)
+- 撰寫 /home/z/my-project/scripts/extract-level0.py：
+  - 載入 upload/level0 (2.5MB Unity binary scene, 5734 objects, 1185 GameObjects)
+  - 走訪每個 GameObject 的 m_Transform，沿 m_Father 鏈累加 m_LocalPosition 計算世界座標
+  - 跳過 RectTransform (UI 物件，696 個)
+  - 用 (名稱 regex + Y 高度) 分類為 8 種結構類別 + 2 層 (ground/ceiling)
+  - strip Unity 自動加的 "(N)" 後綴
+- 產出 /home/z/my-project/src/data/level0-geometry.json (300 個結構物件)
+- 驗證分類計數完全符合用戶規格：
+  - floor: 30 (25 UModeler_Floor + 5 UModeler_Floor2) ✅
+  - outerWall: 37 (19 OuterLargeWall + 17 SmallOuterWall + 1 CrossWall) ✅
+  - wallTop: 3 ✅
+  - pillar: 42 (16 Tee + 2 Corner + 24 BeamCross) ✅
+  - ceiling: 30 (25 Ceiling + 5 Ceiling2) ✅
+  - beam: 143 (101 Beam + 24 BeamCross + 16 BeamTee + 2 BeamLeft) ✅
+  - light: 12 (6 Point Light + 6 Neon) ✅
+  - vent: 3 ✅
+- bounding box: X[-15, 15], Z[-3, 48]
+- 建立 /home/z/my-project/src/lib/level0-types.ts：
+  - StructureObject / StructureCategory / StructureLayer types
+  - level0Geometry / storeBounds / structureByCategory exports
+  - DOOR_POSITIONS (4 門位置: X=-9/-3/3/9, Z=-3)
+  - doorStateFromInt() (0=closed, 1=open, 2=auto)
+
+Stage Summary:
+- level0 靜態結構完全提取，300 物件分 8 類，計數 100% 符合規格
+- Python 腳本可重複執行 (python3 scripts/extract-level0.py)
+- TypeScript types + loader 已就緒供前端使用
+- commit 待建立
+
+---
+Task ID: LAYOUT-REWRITE
+Agent: full-stack-developer (sub)
+Task: 重寫 store-layout.tsx，加入兩層 SVG 地圖 (level0 結構層 + save 活動層 + 天花板層 + 大門層)
+
+Work Log:
+- 讀取 worklog.md、level0-types.ts、現有 store-layout.tsx (1026 行)
+- 擴充 src/lib/i18n.ts：新增 27 個 layout.* i18n keys (en + zhHant)
+- 重寫 src/components/lab/store-layout.tsx (1027 → 1689 行)：
+  - Y 軸翻轉 wrapper (matrix(1 0 0 -1 0 minZ+maxZ)) 讓入口 (Z=-3) 在底部
+  - 結構層：地板矩形 + 30 floor tiles + 4 面周界牆 (前牆有 4 門缺口) + 37 outerWall + 3 wallTop + 42 pillars
+  - 天花板層 (可切換, opacity 0.4)：30 ceiling + 143 beams + 12 lights (radial-gradient glow) + 3 vents
+  - 活動層：保留現有貨架渲染 (rotation 取負補償翻轉)
+  - 大門層：4 門 at DOOR_POSITIONS，swing arc + leaf rect + 狀態色 (red=closed, green=open, blue=auto, gray=unknown)
+  - 文字層在翻轉 wrapper 外，保持字元直立
+  - 工具列：4 圖層 toggle (ToggleGroup multiple) + 縮放控制 (ZoomOut/In/Reset + 百分比)
+  - 滑鼠滾輪縮放 (0.4×–8×) + 拖拽平移 (0.15-unit click-vs-drag threshold 保留貨架點擊)
+  - 4 段圖例 (貨架/結構/大門/天花板) 含大門 save 值顯示
+  - 大門狀態從 snapshot.doorStates 讀取，fallback 到 decoded.DoorStates.value.array
+- 驗證：
+  - bun run lint → 0 errors
+  - bunx tsc --noEmit → 0 new errors in changed files (僅 pre-existing skills/ 錯誤)
+  - agent-browser QA：頁面正常渲染、所有 toggle 可用、縮放可用、貨架點擊→詳情卡片、語言切換、0 console errors
+
+Stage Summary:
+- 兩層 SVG 地圖完成：結構層 (牆地柱) + 活動層 (貨架) + 天花板層 (可切換) + 大門層 (狀態色)
+- 範圍顯示 X[-15, 15] · Z[-3, 48] 與 level0 bounding box 一致
+- 4 個大門標籤 (門 1-4) 正確顯示
+- demo save 載入後貨架資料正確渲染
+- 保留所有原有功能 (leaderboard、detail card、highlight modes、智慧建議)
+
+---
+Task ID: LEVEL0-QA
+Agent: orchestrator (main)
+Task: 獨立驗證 level0 整合 + 兩層地圖的完整性
+
+Work Log:
+- bun run lint → 0 errors ✅
+- bunx tsc --noEmit → 僅 pre-existing SkillsDataTable 錯誤，changed files 0 errors ✅
+- agent-browser 開啟 http://127.0.0.1:81/ → 點「店面平面圖」→ 頁面正常渲染
+- 驗證頁面元素：
+  - 標題「店面平面圖分析」✅
+  - 範圍「X[-15, 15] · Z[-3, 48]」✅ (與 level0 bbox 一致)
+  - 4 個圖層 toggle：結構層/活動層/天花板層/大門 ✅
+  - 縮放控制：縮小/放大/重設 + 百分比顯示 ✅
+  - 8 個高亮模式 radio ✅
+  - SVG 地圖含多個可點擊貨架 group ✅
+- 互動測試：
+  - 天花板層 toggle ON/OFF ✅
+  - 大門 toggle ON/OFF ✅
+  - 縮放放大/重設 ✅
+  - 點擊貨架 → 詳情卡片 (貨架 #0, 放置模式, 總庫存單位, 庫存清單) ✅
+  - 4 個大門標籤 (門 1-4) 顯示 ✅
+  - 圖例含貨架/結構/大門/天花板段落 ✅
+- console errors → [] (0 個) ✅
+- dev.log → 無 ⨯ 或 error: 行 ✅
+- 載入 Demo Save → 來源切換為 "save (demo:derived-from-storeLayout)" ✅
+
+Stage Summary:
+- 兩層地圖 + level0 結構整合完全驗證通過
+- 0 lint errors, 0 console errors, 0 runtime errors
+- 所有互動 (圖層切換、縮放、貨架點擊、demo 載入) 正常
+- 用戶可在 Preview Panel 點「店面平面圖」查看結果

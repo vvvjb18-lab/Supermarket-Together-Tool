@@ -464,3 +464,72 @@ export function useSkillToolLabel(): (key: string) => string {
   const lang = useLang()
   return (key: string) => skillToolLabel(key, lang)
 }
+
+// ============================================================
+// Store Layout two-layer map UI strings (Task LAYOUT-REWRITE)
+// ============================================================
+// Append-only: chrome labels for the structure + activity + ceiling
+// + door layers and the zoom/pan toolbar.
+
+const LAYOUT_STRINGS: Record<string, { en: string; zhHant: string }> = {
+  // Layer toggle labels
+  'layout.layer.structure': { en: 'Structure', zhHant: '結構層' },
+  'layout.layer.activity': { en: 'Activity', zhHant: '活動層' },
+  'layout.layer.ceiling': { en: 'Ceiling', zhHant: '天花板層' },
+  'layout.layer.doors': { en: 'Doors', zhHant: '大門' },
+
+  // Layer group / toolbar chrome
+  'layout.layers.label': { en: 'Layers', zhHant: '圖層' },
+  'layout.zoom.label': { en: 'Zoom', zhHant: '縮放' },
+  'layout.zoom.in': { en: 'Zoom in', zhHant: '放大' },
+  'layout.zoom.out': { en: 'Zoom out', zhHant: '縮小' },
+  'layout.zoom.reset': { en: 'Reset', zhHant: '重設' },
+  'layout.zoom.level': { en: 'Level', zhHant: '倍率' },
+
+  // Map hints
+  'layout.hint.pan': { en: 'Drag to pan · Scroll to zoom', zhHant: '拖曳平移 · 滾輪縮放' },
+  'layout.entrance': { en: 'Entrance', zhHant: '入口' },
+  'layout.back': { en: 'Back of store', zhHant: '店面後方' },
+
+  // Legend headings
+  'layout.legend': { en: 'Legend', zhHant: '圖例' },
+  'layout.legend.structure': { en: 'Structure', zhHant: '結構' },
+  'layout.legend.activity': { en: 'Shelves', zhHant: '貨架' },
+  'layout.legend.ceiling': { en: 'Ceiling', zhHant: '天花板' },
+  'layout.legend.doors': { en: 'Doors', zhHant: '大門' },
+
+  // Structure element labels
+  'layout.struct.floor': { en: 'Floor tile', zhHant: '地板' },
+  'layout.struct.outerWall': { en: 'Outer wall', zhHant: '外牆' },
+  'layout.struct.wallTop': { en: 'Wall top', zhHant: '牆頂' },
+  'layout.struct.pillar': { en: 'Pillar', zhHant: '柱子' },
+
+  // Ceiling element labels
+  'layout.ceil.ceiling': { en: 'Ceiling tile', zhHant: '天花板板' },
+  'layout.ceil.beam': { en: 'Beam', zhHant: '橫樑' },
+  'layout.ceil.light': { en: 'Light', zhHant: '燈具' },
+  'layout.ceil.vent': { en: 'Vent', zhHant: '通風口' },
+
+  // Door states
+  'layout.door.label': { en: 'Door', zhHant: '門' },
+  'layout.door.states': { en: 'Door states', zhHant: '門狀態' },
+  'layout.door.closed': { en: 'Closed', zhHant: '關閉' },
+  'layout.door.open': { en: 'Open', zhHant: '開啟' },
+  'layout.door.auto': { en: 'Auto', zhHant: '自動' },
+  'layout.door.unknown': { en: 'Unknown', zhHant: '未知' },
+  'layout.door.noSave': {
+    en: 'No save loaded — door states unavailable',
+    zhHant: '未載入存檔 — 無法取得門狀態',
+  },
+}
+
+export function layoutLabel(key: string, lang: Lang): string {
+  const entry = LAYOUT_STRINGS[key]
+  if (!entry) return key
+  return lang === 'en' ? entry.en : entry.zhHant
+}
+
+export function useLayoutLabel(): (key: string) => string {
+  const lang = useLang()
+  return (key: string) => layoutLabel(key, lang)
+}

@@ -1,0 +1,1027 @@
+     1→'use client'
+     2→
+     3→import { useMemo, useState } from 'react'
+     4→import { useSaveStore, useRoomStore } from '@/lib/store'
+     5→import { encyclopedia as ENC } from '@/lib/data-loader'
+     6→import { computeShelfEfficiency, computeDemandProxy } from '@/lib/engine'
+     7→import type { PropEfficiency } from '@/lib/engine'
+     8→import { useLang, productNameFor, groupIdNameFor, buildableIdNameFor } from '@/lib/i18n'
+     9→import {
+    10→  ConfidenceBadge,
+    11→  StatCard,
+    12→  SectionHeader,
+    13→  MiniBar,
+    14→  fmt,
+    15→  fmtMoney,
+    16→} from '@/components/shared/primitives'
+    17→import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+    18→import { Button } from '@/components/ui/button'
+    19→import { Badge } from '@/components/ui/badge'
+    20→import {
+    21→  ToggleGroup,
+    22→  ToggleGroupItem,
+    23→} from '@/components/ui/toggle-group'
+    24→import {
+    25→  Table,
+    26→  TableBody,
+    27→  TableCell,
+    28→  TableHead,
+    29→  TableHeader,
+    30→  TableRow,
+    31→} from '@/components/ui/table'
+    32→import {
+    33→  Select,
+    34→  SelectContent,
+    35→  SelectItem,
+    36→  SelectTrigger,
+    37→  SelectValue,
+    38→} from '@/components/ui/select'
+    39→import {
+    40→  MapIcon,
+    41→  ArrowUpDown,
+    42→  Lightbulb,
+    43→  Boxes,
+    44→  X,
+    45→  Layers,
+    46→  AlertCircle,
+    47→  ArrowRight,
+    48→} from 'lucide-react'
+    49→import type { LayoutProp } from '@/lib/types'
+    50→
+    51→// ============================================================
+    52→// Store Layout Analyzer
+    53→// ------------------------------------------------------------
+    54→// Top-down SVG map of all store props (save data if available,
+    55→// else encyclopedia demo layout of 41 props). Each prop is
+    56→// positioned by posX/posZ, rotated by angle, colored by
+    57→// buildableId. Multiple highlight modes surface empty / low /
+    58→// high-value / duplicated / anomaly shelves.
+    59→// ============================================================
+    60→
+    61→type HighlightMode =
+    62→  | 'none'
+    63→  | 'empty'
+    64→  | 'low'
+    65→  | 'high-value'
+    66→  | 'low-value'
+    67→  | 'duplicated'
+    68→  | 'missing-demand'
+    69→  | 'negative'
+    70→
+    71→const BUILDABLE_PALETTE: Record<number, string> = {
+    72→  0: '#94a3b8', // slate-400 — Placement Mode (default shelf)
+    73→  1: '#10b981', // emerald-500 — Product Shelf
+    74→  2: '#0ea5e9', // sky-500 — Basic Fridge
+    75→  3: '#6366f1', // indigo-500 — Double Fridge
+    76→}
+    77→const FALLBACK_COLOR = '#a1a1aa'
+    78→
+    79→type SortKey = 'efficiency' | 'shelfValue' | 'totalUnits' | 'demandCoverage' | 'emptySlots' | 'distinctProducts'
+    80→
+    81→const HIGHLIGHT_LABELS: { value: HighlightMode; label: string; color: string }[] = [
+    82→  { value: 'none', label: '無', color: '#a1a1aa' },
+    83→  { value: 'empty', label: '空貨架', color: '#f43f5e' },
+    84→  { value: 'low', label: '低庫存', color: '#f59e0b' },
+    85→  { value: 'high-value', label: '高價值', color: '#10b981' },
+    86→  { value: 'low-value', label: '低價值', color: '#71717a' },
+    87→  { value: 'duplicated', label: '重複商品', color: '#a855f7' },
+    88→  { value: 'missing-demand', label: '缺高需求', color: '#fb923c' },
+    89→  { value: 'negative', label: '負庫存', color: '#e11d48' },
+    90→]
+    91→
+    92→export function StoreLayout() {
+    93→  const lang = useLang()
+    94→  const snapshot = useSaveStore((s) => s.snapshot)
+    95→  const room = useRoomStore((s) => s.room)
+    96→  const assignShelf = useRoomStore((s) => s.assignShelf)
+    97→
+    98→  const layout: LayoutProp[] = useMemo(
+    99→    () => snapshot?.storeLayout ?? ENC.storeLayout,
+   100→    [snapshot],
+   101→  )
+   102→
+   103→  const effResult = useMemo(() => computeShelfEfficiency(layout), [layout])
+   104→  const efficiencies = effResult.value
+   105→
+   106→  // Precompute product demand for "missing-demand" highlight.
+   107→  const demandCache = useMemo(() => {
+   108→    const m = new Map<number, number>()
+   109→    for (const p of ENC.products) {
+   110→      m.set(p.id, computeDemandProxy(p.id, ENC.necessities, ENC.customerTypes).value)
+   111→    }
+   112→    return m
+   113→  }, [])
+   114→
+   115→  const [highlight, setHighlight] = useState<HighlightMode>('none')
+   116→  // selectedIdx and sortKey are used in the leaderboard + detail card below
+   117→  const [selectedIdx, setSelectedIdx] = useState<number | null>(null)
+   118→  const [sortKey, setSortKey] = useState<SortKey>('efficiency')
+   119→  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
+   120→  const [assignPlayerId, setAssignPlayerId] = useState<string | undefined>(undefined)
+   121→
+   122→  // Map bounds (with padding) for the SVG viewBox.
+   123→  const bounds = useMemo(() => {
+   124→    if (layout.length === 0) return { minX: 0, minY: 0, w: 10, h: 10 }
+   125→    const xs = layout.map((p) => p.posX)
+   126→    const zs = layout.map((p) => p.posZ)
+   127→    const minX = Math.min(...xs) - 1
+   128→    const maxX = Math.max(...xs) + 1
+   129→    const minZ = Math.min(...zs) - 1
+   130→    const maxZ = Math.max(...zs) + 1
+   131→    return { minX, minZ, w: maxX - minX, h: maxZ - minZ }
+   132→  }, [layout])
+   133→
+   134→  // Highlight thresholds.
+   135→  const thresholds = useMemo(() => {
+   136→    if (efficiencies.length === 0) {
+   137→      return { valueTop: 0, valueBottom: 0 }
+   138→    }
+   139→    const sorted = [...efficiencies].sort((a, b) => a.shelfValue - b.shelfValue)
+   140→    const q = Math.max(1, Math.floor(efficiencies.length / 4))
+   141→    return {
+   142→      valueTop: sorted[sorted.length - q].shelfValue,
+   143→      valueBottom: sorted[q - 1].shelfValue,
+   144→    }
+   145→  }, [efficiencies])
+   146→
+   147→  const getHighlight = (eff: PropEfficiency): { stroke: string; width: number; blink?: boolean } | null => {
+   148→    if (highlight === 'none') return null
+   149→    switch (highlight) {
+   150→      case 'empty':
+   151→        return eff.emptySlots > 0 ? { stroke: '#f43f5e', width: 0.08 } : null
+   152→      case 'low':
+   153→        return eff.totalUnits < 5 ? { stroke: '#f59e0b', width: 0.08 } : null
+   154→      case 'high-value':
+   155→        return eff.shelfValue >= thresholds.valueTop ? { stroke: '#10b981', width: 0.08 } : null
+   156→      case 'low-value':
+   157→        return eff.shelfValue <= thresholds.valueBottom ? { stroke: '#71717a', width: 0.08 } : null
+   158→      case 'duplicated':
+   159→        return eff.duplicatedProducts > 0 ? { stroke: '#a855f7', width: 0.08 } : null
+   160→      case 'missing-demand': {
+   161→        const prop = layout.find((p) => p.index === eff.propIndex)
+   162→        if (!prop) return null
+   163→        const maxDemand = Math.max(
+   164→          0,
+   165→          ...prop.inventory
+   166→            .filter((i) => i.product >= 0 && i.count > 0)
+   167→            .map((i) => demandCache.get(i.product) ?? 0),
+   168→        )
+   169→        return maxDemand < 0.002 ? { stroke: '#fb923c', width: 0.08 } : null
+   170→      }
+   171→      case 'negative':
+   172→        return eff.negativeAnomalies > 0 ? { stroke: '#e11d48', width: 0.1, blink: true } : null
+   173→    }
+   174→    return null
+   175→  }
+   176→
+   177→  // Sorted leaderboard rows.
+   178→  const sortedEffs = useMemo(() => {
+   179→    const arr = [...efficiencies]
+   180→    arr.sort((a, b) => {
+   181→      const av = a[sortKey]
+   182→      const bv = b[sortKey]
+   183→      return sortDir === 'asc' ? av - bv : bv - av
+   184→    })
+   185→    return arr
+   186→  }, [efficiencies, sortKey, sortDir])
+   187→
+   188→  const selectedProp = selectedIdx != null ? layout.find((p) => p.index === selectedIdx) ?? null : null
+   189→  const selectedEff = selectedIdx != null ? efficiencies.find((e) => e.propIndex === selectedIdx) ?? null : null
+   190→
+   191→  // Layout-wide aggregates for the report.
+   192→  const aggregates = useMemo(() => {
+   193→    const totalProps = layout.length
+   194→    const totalUnits = efficiencies.reduce((s, e) => s + e.totalUnits, 0)
+   195→    const totalShelfValue = efficiencies.reduce((s, e) => s + e.shelfValue, 0)
+   196→    const totalEmptySlots = efficiencies.reduce((s, e) => s + e.emptySlots, 0)
+   197→    const totalAnomalies = efficiencies.reduce((s, e) => s + e.negativeAnomalies, 0)
+   198→    const totalDuplicated = efficiencies.reduce((s, e) => s + e.duplicatedProducts, 0)
+   199→    const totalDemandCoverage = efficiencies.reduce((s, e) => s + e.demandCoverage, 0)
+   200→    const demandCoveragePct = totalUnits > 0 ? Math.min(100, (totalDemandCoverage / totalUnits) * 1000) : 0
+   201→
+   202→    // Inventory by product (aggregate across props).
+   203→    const byProduct = new Map<number, number>()
+   204→    for (const prop of layout) {
+   205→      for (const inv of prop.inventory) {
+   206→        if (inv.product < 0 || inv.count <= 0) continue
+   207→        byProduct.set(inv.product, (byProduct.get(inv.product) ?? 0) + inv.count)
+   208→      }
+   209→    }
+   210→    const topProducts = [...byProduct.entries()]
+   211→      .sort((a, b) => b[1] - a[1])
+   212→      .slice(0, 20)
+   213→      .map(([pid, count]) => ({ pid, count }))
+   214→
+   215→    // Inventory by group.
+   216→    const byGroup = new Map<string, { count: number; value: number }>()
+   217→    for (const prop of layout) {
+   218→      for (const inv of prop.inventory) {
+   219→        if (inv.product < 0 || inv.count <= 0) continue
+   220→        const p = ENC.products.find((x) => x.id === inv.product)
+   221→        if (!p) continue
+   222→        const gname = groupIdNameFor(p.group, lang)
+   223→        const cur = byGroup.get(gname) ?? { count: 0, value: 0 }
+   224→        cur.count += inv.count
+   225→        cur.value += inv.count * p.basePricePerUnit
+   226→        byGroup.set(gname, cur)
+   227→      }
+   228→    }
+   229→    const topGroups = [...byGroup.entries()]
+   230→      .sort((a, b) => b[1].value - a[1].value)
+   231→      .map(([name, v]) => ({ name, ...v }))
+   232→
+   233→    return {
+   234→      totalProps,
+   235→      totalUnits,
+   236→      totalShelfValue,
+   237→      totalEmptySlots,
+   238→      totalAnomalies,
+   239→      totalDuplicated,
+   240→      demandCoveragePct,
+   241→      topProducts,
+   242→      topGroups,
+   243→    }
+   244→  }, [layout, efficiencies, lang])
+   245→
+   246→  // Recommended shelf swaps.
+   247→  const swapRecs = useMemo(() => {
+   248→    const recs: { from: number; to: number; reason: string }[] = []
+   249→    const byEff = [...efficiencies].sort((a, b) => a.efficiency - b.efficiency)
+   250→    // Bottom 5 props — suggest action.
+   251→    for (const e of byEff.slice(0, 5)) {
+   252→      if (e.emptySlots > 0) {
+   253→        recs.push({
+   254→          from: e.propIndex,
+   255→          to: -1,
+   256→          reason: `貨架 #${e.propIndex} 有 ${e.emptySlots} 個空格 — 從 storage 補上高 demand 商品`,
+   257→        })
+   258→      } else if (e.demandCoverage < 0.0001 && e.totalUnits > 0) {
+   259→        recs.push({
+   260→          from: e.propIndex,
+   261→          to: -1,
+   262→          reason: `貨架 #${e.propIndex} 商品 demand 偏低 (coverage=${fmt(e.demandCoverage, 5)}) — 考慮替換為高 demand 商品`,
+   263→        })
+   264→      }
+   265→    }
+   266→    // Duplicated products across props — suggest consolidation.
+   267→    const productToProps = new Map<number, number[]>()
+   268→    for (const prop of layout) {
+   269→      for (const inv of prop.inventory) {
+   270→        if (inv.product < 0 || inv.count <= 0) continue
+   271→        const arr = productToProps.get(inv.product) ?? []
+   272→        arr.push(prop.index)
+   273→        productToProps.set(inv.product, arr)
+   274→      }
+   275→    }
+   276→    let dupCount = 0
+   277→    for (const [pid, props] of productToProps) {
+   278→      if (props.length > 1 && dupCount < 5) {
+   279→        recs.push({
+   280→          from: props[0],
+   281→          to: props[1],
+   282→          reason: `商品 ${productNameFor(pid, lang)} (#${pid}) 同時出現在貨架 #${props[0]} 與 #${props[1]} — 考慮集中放置`,
+   283→        })
+   284→        dupCount++
+   285→      }
+   286→    }
+   287→    return recs.slice(0, 8)
+   288→  }, [layout, efficiencies, lang])
+   289→
+   290→  // Top 5 problematic shelves — quick scan card
+   291→  const topProblematic = useMemo(() => {
+   292→    return [...efficiencies]
+   293→      .map((e) => {
+   294→        const issues: string[] = []
+   295→        if (e.negativeAnomalies > 0) issues.push(`負庫存 ×${e.negativeAnomalies}`)
+   296→        if (e.totalUnits === 0) issues.push('完全空貨架')
+   297→        if (e.emptySlots > 0 && e.totalUnits > 0) issues.push(`${e.emptySlots} 空格`)
+   298→        if (e.duplicatedProducts > 0) issues.push(`${e.duplicatedProducts} 重複商品`)
+   299→        if (e.demandCoverage < 0.0001 && e.totalUnits > 0) issues.push('低需求商品')
+   300→        // weight: anomalies matter most, then empties, then duplicates, then low-demand
+   301→        const score =
+   302→          e.negativeAnomalies * 10 +
+   303→          (e.totalUnits === 0 ? 5 : 0) +
+   304→          e.emptySlots +
+   305→          e.duplicatedProducts * 2 +
+   306→          (e.demandCoverage < 0.0001 && e.totalUnits > 0 ? 1 : 0)
+   307→        let recommendation = ''
+   308→        if (e.negativeAnomalies > 0) recommendation = '檢查存檔資料，可能有資料異常'
+   309→        else if (e.totalUnits === 0) recommendation = '從倉庫補上高 demand 商品'
+   310→        else if (e.emptySlots > 0) recommendation = `補滿 ${e.emptySlots} 個空格`
+   311→        else if (e.duplicatedProducts > 0) recommendation = '集中重複商品到單一貨架'
+   312→        else if (e.demandCoverage < 0.0001) recommendation = '替換為高 demand 商品'
+   313→        return { e, issues, recommendation, score }
+   314→      })
+   315→      .filter((x) => x.issues.length > 0)
+   316→      .sort((a, b) => b.score - a.score)
+   317→      .slice(0, 5)
+   318→  }, [efficiencies])
+   319→
+   320→  const layoutSource = snapshot ? `save (${snapshot.source})` : 'encyclopedia (demo)'
+   321→
+   322→  return (
+   323→    <div className="mx-auto max-w-[1600px] space-y-4 p-4">
+   324→      <SectionHeader
+   325→        title="店面平面圖分析"
+   326→        description={`來源: ${layoutSource} · ${layout.length} props · ${aggregates.totalUnits} units`}
+   327→        confidence={snapshot ? 'confirmed' : 'demo'}
+   328→        formula="snapshot.storeLayout ?? encyclopedia.storeLayout"
+   329→        note={snapshot ? '從存檔讀取之實際店面配置' : '未上傳存檔 — 顯示百科 demo 配置（41 props）'}
+   330→        right={
+   331→          <Badge variant="outline" className="text-xs">
+   332→            <Layers className="mr-1 h-3 w-3" /> {layout.length} props
+   333→          </Badge>
+   334→        }
+   335→      />
+   336→
+   337→      {/* Map card */}
+   338→      <Card>
+   339→        <CardHeader className="pb-2">
+   340→          <div className="flex flex-wrap items-center justify-between gap-2">
+   341→            <CardTitle className="flex items-center gap-2 text-base">
+   342→              <MapIcon className="h-4 w-4 text-emerald-500" />
+   343→              俯視地圖
+   344→            </CardTitle>
+   345→            <div className="flex flex-wrap items-center gap-2">
+   346→              <span className="text-xs text-muted-foreground">高亮模式:</span>
+   347→              <ToggleGroup
+   348→                type="single"
+   349→                value={highlight}
+   350→                onValueChange={(v) => v && setHighlight(v as HighlightMode)}
+   351→                variant="outline"
+   352→                size="sm"
+   353→                className="flex-wrap"
+   354→              >
+   355→                {HIGHLIGHT_LABELS.map((h) => (
+   356→                  <ToggleGroupItem key={h.value} value={h.value} className="text-xs">
+   357→                    <span
+   358→                      className="mr-1 inline-block h-2 w-2 rounded-full"
+   359→                      style={{ backgroundColor: h.color }}
+   360→                    />
+   361→                    {h.label}
+   362→                  </ToggleGroupItem>
+   363→                ))}
+   364→              </ToggleGroup>
+   365→            </div>
+   366→          </div>
+   367→        </CardHeader>
+   368→        <CardContent>
+   369→          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+   370→            {/* SVG map */}
+   371→            <div className="lg:col-span-2">
+   372→              <div className="overflow-x-auto scrollbar-thin">
+   373→                <svg
+   374→                  viewBox={`${bounds.minX} ${bounds.minZ} ${bounds.w} ${bounds.h}`}
+   375→                  preserveAspectRatio="xMidYMid meet"
+   376→                  className="w-full min-w-[480px] rounded-md border bg-muted/30"
+   377→                  style={{ aspectRatio: `${bounds.w} / ${bounds.h}` }}
+   378→                >
+   379→                  {/* Grid lines */}
+   380→                  <defs>
+   381→                    <pattern id="grid" width="1" height="1" patternUnits="userSpaceOnUse">
+   382→                      <path d="M 1 0 L 0 0 0 1" fill="none" stroke="currentColor" strokeWidth="0.02" className="text-muted-foreground/30" />
+   383→                    </pattern>
+   384→                  </defs>
+   385→                  <rect
+   386→                    x={bounds.minX}
+   387→                    y={bounds.minZ}
+   388→                    width={bounds.w}
+   389→                    height={bounds.h}
+   390→                    fill="url(#grid)"
+   391→                  />
+   392→
+   393→                  {/* Props */}
+   394→                  {layout.map((prop) => {
+   395→                    const eff = efficiencies.find((e) => e.propIndex === prop.index)
+   396→                    if (!eff) return null
+   397→                    const color = BUILDABLE_PALETTE[prop.buildableId] ?? FALLBACK_COLOR
+   398→                    const hl = getHighlight(eff)
+   399→                    const assignment = room?.shelfAssignments[String(prop.index)]
+   400→                    const assignedMember = assignment ? room?.members.find((m) => m.id === assignment) : null
+   401→                    const isSelected = selectedIdx === prop.index
+   402→                    const rectW = 0.6
+   403→                    const rectH = 0.4
+   404→                    return (
+   405→                      <g
+   406→                        key={prop.index}
+   407→                        transform={`translate(${prop.posX}, ${prop.posZ}) rotate(${prop.angle})`}
+   408→                        onClick={() => setSelectedIdx(prop.index)}
+   409→                        style={{ cursor: 'pointer' }}
+   410→                      >
+   411→                        {/* Assigned player ring */}
+   412→                        {assignedMember && (
+   413→                          <rect
+   414→                            x={-rectW / 2 - 0.08}
+   415→                            y={-rectH / 2 - 0.08}
+   416→                            width={rectW + 0.16}
+   417→                            height={rectH + 0.16}
+   418→                            fill="none"
+   419→                            stroke={assignedMember.color}
+   420→                            strokeWidth={0.06}
+   421→                            rx={0.05}
+   422→                          />
+   423→                        )}
+   424→                        {/* Prop body */}
+   425→                        <rect
+   426→                          x={-rectW / 2}
+   427→                          y={-rectH / 2}
+   428→                          width={rectW}
+   429→                          height={rectH}
+   430→                          fill={color}
+   431→                          stroke={hl?.stroke ?? (isSelected ? '#0a0a0a' : '#00000033')}
+   432→                          strokeWidth={hl?.width ?? (isSelected ? 0.08 : 0.02)}
+   433→                          rx={0.04}
+   434→                          className={hl?.blink ? 'animate-pulse' : ''}
+   435→                        />
+   436→                        {/* Inventory count label */}
+   437→                        <text
+   438→                          x={0}
+   439→                          y={0}
+   440→                          textAnchor="middle"
+   441→                          dominantBaseline="central"
+   442→                          fontSize={0.28}
+   443→                          className="fill-white font-bold pointer-events-none"
+   444→                          style={{ paintOrder: 'stroke', stroke: '#00000080', strokeWidth: 0.03 }}
+   445→                        >
+   446→                          {eff.totalUnits}
+   447→                        </text>
+   448→                        {/* Prop index (small, top-right) */}
+   449→                        <text
+   450→                          x={rectW / 2 - 0.04}
+   451→                          y={-rectH / 2 + 0.04}
+   452→                          textAnchor="end"
+   453→                          dominantBaseline="hanging"
+   454→                          fontSize={0.13}
+   455→                          className="fill-white/80 pointer-events-none"
+   456→                        >
+   457→                          #{prop.index}
+   458→                        </text>
+   459→                      </g>
+   460→                    )
+   461→                  })}
+   462→                </svg>
+   463→              </div>
+   464→
+   465→              {/* Legend */}
+   466→              <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
+   467→                <span className="text-muted-foreground">Buildable 顏色:</span>
+   468→                {[0, 1, 2, 3].map((id) => (
+   469→                  <div key={id} className="flex items-center gap-1.5">
+   470→                    <span
+   471→                      className="inline-block h-3 w-3 rounded-sm"
+   472→                      style={{ backgroundColor: BUILDABLE_PALETTE[id] ?? FALLBACK_COLOR }}
+   473→                    />
+   474→                    <span>{buildableIdNameFor(id, lang)}</span>
+   475→                  </div>
+   476→                ))}
+   477→                <span className="ml-2 text-muted-foreground">數字 = 該貨架總庫存單位</span>
+   478→              </div>
+   479→            </div>
+   480→
+   481→            {/* Detail panel */}
+   482→            <div>
+   483→              {selectedProp && selectedEff ? (
+   484→                <PropDetailCard
+   485→                  prop={selectedProp}
+   486→                  eff={selectedEff}
+   487→                  demandCache={demandCache}
+   488→                  lang={lang}
+   489→                  onClose={() => setSelectedIdx(null)}
+   490→                  room={room}
+   491→                  onAssign={(playerId) => assignShelf(String(selectedProp.index), playerId)}
+   492→                />
+   493→              ) : (
+   494→                <div className="flex h-full flex-col items-center justify-center rounded-md border border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+   495→                  <MapIcon className="mb-2 h-8 w-8 opacity-50" />
+   496→                  <div>點擊地圖上任一貨架查看詳細資訊</div>
+   497→                  <div className="mt-1 text-xs">含庫存清單、效率、缺漏、負庫存異常</div>
+   498→                </div>
+   499→              )}
+   500→            </div>
+   501→          </div>
+   502→        </CardContent>
+   503→      </Card>
+   504→
+   505→      {/* Layout report */}
+   506→      <Card>
+   507→        <CardHeader className="pb-2">
+   508→          <CardTitle className="flex items-center justify-between text-base">
+   509→            <span>配置報告</span>
+   510→            <ConfidenceBadge
+   511→              confidence={snapshot ? 'confirmed' : 'demo'}
+   512→              formula={effResult.formula}
+   513→              note="庫存資料來自存檔；效率指標為 proxy（含 demandProxy 假設）"
+   514→            />
+   515→          </CardTitle>
+   516→        </CardHeader>
+   517→        <CardContent>
+   518→          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+   519→            <StatCard label="總貨架數" value={aggregates.totalProps} confidence={snapshot ? 'confirmed' : 'demo'} accent="neutral" />
+   520→            <StatCard label="總庫存單位" value={fmt(aggregates.totalUnits, 0)} confidence={snapshot ? 'confirmed' : 'demo'} accent="neutral" />
+   521→            <StatCard
+   522→              label="總貨架價值"
+   523→              value={fmtMoney(aggregates.totalShelfValue)}
+   524→              confidence="proxy"
+   525→              formula="Σ count × basePrice"
+   526→              accent="good"
+   527→            />
+   528→            <StatCard
+   529→              label="空格總數"
+   530→              value={aggregates.totalEmptySlots}
+   531→              confidence="proxy"
+   532→              accent={aggregates.totalEmptySlots > 5 ? 'bad' : 'neutral'}
+   533→            />
+   534→            <StatCard
+   535→              label="負庫存異常"
+   536→              value={aggregates.totalAnomalies}
+   537→              confidence="proxy"
+   538→              accent={aggregates.totalAnomalies > 0 ? 'bad' : 'good'}
+   539→              hint={aggregates.totalAnomalies > 0 ? '存檔資料異常' : '正常'}
+   540→            />
+   541→            <StatCard
+   542→              label="Demand Coverage"
+   543→              value={fmt(aggregates.demandCoveragePct, 1)}
+   544→              unit="%"
+   545→              confidence="proxy"
+   546→              formula="Σ demandCoverage / totalUnits × 1000"
+   547→              accent={aggregates.demandCoveragePct > 30 ? 'good' : 'warn'}
+   548→            />
+   549→          </div>
+   550→
+   551→          <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+   552→            {/* Top products */}
+   553→            <div>
+   554→              <div className="mb-2 flex items-center justify-between">
+   555→                <h4 className="text-sm font-semibold">Top 20 商品（按庫存單位）</h4>
+   556→                <ConfidenceBadge confidence={snapshot ? 'confirmed' : 'demo'} />
+   557→              </div>
+   558→              <div className="max-h-80 space-y-1 overflow-y-auto scrollbar-thin pr-1">
+   559→                {aggregates.topProducts.map(({ pid, count }, i) => {
+   560→                  const p = ENC.products.find((x) => x.id === pid)
+   561→                  const demand = demandCache.get(pid) ?? 0
+   562→                  const maxCount = aggregates.topProducts[0]?.count || 1
+   563→                  return (
+   564→                    <div key={pid} className="flex items-center gap-2 rounded border bg-card px-2 py-1.5 text-xs">
+   565→                      <span className="w-5 shrink-0 text-right font-mono text-muted-foreground">{i + 1}</span>
+   566→                      <div className="min-w-0 flex-1">
+   567→                        <div className="truncate font-medium">{productNameFor(pid, lang)} <span className="text-muted-foreground">#{pid}</span></div>
+   568→                        <div className="truncate text-[10px] text-muted-foreground">{p?.brand} · demand {fmt(demand, 4)}</div>
+   569→                      </div>
+   570→                      <div className="w-16 shrink-0">
+   571→                        <MiniBar value={count} max={maxCount} color={demand > 0.005 ? 'bg-emerald-500' : 'bg-amber-500'} />
+   572→                      </div>
+   573→                      <span className="w-10 shrink-0 text-right font-mono">{count}</span>
+   574→                    </div>
+   575→                  )
+   576→                })}
+   577→              </div>
+   578→            </div>
+   579→
+   580→            {/* By group */}
+   581→            <div>
+   582→              <div className="mb-2 flex items-center justify-between">
+   583→                <h4 className="text-sm font-semibold">依商品分類（按貨架價值）</h4>
+   584→                <ConfidenceBadge confidence="proxy" formula="Σ count × basePrice per group" />
+   585→              </div>
+   586→              <div className="max-h-80 space-y-1 overflow-y-auto scrollbar-thin pr-1">
+   587→                {aggregates.topGroups.map((g, i) => {
+   588→                  const maxValue = aggregates.topGroups[0]?.value || 1
+   589→                  return (
+   590→                    <div key={g.name} className="flex items-center gap-2 rounded border bg-card px-2 py-1.5 text-xs">
+   591→                      <span className="w-5 shrink-0 text-right font-mono text-muted-foreground">{i + 1}</span>
+   592→                      <div className="min-w-0 flex-1">
+   593→                        <div className="truncate font-medium">{g.name}</div>
+   594→                        <div className="truncate text-[10px] text-muted-foreground">{g.count} units</div>
+   595→                      </div>
+   596→                      <div className="w-20 shrink-0">
+   597→                        <MiniBar value={g.value} max={maxValue} color="bg-sky-500" />
+   598→                      </div>
+   599→                      <span className="w-16 shrink-0 text-right font-mono">{fmtMoney(g.value)}</span>
+   600→                    </div>
+   601→                  )
+   602→                })}
+   603→              </div>
+   604→            </div>
+   605→          </div>
+   606→
+   607→          {/* Recommended swaps */}
+   608→          <div className="mt-4">
+   609→            <div className="mb-2 flex items-center justify-between">
+   610→              <h4 className="flex items-center gap-1.5 text-sm font-semibold">
+   611→                <Lightbulb className="h-4 w-4 text-amber-500" />
+   612→                建議貨架調整
+   613→              </h4>
+   614→              <ConfidenceBadge confidence="unverified" note="啟發式建議，需人工評估" />
+   615→            </div>
+   616→            {swapRecs.length === 0 ? (
+   617→              <div className="rounded-md border bg-muted/20 p-3 text-center text-xs text-muted-foreground">
+   618→                目前無明顯問題 — 所有貨架皆有庫存且無重複。
+   619→              </div>
+   620→            ) : (
+   621→              <div className="space-y-1.5">
+   622→                {swapRecs.map((r, i) => (
+   623→                  <div key={i} className="flex items-start gap-2 rounded-md border bg-card px-3 py-2 text-xs">
+   624→                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-[10px] font-bold text-amber-700 dark:text-amber-300">{i + 1}</span>
+   625→                    <div className="min-w-0 flex-1 text-muted-foreground">
+   626→                      <span className="text-foreground">{r.reason}</span>
+   627→                    </div>
+   628→                  </div>
+   629→                ))}
+   630→              </div>
+   631→            )}
+   632→          </div>
+   633→        </CardContent>
+   634→      </Card>
+   635→
+   636→      {/* Top 5 problematic shelves — quick scan */}
+   637→      {topProblematic.length > 0 && (
+   638→        <Card>
+   639→          <CardHeader className="pb-2">
+   640→            <CardTitle className="flex items-center justify-between text-base">
+   641→              <span className="flex items-center gap-2">
+   642→                <AlertCircle className="h-4 w-4 text-rose-500" />
+   643→                Top {topProblematic.length} 問題貨架（快速掃描）
+   644→              </span>
+   645→              <ConfidenceBadge
+   646→                confidence="proxy"
+   647→                formula="rank by (negativeAnomalies×10) + (empty?5:0) + emptySlots + (duplicated×2) + lowDemand"
+   648→                note="點擊任一列可直接跳到貨架詳情"
+   649→              />
+   650→            </CardTitle>
+   651→          </CardHeader>
+   652→          <CardContent>
+   653→            <div className="space-y-1.5">
+   654→              {topProblematic.map(({ e, issues, recommendation }, i) => {
+   655→                const prop = layout.find((p) => p.index === e.propIndex)
+   656→                const buildableName = prop ? buildableIdNameFor(prop.buildableId, lang) : '—'
+   657→                return (
+   658→                  <div
+   659→                    key={e.propIndex}
+   660→                    onClick={() => setSelectedIdx(e.propIndex)}
+   661→                    className="flex cursor-pointer items-center gap-2 rounded-md border bg-card px-3 py-2 text-xs transition-colors hover:bg-accent"
+   662→                  >
+   663→                    <span className="w-6 shrink-0 text-center font-bold text-rose-600 dark:text-rose-400">#{i + 1}</span>
+   664→                    <div className="min-w-0 flex-1">
+   665→                      <div className="truncate font-medium">
+   666→                        貨架 #{e.propIndex} · {buildableName}
+   667→                      </div>
+   668→                      <div className="truncate text-[10px] text-muted-foreground">
+   669→                        <span className="text-rose-700 dark:text-rose-300">{issues.join('、')}</span>
+   670→                        <span className="mx-1">→</span>
+   671→                        <span className="text-emerald-700 dark:text-emerald-300">{recommendation}</span>
+   672→                      </div>
+   673→                    </div>
+   674→                    <ArrowRight className="h-3 w-3 shrink-0 text-muted-foreground" />
+   675→                  </div>
+   676→                )
+   677→              })}
+   678→            </div>
+   679→          </CardContent>
+   680→        </Card>
+   681→      )}
+   682→
+   683→      {/* Efficiency leaderboard */}
+   684→      <Card>
+   685→        <CardHeader className="pb-2">
+   686→          <div className="flex flex-wrap items-center justify-between gap-2">
+   687→            <CardTitle className="flex items-center gap-2 text-base">
+   688→              <Boxes className="h-4 w-4 text-sky-500" />
+   689→              貨架效率排行
+   690→            </CardTitle>
+   691→            <ConfidenceBadge
+   692→              confidence="proxy"
+   693→              formula={effResult.formula}
+   694→              note={effResult.note}
+   695→            />
+   696→          </div>
+   697→        </CardHeader>
+   698→        <CardContent>
+   699→          <div className="max-h-96 overflow-y-auto scrollbar-thin">
+   700→            <Table>
+   701→              <TableHeader className="sticky top-0 bg-card z-10">
+   702→                <TableRow>
+   703→                  <TableHead className="w-12 text-right">#</TableHead>
+   704→                  <TableHead>Buildable</TableHead>
+   705→                  <SortableTh label="Units" k="totalUnits" sortKey={sortKey} sortDir={sortDir} onSort={(k, d) => { setSortKey(k); setSortDir(d) }} />
+   706→                  <SortableTh label="Distinct" k="distinctProducts" sortKey={sortKey} sortDir={sortDir} onSort={(k, d) => { setSortKey(k); setSortDir(d) }} />
+   707→                  <SortableTh label="Shelf Value" k="shelfValue" sortKey={sortKey} sortDir={sortDir} onSort={(k, d) => { setSortKey(k); setSortDir(d) }} />
+   708→                  <SortableTh label="Demand Cov" k="demandCoverage" sortKey={sortKey} sortDir={sortDir} onSort={(k, d) => { setSortKey(k); setSortDir(d) }} />
+   709→                  <SortableTh label="Empty" k="emptySlots" sortKey={sortKey} sortDir={sortDir} onSort={(k, d) => { setSortKey(k); setSortDir(d) }} />
+   710→                  <TableHead className="text-right">Anom</TableHead>
+   711→                  <TableHead className="text-right">Dup</TableHead>
+   712→                  <SortableTh label="Efficiency" k="efficiency" sortKey={sortKey} sortDir={sortDir} onSort={(k, d) => { setSortKey(k); setSortDir(d) }} />
+   713→                  {room && <TableHead>分配</TableHead>}
+   714→                </TableRow>
+   715→              </TableHeader>
+   716→              <TableBody>
+   717→                {sortedEffs.map((e, i) => {
+   718→                  const prop = layout.find((p) => p.index === e.propIndex)
+   719→                  const buildableName = prop ? buildableIdNameFor(prop.buildableId, lang) : `#?`
+   720→                  const assignment = room?.shelfAssignments[String(e.propIndex)]
+   721→                  const assignedMember = assignment ? room?.members.find((m) => m.id === assignment) : null
+   722→                  return (
+   723→                    <TableRow
+   724→                      key={e.propIndex}
+   725→                      className="cursor-pointer"
+   726→                      onClick={() => setSelectedIdx(e.propIndex)}
+   727→                      data-state={selectedIdx === e.propIndex ? 'selected' : undefined}
+   728→                    >
+   729→                      <TableCell className="text-right font-mono text-xs text-muted-foreground">{i + 1}</TableCell>
+   730→                      <TableCell>
+   731→                        <div className="flex items-center gap-1.5">
+   732→                          <span
+   733→                            className="inline-block h-2.5 w-2.5 shrink-0 rounded-sm"
+   734→                            style={{ backgroundColor: BUILDABLE_PALETTE[prop?.buildableId ?? -1] ?? FALLBACK_COLOR }}
+   735→                          />
+   736→                          <span className="text-xs">{buildableName}</span>
+   737→                        </div>
+   738→                      </TableCell>
+   739→                      <TableCell className="text-right font-mono">{e.totalUnits}</TableCell>
+   740→                      <TableCell className="text-right font-mono">{e.distinctProducts}</TableCell>
+   741→                      <TableCell className="text-right font-mono">{fmtMoney(e.shelfValue)}</TableCell>
+   742→                      <TableCell className="text-right font-mono">{fmt(e.demandCoverage, 5)}</TableCell>
+   743→                      <TableCell className={`text-right font-mono ${e.emptySlots > 0 ? 'text-rose-600' : ''}`}>{e.emptySlots}</TableCell>
+   744→                      <TableCell className={`text-right font-mono ${e.negativeAnomalies > 0 ? 'text-rose-600 font-bold' : ''}`}>{e.negativeAnomalies}</TableCell>
+   745→                      <TableCell className={`text-right font-mono ${e.duplicatedProducts > 0 ? 'text-fuchsia-600' : ''}`}>{e.duplicatedProducts}</TableCell>
+   746→                      <TableCell className="text-right font-mono font-semibold">{fmt(e.efficiency, 0)}</TableCell>
+   747→                      {room && (
+   748→                        <TableCell>
+   749→                          {assignedMember ? (
+   750→                            <Badge variant="outline" className="text-xs" style={{ borderLeft: `3px solid ${assignedMember.color}` }}>
+   751→                              {assignedMember.name}
+   752→                            </Badge>
+   753→                          ) : (
+   754→                            <span className="text-xs text-muted-foreground">—</span>
+   755→                          )}
+   756→                        </TableCell>
+   757→                      )}
+   758→                    </TableRow>
+   759→                  )
+   760→                })}
+   761→              </TableBody>
+   762→            </Table>
+   763→          </div>
+   764→        </CardContent>
+   765→      </Card>
+   766→
+   767→      {/* Room assignment hint when no room */}
+   768→      {!room && (
+   769→        <Card className="border-dashed">
+   770→          <CardContent className="flex items-center gap-3 p-4 text-sm">
+   771→            <Boxes className="h-5 w-5 shrink-0 text-muted-foreground" />
+   772→            <div className="text-muted-foreground">
+   773→              <span className="font-medium text-foreground">多人房間模式：</span>
+   774→              建立或加入房間後，可在此分配每個貨架給特定玩家，並在地图上以該玩家顏色標示。
+   775→            </div>
+   776→          </CardContent>
+   777→        </Card>
+   778→      )}
+   779→
+   780→      {/* Room assignment controls */}
+   781→      {room && (
+   782→        <Card>
+   783→          <CardHeader className="pb-2">
+   784→            <CardTitle className="flex items-center gap-2 text-base">
+   785→              <Boxes className="h-4 w-4 text-fuchsia-500" />
+   786→              貨架分配（房間模式）
+   787→            </CardTitle>
+   788→          </CardHeader>
+   789→          <CardContent>
+   790→            <div className="flex flex-wrap items-center gap-3">
+   791→              <span className="text-sm text-muted-foreground">選擇玩家後，至下方表格或地图貨架點擊分配：</span>
+   792→              <Select value={assignPlayerId} onValueChange={setAssignPlayerId}>
+   793→                <SelectTrigger className="w-48">
+   794→                  <SelectValue placeholder="選擇玩家" />
+   795→                </SelectTrigger>
+   796→                <SelectContent>
+   797→                  {room.members.filter((m) => m.id).map((m) => (
+   798→                    <SelectItem key={m.id} value={m.id}>
+   799→                      <span className="flex items-center gap-2">
+   800→                        <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: m.color }} />
+   801→                        {m.name}
+   802→                      </span>
+   803→                    </SelectItem>
+   804→                  ))}
+   805→                </SelectContent>
+   806→              </Select>
+   807→              {assignPlayerId && (
+   808→                <Button
+   809→                  size="sm"
+   810→                  variant="outline"
+   811→                  onClick={() => {
+   812→                    if (selectedIdx == null) return
+   813→                    assignShelf(String(selectedIdx), assignPlayerId)
+   814→                  }}
+   815→                  disabled={selectedIdx == null}
+   816→                >
+   817→                  分配貨架 #{selectedIdx ?? '?'} → {room.members.find((m) => m.id === assignPlayerId)?.name}
+   818→                </Button>
+   819→              )}
+   820→            </div>
+   821→            <div className="mt-3 text-xs text-muted-foreground">
+   822→              目前已分配 {Object.keys(room.shelfAssignments).length} / {layout.length} 個貨架
+   823→            </div>
+   824→          </CardContent>
+   825→        </Card>
+   826→      )}
+   827→    </div>
+   828→  )
+   829→}
+   830→
+   831→// ============================================================
+   832→// Sortable table header
+   833→// ============================================================
+   834→function SortableTh({
+   835→  label,
+   836→  k,
+   837→  sortKey,
+   838→  sortDir,
+   839→  onSort,
+   840→}: {
+   841→  label: string
+   842→  k: SortKey
+   843→  sortKey: SortKey
+   844→  sortDir: 'asc' | 'desc'
+   845→  onSort: (k: SortKey, dir: 'asc' | 'desc') => void
+   846→}) {
+   847→  const active = sortKey === k
+   848→  return (
+   849→    <TableHead className="text-right">
+   850→      <button
+   851→        className="inline-flex items-center gap-1 text-xs hover:text-foreground"
+   852→        onClick={() => onSort(k, active && sortDir === 'desc' ? 'asc' : 'desc')}
+   853→      >
+   854→        {label}
+   855→        <ArrowUpDown className={`h-3 w-3 ${active ? 'opacity-100' : 'opacity-30'}`} />
+   856→        {active && <span className="text-[9px]">{sortDir === 'desc' ? '↓' : '↑'}</span>}
+   857→      </button>
+   858→    </TableHead>
+   859→  )
+   860→}
+   861→
+   862→// ============================================================
+   863→// Prop detail card
+   864→// ============================================================
+   865→function PropDetailCard({
+   866→  prop,
+   867→  eff,
+   868→  demandCache,
+   869→  lang,
+   870→  onClose,
+   871→  room,
+   872→  onAssign,
+   873→}: {
+   874→  prop: LayoutProp
+   875→  eff: PropEfficiency
+   876→  demandCache: Map<number, number>
+   877→  lang: ReturnType<typeof useLang>
+   878→  onClose: () => void
+   879→  room: ReturnType<typeof useRoomStore.getState>['room']
+   880→  onAssign: (playerId: string) => void
+   881→}) {
+   882→  const buildableName = buildableIdNameFor(prop.buildableId, lang)
+   883→  const inventory = prop.inventory.filter((i) => i.product >= 0)
+   884→  const assignment = room?.shelfAssignments[String(prop.index)]
+   885→  const assignedMember = assignment ? room?.members.find((m) => m.id === assignment) : null
+   886→
+   887→  return (
+   888→    <Card className="border-emerald-500/30">
+   889→      <CardHeader className="pb-2">
+   890→        <div className="flex items-start justify-between">
+   891→          <CardTitle className="text-sm">
+   892→            <div className="flex items-center gap-2">
+   893→              <span
+   894→                className="inline-block h-3 w-3 rounded-sm"
+   895→                style={{ backgroundColor: BUILDABLE_PALETTE[prop.buildableId] ?? FALLBACK_COLOR }}
+   896→              />
+   897→              貨架 #{prop.index}
+   898→            </div>
+   899→            <div className="mt-0.5 text-xs font-normal text-muted-foreground">
+   900→              {buildableName}
+   901→            </div>
+   902→          </CardTitle>
+   903→          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={onClose}>
+   904→            <X className="h-4 w-4" />
+   905→          </Button>
+   906→        </div>
+   907→      </CardHeader>
+   908→      <CardContent className="space-y-3">
+   909→        <div className="grid grid-cols-3 gap-1.5 text-xs">
+   910→          <div className="rounded border bg-muted/20 px-2 py-1">
+   911→            <div className="text-muted-foreground">posX</div>
+   912→            <div className="font-mono">{fmt(prop.posX, 2)}</div>
+   913→          </div>
+   914→          <div className="rounded border bg-muted/20 px-2 py-1">
+   915→            <div className="text-muted-foreground">posZ</div>
+   916→            <div className="font-mono">{fmt(prop.posZ, 2)}</div>
+   917→          </div>
+   918→          <div className="rounded border bg-muted/20 px-2 py-1">
+   919→            <div className="text-muted-foreground">angle</div>
+   920→            <div className="font-mono">{prop.angle}°</div>
+   921→          </div>
+   922→        </div>
+   923→
+   924→        <div className="grid grid-cols-2 gap-2">
+   925→          <StatCard label="總單位" value={eff.totalUnits} confidence="confirmed" accent="neutral" />
+   926→          <StatCard label="Distinct" value={eff.distinctProducts} confidence="confirmed" accent="neutral" />
+   927→          <StatCard label="貨架價值" value={fmtMoney(eff.shelfValue)} confidence="proxy" formula="Σ count × basePrice" accent="good" />
+   928→          <StatCard label="Demand Cov" value={fmt(eff.demandCoverage, 5)} confidence="proxy" formula="Σ count × demandProxy" accent="neutral" />
+   929→          <StatCard
+   930→            label="空格"
+   931→            value={eff.emptySlots}
+   932→            confidence="proxy"
+   933→            accent={eff.emptySlots > 0 ? 'bad' : 'good'}
+   934→          />
+   935→          <StatCard
+   936→            label="負庫存"
+   937→            value={eff.negativeAnomalies}
+   938→            confidence="proxy"
+   939→            accent={eff.negativeAnomalies > 0 ? 'bad' : 'good'}
+   940→          />
+   941→        </div>
+   942→
+   943→        {eff.duplicatedProducts > 0 && (
+   944→          <div className="rounded-md border border-fuchsia-500/30 bg-fuchsia-500/5 p-2 text-xs text-fuchsia-700 dark:text-fuchsia-300">
+   945→            <span className="font-semibold">偵測到 {eff.duplicatedProducts} 個重複商品</span>{' '}
+   946→            — 部分商品同時出現在此貨架與其他貨架
+   947→          </div>
+   948→        )}
+   949→
+   950→        {/* Inventory list */}
+   951→        <div>
+   952→          <h5 className="mb-1 text-xs font-semibold text-muted-foreground">庫存清單</h5>
+   953→          <div className="max-h-48 space-y-1 overflow-y-auto scrollbar-thin pr-1">
+   954→            {inventory.length === 0 ? (
+   955→              <div className="rounded border bg-muted/20 p-2 text-center text-xs text-muted-foreground">無庫存</div>
+   956→            ) : (
+   957→              inventory.map((inv, i) => {
+   958→                const p = ENC.products.find((x) => x.id === inv.product)
+   959→                const demand = demandCache.get(inv.product) ?? 0
+   960→                return (
+   961→                  <div
+   962→                    key={`${inv.product}-${i}`}
+   963→                    className="flex items-center gap-2 rounded border bg-card px-2 py-1 text-xs"
+   964→                  >
+   965→                    <div className="min-w-0 flex-1">
+   966→                      <div className="truncate font-medium">{productNameFor(inv.product, lang)}</div>
+   967→                      <div className="truncate text-[10px] text-muted-foreground">
+   968→                        #{inv.product} · {p?.brand} · demand {fmt(demand, 4)}
+   969→                      </div>
+   970→                    </div>
+   971→                    <span
+   972→                      className={`shrink-0 font-mono font-bold ${
+   973→                        inv.count < 0
+   974→                          ? 'text-rose-600'
+   975→                          : inv.count === 0
+   976→                            ? 'text-muted-foreground'
+   977→                            : 'text-foreground'
+   978→                      }`}
+   979→                    >
+   980→                      {inv.count}
+   981→                    </span>
+   982→                  </div>
+   983→                )
+   984→              })
+   985→            )}
+   986→          </div>
+   987→        </div>
+   988→
+   989→        {/* Room assignment */}
+   990→        {room && (
+   991→          <div>
+   992→            <h5 className="mb-1 text-xs font-semibold text-muted-foreground">分配給玩家</h5>
+   993→            <div className="flex flex-wrap gap-1.5">
+   994→              <Button
+   995→                size="sm"
+   996→                variant={assignment ? 'outline' : 'default'}
+   997→                className="h-7 text-xs"
+   998→                onClick={() => onAssign('')}
+   999→                disabled={!assignment}
+  1000→              >
+  1001→                清除
+  1002→              </Button>
+  1003→              {room.members.map((m) => (
+  1004→                <Button
+  1005→                  key={m.id}
+  1006→                  size="sm"
+  1007→                  variant={assignment === m.id ? 'default' : 'outline'}
+  1008→                  className="h-7 text-xs"
+  1009→                  style={assignment === m.id ? { backgroundColor: m.color, borderColor: m.color } : { borderLeft: `3px solid ${m.color}` }}
+  1010→                  onClick={() => onAssign(m.id)}
+  1011→                >
+  1012→                  {m.name}
+  1013→                </Button>
+  1014→              ))}
+  1015→            </div>
+  1016→            {assignedMember && (
+  1017→              <div className="mt-1 text-xs text-muted-foreground">
+  1018→                目前分配給 <span className="font-medium" style={{ color: assignedMember.color }}>{assignedMember.name}</span>
+  1019→              </div>
+  1020→            )}
+  1021→          </div>
+  1022→        )}
+  1023→      </CardContent>
+  1024→    </Card>
+  1025→  )
+  1026→}
+  1027→
