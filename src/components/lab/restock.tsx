@@ -81,13 +81,13 @@ const STOCK_STATUS_META: Record<StockStatus, { label: string; color: string; bar
 }
 
 const STRATEGIES: { id: RestockStrategy; label: string; desc: string }[] = [
-  { id: 'balanced', label: 'Balanced', desc: '需求×箱值 + 密度 + 低庫存加權' },
-  { id: 'demand-coverage', label: 'Demand', desc: '純 demand proxy 排序' },
-  { id: 'high-profit', label: 'High-Profit', desc: 'demand × boxValue' },
-  { id: 'high-density', label: 'High-Density', desc: '單位體積價值' },
-  { id: 'premium-push', label: 'Premium-Push', desc: '優先進貨 Premium 電子三寶' },
-  { id: 'seasonal-prep', label: 'Seasonal-Prep', desc: '當季商品 ×3' },
-  { id: 'early-game-cheap-fill', label: 'Early-Cheap-Fill', desc: '低 tier 便宜填充' },
+  { id: 'balanced', label: '均衡', desc: '綜合考量，最全面的選擇' },
+  { id: 'demand-coverage', label: '補需求', desc: '需求越高的商品越先買' },
+  { id: 'high-profit', label: '高利潤', desc: '挑最賺錢的商品買' },
+  { id: 'high-density', label: '高密度', desc: '佔空間小、價值高的先買' },
+  { id: 'premium-push', label: '衝高價', desc: '優先買高價 3C 商品' },
+  { id: 'seasonal-prep', label: '當季備貨', desc: '只買當季商品' },
+  { id: 'early-game-cheap-fill', label: '平價填充', desc: '買便宜貨補滿貨架' },
 ]
 
 // ============================================================
