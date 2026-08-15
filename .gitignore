@@ -60,3 +60,5 @@ server.log
 
 # agent context (internal work logs)
 /agent-ctx/tool-results/
+tool-results/
+upload/level0
