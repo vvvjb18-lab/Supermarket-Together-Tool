@@ -2,7 +2,7 @@
 
 import { Suspense, lazy, useEffect, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Sidebar } from './sidebar'
+import { MobileNavigation, Sidebar } from './sidebar'
 import { TopBar } from './topbar'
 import { useUIStore } from '@/lib/store'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -98,11 +98,12 @@ export function AppShell() {
   const PageComponent = VIEW_COMPONENTS[view]
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground">
+    <div className="flex h-dvh w-screen overflow-hidden bg-background text-foreground">
       <Sidebar />
+      <MobileNavigation />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar />
-        <main ref={mainRef} className="flex-1 overflow-y-auto">
+        <main ref={mainRef} className="flex-1 overflow-y-auto overscroll-contain scrollbar-thin">
           <PageErrorBoundary viewName={view}>
             <Suspense fallback={<PageFallback />}>
               <AnimatePresence mode="wait" initial={false}>

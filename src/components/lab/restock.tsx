@@ -35,7 +35,6 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import {
   Select,
   SelectTrigger,
@@ -291,27 +290,20 @@ export function Restock() {
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-4 p-4">
-      {/* Header */}
-      <div className="flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">補貨規劃器</h1>
-          <p className="text-sm text-muted-foreground">
-            以存檔庫存 + Knapsack 最佳化演算產生採購清單。
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {!snapshot && (
-            <Button variant="default" size="sm" onClick={() => { loadDemo(); toast.success('已載入 Demo 存檔') }}>
-              <Upload className="mr-1.5 h-3.5 w-3.5" /> 載入 Demo
-            </Button>
-          )}
-          {room && (
-            <Button variant="outline" size="sm" onClick={handleSyncRoom}>
-              <Share2 className="mr-1.5 h-3.5 w-3.5" /> 同步到房間
-            </Button>
-          )}
-        </div>
-      </div>
+      <SectionHeader
+        level={1}
+        title="補貨規劃"
+        description="選策略、輸入預算，直接產生可買的採購清單。"
+        right={!snapshot ? (
+          <Button size="sm" onClick={() => { loadDemo(); toast.success('已載入 Demo 存檔') }}>
+            <Upload className="mr-1.5 h-3.5 w-3.5" /> 試用 Demo
+          </Button>
+        ) : room ? (
+          <Button variant="outline" size="sm" onClick={handleSyncRoom}>
+            <Share2 className="mr-1.5 h-3.5 w-3.5" /> 同步到房間
+          </Button>
+        ) : undefined}
+      />
 
       {/* Snapshot status */}
       <Card>
@@ -329,6 +321,78 @@ export function Restock() {
             formula="snapshot.inventoryByProduct + unlockedProducts"
             note={snapshot ? undefined : '未上傳存檔，將使用 demoSave'}
           />
+        </CardContent>
+      </Card>
+
+      {/* Strategy + Budget + Compute */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Calculator className="h-4 w-4 text-primary" /> 產生採購清單
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_180px_auto] sm:items-end">
+            <div>
+              <Label className="text-xs">補貨策略</Label>
+              <Select value={strategy} onValueChange={(value) => setStrategy(value as RestockStrategy)}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {STRATEGIES.map((item) => (
+                    <SelectItem key={item.id} value={item.id}>{item.label} · {item.desc}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="budget" className="text-xs">可用預算 ($)</Label>
+              <Input
+                id="budget"
+                type="number"
+                min={0}
+                value={budget}
+                onChange={(event) => setBudget(Math.max(0, Number(event.target.value) || 0))}
+                className="mt-1"
+              />
+            </div>
+            <Button onClick={compute} className="w-full sm:w-auto">
+              <Calculator className="mr-1.5 h-4 w-4" /> 計算清單
+            </Button>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span>{STRATEGIES.find((item) => item.id === strategy)?.desc}</span>
+            {strategy === 'seasonal-prep' && (
+              <Select value={String(season)} onValueChange={(value) => setSeason(Number(value))}>
+                <SelectTrigger className="h-8 w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ENC.seasons.map((item) => (
+                    <SelectItem key={item.index} value={String(item.index)}>
+                      {seasonIdNameFor(item.index, lang)} · {item.productIds.length} 件商品
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+          {result && (
+            <div className="flex flex-wrap gap-2 border-t pt-3">
+              <Button variant="outline" size="sm" onClick={handleExportMd}>
+                <FileText className="mr-1.5 h-3.5 w-3.5" /> 匯出 Markdown
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleExportJson}>
+                <FileJson className="mr-1.5 h-3.5 w-3.5" /> 匯出 JSON
+              </Button>
+              {room && (
+                <Button variant="outline" size="sm" onClick={handleSyncRoom}>
+                  <Share2 className="mr-1.5 h-3.5 w-3.5" /> 同步到房間
+                </Button>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -549,93 +613,6 @@ export function Restock() {
           </CardContent>
         </Card>
       )}
-
-      {/* Strategy + Budget + Compute */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Calculator className="h-4 w-4 text-primary" /> 策略與預算
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div>
-            <Label className="text-xs">補貨策略</Label>
-            <ToggleGroup
-              type="single"
-              value={strategy}
-              onValueChange={(v) => v && setStrategy(v as RestockStrategy)}
-              variant="outline"
-              className="mt-1.5 flex w-full flex-wrap"
-            >
-              {STRATEGIES.map((s) => (
-                <ToggleGroupItem
-                  key={s.id}
-                  value={s.id}
-                  className="flex-1 whitespace-nowrap px-2 py-1 text-[11px] sm:min-w-[100px]"
-                  title={s.desc}
-                >
-                  {s.label}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
-            <div className="mt-1 text-[11px] text-muted-foreground">
-              {STRATEGIES.find((s) => s.id === strategy)?.desc}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div>
-              <Label htmlFor="budget" className="text-xs">預算 ($)</Label>
-              <Input
-                id="budget"
-                type="number"
-                min={0}
-                value={budget}
-                onChange={(e) => setBudget(Math.max(0, Number(e.target.value) || 0))}
-                className="mt-1"
-              />
-            </div>
-            {strategy === 'seasonal-prep' && (
-              <div>
-                <Label className="text-xs">季節</Label>
-                <Select value={String(season)} onValueChange={(v) => setSeason(Number(v))}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ENC.seasons.map((s) => (
-                      <SelectItem key={s.index} value={String(s.index)}>
-                        {seasonIdNameFor(s.index, lang)} · {s.productIds.length} 件商品
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button onClick={compute} size="sm">
-              <Calculator className="mr-1.5 h-3.5 w-3.5" /> 計算採購計畫
-            </Button>
-            {result && (
-              <Button variant="outline" size="sm" onClick={handleExportMd}>
-                <FileText className="mr-1.5 h-3.5 w-3.5" /> 匯出 Markdown
-              </Button>
-            )}
-            {result && (
-              <Button variant="outline" size="sm" onClick={handleExportJson}>
-                <FileJson className="mr-1.5 h-3.5 w-3.5" /> 匯出 JSON
-              </Button>
-            )}
-            {result && room && (
-              <Button variant="outline" size="sm" onClick={handleSyncRoom}>
-                <Share2 className="mr-1.5 h-3.5 w-3.5" /> 同步到房間
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Result */}
       {result && (

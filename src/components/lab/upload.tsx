@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import {
   Upload as UploadIcon,
   FileJson,
@@ -26,6 +27,7 @@ import {
   Boxes,
   Tag,
   Loader2,
+  ChevronDown,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { SaveSnapshot, Confidence } from '@/lib/types'
@@ -123,6 +125,7 @@ export function Upload() {
   const [dragOver, setDragOver] = useState(false)
   const [parsing, setParsing] = useState(false)
   const [loadingSample, setLoadingSample] = useState(false)
+  const [diagnosticsOpen, setDiagnosticsOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const triggerFilePicker = useCallback(() => {
@@ -216,10 +219,11 @@ export function Upload() {
   return (
     <div className="mx-auto max-w-[1200px] space-y-4 p-4">
       <SectionHeader
-        title="存檔上傳與本地解析"
-        description="支援真實 EasySave3 (.es3 / .json) 存檔。解析器會修復 ES3 內嵌值語法、解開 __type/value 信封、並將 PascalCase 欄位對應到 SaveSnapshot。所有解析在瀏覽器本地完成。"
+        level={1}
+        title="載入存檔"
+        description="選擇遊戲的 .es3 或 save.json。資料只在你的瀏覽器解析，不會上傳。"
         confidence="confirmed"
-        note="ES3 parser 已整合 — 支援 Funds/Day/FP/Pricing/Tiers/Layout/Employees/Loan/Invoices/Upgrades 等 30+ 欄位。"
+        note="支援真實 EasySave3、乾淨 JSON 快照及部分 JSON。"
       />
 
       {/* Drop zone */}
@@ -237,11 +241,8 @@ export function Upload() {
             <FileUp className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <div className="text-sm font-medium">拖曳 .es3 / .json 檔案到此，或選擇檔案</div>
-            <div className="mt-1 text-xs text-muted-foreground">
-              支援真實 EasySave3 存檔（含內嵌 bool/float/int/string 語法）、乾淨 JSON 快照、部分 JSON。
-              所有解析在瀏覽器本地完成，不上傳伺服器。
-            </div>
+            <div className="text-base font-semibold">把存檔拖到這裡</div>
+            <div className="mt-1 text-xs text-muted-foreground">或按下方按鈕選擇 .es3 / .json 檔案</div>
           </div>
           <div className="flex flex-wrap justify-center gap-2">
             <input
@@ -266,19 +267,8 @@ export function Upload() {
                 </>
               )}
             </Button>
-            <Button variant="outline" onClick={handleLoadSample} disabled={loadingSample || parsing}>
-              {loadingSample ? (
-                <>
-                  <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> 載入中…
-                </>
-              ) : (
-                <>
-                  <FlaskConical className="mr-1.5 h-4 w-4" /> 載入範本 save.json
-                </>
-              )}
-            </Button>
             <Button variant="outline" onClick={() => { loadDemo(); setView('dashboard') }}>
-              <Sparkles className="mr-1.5 h-4 w-4" /> 載入 Demo 存檔
+              <Sparkles className="mr-1.5 h-4 w-4" /> 沒有存檔？試用 Demo
             </Button>
             {snapshot && (
               <Button variant="ghost" onClick={() => { clear(); setParseResult(null) }}>
@@ -286,6 +276,14 @@ export function Upload() {
               </Button>
             )}
           </div>
+          <button
+            type="button"
+            onClick={handleLoadSample}
+            disabled={loadingSample || parsing}
+            className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline disabled:opacity-50"
+          >
+            {loadingSample ? '正在載入網站範本…' : '載入網站內建 save.json 範本'}
+          </button>
         </CardContent>
       </Card>
 
@@ -358,6 +356,15 @@ export function Upload() {
               <CountTile icon={<Boxes className="h-3.5 w-3.5" />} label="總庫存件數" value={Object.values(s.inventoryByProduct).reduce((a, b) => a + b, 0)} />
             </div>
 
+            <Collapsible open={diagnosticsOpen} onOpenChange={setDiagnosticsOpen}>
+              <CollapsibleTrigger className="flex w-full items-center rounded-md border bg-muted/30 px-3 py-2 text-left text-sm font-medium transition-colors hover:bg-muted">
+                進階解析診斷
+                <span className="ml-2 text-xs font-normal text-muted-foreground">
+                  {parseResult.detected.length} 已讀取 · {parseResult.unknown.length} 未知 · {parseResult.warnings.length} 警告
+                </span>
+                <ChevronDown className={`ml-auto h-4 w-4 transition-transform ${diagnosticsOpen ? 'rotate-180' : ''}`} />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-4 pt-3">
             {/* Detected + unknown */}
             <div className="grid gap-3 md:grid-cols-2">
               <div>
@@ -503,10 +510,13 @@ export function Upload() {
               </div>
             )}
 
+              </CollapsibleContent>
+            </Collapsible>
+
             {parseResult.status !== 'failed' && (
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button onClick={() => setView('dashboard')}>
-                  <FileJson className="mr-1.5 h-4 w-4" /> 前往 Dashboard
+                  <FileJson className="mr-1.5 h-4 w-4" /> 查看營運建議
                 </Button>
                 <Button variant="outline" onClick={() => setView('layout')}>
                   <Boxes className="mr-1.5 h-4 w-4" /> 查看店面地圖

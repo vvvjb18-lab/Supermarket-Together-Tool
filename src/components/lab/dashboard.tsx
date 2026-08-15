@@ -206,28 +206,24 @@ export function Dashboard() {
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-4 p-4">
-      <div className="flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">營運儀表板</h1>
-          <p className="text-sm text-muted-foreground">
-            {hasData
-              ? `來源: ${snapshot!.source} · Day ${snapshot!.day} · 偵測欄位 ${snapshot!.detectedFields.length} 個`
-              : '尚未載入存檔。顯示百科靜態資料 + Demo 模式。'}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          {!hasData && (
-            <>
-              <Button variant="default" size="sm" onClick={() => setView('upload')}>
-                <Upload className="mr-1.5 h-4 w-4" /> 上傳存檔
-              </Button>
-            </>
-          )}
-          <Button variant="outline" size="sm" onClick={() => setView('room')}>
-            <ArrowRight className="mr-1.5 h-4 w-4" /> 多人房間
-          </Button>
-        </div>
-      </div>
+      <SectionHeader
+        level={1}
+        title="營運總覽"
+        description={hasData
+          ? `Day ${snapshot!.day} · 已讀取 ${snapshot!.detectedFields.length} 個存檔欄位，先處理下方第一個建議。`
+          : '載入存檔後，系統會直接告訴你先補貨、調價，還是整理店面。'}
+        right={
+          !hasData ? (
+            <Button size="sm" onClick={() => setView('upload')}>
+              <Upload className="mr-1.5 h-4 w-4" /> 載入存檔
+            </Button>
+          ) : (
+            <Button variant="outline" size="sm" onClick={() => setView('room')}>
+              <ArrowRight className="mr-1.5 h-4 w-4" /> 多人協作
+            </Button>
+          )
+        }
+      />
 
       {/* Score row */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
@@ -285,30 +281,42 @@ export function Dashboard() {
       {hasData && <SaveOverviewCard snapshot={snapshot!} />}
 
       {/* Next best actions */}
-      <Card>
-        <CardHeader className="pb-2">
+      <Card className="overflow-hidden">
+        <CardHeader className="border-b bg-muted/30 pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
-            <Lightbulb className="h-4 w-4 text-amber-500" /> 下一個最佳動作
+            <Lightbulb className="h-4 w-4 text-amber-500" /> 現在先做這件事
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-2">
-          {nextActions.map((a, i) => (
+        <CardContent className="p-0">
+          {nextActions[0] && (
             <button
-              key={a.id}
-              onClick={() => setView(a.view as any)}
-              className="flex items-center gap-3 rounded-md border bg-card px-3 py-2 text-left text-sm transition-colors hover:bg-accent"
+              onClick={() => setView(nextActions[0].view as any)}
+              className="flex w-full items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
             >
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">{i + 1}</span>
-              <div className="min-w-0 flex-1">
-                <div className="truncate font-medium">{a.label}</div>
-                <div className="truncate text-xs text-muted-foreground">reason: {a.reason}</div>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <code className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">{a.source}</code>
-                <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
-              </div>
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
+                <ArrowRight className="h-4 w-4" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-semibold">{nextActions[0].label}</span>
+                <span className="mt-0.5 block text-xs text-muted-foreground">{nextActions[0].reason}</span>
+              </span>
+              <span className="hidden text-xs font-medium text-primary sm:block">前往處理</span>
             </button>
-          ))}
+          )}
+          {nextActions.length > 1 && (
+            <div className="grid border-t sm:grid-cols-2">
+              {nextActions.slice(1, 3).map((action) => (
+                <button
+                  key={action.id}
+                  onClick={() => setView(action.view as any)}
+                  className="flex items-center gap-2 border-b px-4 py-3 text-left text-sm transition-colors last:border-b-0 hover:bg-accent sm:border-b-0 sm:border-r sm:last:border-r-0"
+                >
+                  <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                  <span className="truncate">{action.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 

@@ -142,9 +142,17 @@ export function DataRow({
   return (
     <div
       onClick={onClick}
+      onKeyDown={onClick ? (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onClick()
+        }
+      } : undefined}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
       className={cn(
         'flex items-center gap-3 rounded-md border bg-card px-3 py-2 text-sm transition-colors',
-        onClick && 'cursor-pointer hover:bg-accent',
+        onClick && 'cursor-pointer hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
         highlight && 'border-fuchsia-500/40 bg-fuchsia-500/5',
       )}
     >
@@ -208,6 +216,7 @@ export function SectionHeader({
   formula,
   note,
   right,
+  level = 2,
 }: {
   title: string
   description?: string
@@ -215,12 +224,14 @@ export function SectionHeader({
   formula?: string
   note?: string
   right?: React.ReactNode
+  level?: 1 | 2
 }) {
+  const Heading = level === 1 ? 'h1' : 'h2'
   return (
     <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+          <Heading className={cn('font-semibold tracking-tight', level === 1 ? 'text-2xl' : 'text-lg')}>{title}</Heading>
           {confidence && <ConfidenceBadge confidence={confidence} formula={formula} note={note} />}
         </div>
         {description && <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>}

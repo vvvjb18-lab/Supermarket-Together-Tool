@@ -16,6 +16,7 @@ import {
 import {
   ConfidenceBadge,
   StatCard,
+  SectionHeader,
   MiniBar,
   fmt,
   fmtMoney,
@@ -87,28 +88,14 @@ export function Pricing() {
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-4 p-4">
-      {/* Honesty callout */}
-      <Card className="border-rose-500/30 bg-rose-500/5">
-        <CardContent className="flex items-start gap-3 p-4">
-          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-500" />
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-semibold">v2.0 真實定價公式已上線</span>
-              <ConfidenceBadge
-                confidence="confirmed"
-                formula={suggestion?.formula}
-                note={suggestion?.value.note}
-                className="text-sm"
-              />
-            </div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              complaint threshold = market × Random(2.01, 2.5)。
-              safe = market×2.01（0% 客訴）、balanced = market×2.25（約 50% 接受）、aggressive = market×2.5（0% 接受）。
-              使用「實驗追蹤器」微調你的本地數值（curved salePerPrice 跟 difficulty 還會再微調）。
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <SectionHeader
+        level={1}
+        title="定價建議"
+        description="選一件商品，直接比較安全價、平衡價和高風險價。"
+        confidence="confirmed"
+        formula="投訴門檻 = 市價 × Random(2.01, 2.5)"
+        note="公式來自遊戲 IL；顧客每次結帳會重新抽容忍度。"
+      />
 
       {/* Product selector */}
       <ProductSelector
@@ -147,9 +134,9 @@ export function Pricing() {
         <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center justify-between text-base">
-              <span>價格建議（啟發式 markup）</span>
+              <span>可以怎樣定價</span>
               <ConfidenceBadge
-                confidence="needs-runtime"
+                confidence="confirmed"
                 formula={suggestion?.formula}
                 note={suggestion?.value.note}
               />
@@ -160,14 +147,14 @@ export function Pricing() {
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
                   <StatCard
-                    label="Base (原價)"
+                    label="商品原價"
                     value={fmtMoney(suggestion.value.base)}
                     confidence="confirmed"
                     formula="product.basePricePerUnit"
                     accent="neutral"
                   />
                   <StatCard
-                    label="Market (市價)"
+                    label="遊戲市價"
                     value={fmtMoney(suggestion.value.marketPrice)}
                     confidence="confirmed"
                     formula="base × tierInflation[tier]"
@@ -175,7 +162,7 @@ export function Pricing() {
                     accent="neutral"
                   />
                   <StatCard
-                    label="Safe ×2.01"
+                    label="安全價 ×2.01"
                     value={fmtMoney(suggestion.value.safePrice)}
                     confidence="confirmed"
                     formula="market × 2.01"
@@ -183,7 +170,7 @@ export function Pricing() {
                     accent="good"
                   />
                   <StatCard
-                    label="Balanced ×2.25"
+                    label="平衡價 ×2.25"
                     value={fmtMoney(suggestion.value.balancedPrice)}
                     confidence="confirmed"
                     formula="market × 2.25"
@@ -191,7 +178,7 @@ export function Pricing() {
                     accent="warn"
                   />
                   <StatCard
-                    label="Aggressive ×2.50"
+                    label="高風險 ×2.50"
                     value={fmtMoney(suggestion.value.aggressivePrice)}
                     confidence="confirmed"
                     formula="market × 2.50"
@@ -199,21 +186,12 @@ export function Pricing() {
                     accent="bad"
                   />
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  effective markup vs base = {fmt((suggestion.value.balancedPrice / Math.max(suggestion.value.base, 0.01) - 1) * 100, 0)}%
-                  (vs market × 2.25)
-                </div>
-                {/* BIG callout badge */}
-                <div className="flex items-start gap-3 rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3">
+                <div className="flex items-start gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3 text-xs text-muted-foreground">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                  <div className="text-xs text-muted-foreground">
-                    <span className="font-semibold text-emerald-700 dark:text-emerald-300">
-                      v2.0 confirmed formula
-                    </span>
-                    {' '}
-                    — Customer complaint threshold = market × Random(2.01, 2.5) per extracted IL.
-                    Local tuning may apply (difficulty, customer-specific bias); use the experiment tracker to fine-tune.
-                  </div>
+                  <span>
+                    <strong className="text-foreground">想完全避免價格投訴，選安全價。</strong>
+                    平衡價約有一半顧客接受；高風險價幾乎沒人接受，只供比較。
+                  </span>
                 </div>
               </div>
             ) : (
@@ -610,7 +588,7 @@ function RoomVotePanel({
               <div
                 key={m.id}
                 className="flex items-center gap-2 rounded-md border bg-card px-2 py-1.5"
-                style={{ borderLeft: `3px solid ${m.color}` }}
+                style={{ backgroundColor: `${m.color}12` }}
               >
                 <span className="text-xs font-medium">{m.name}{m.id === selfId ? ' (你)' : ''}</span>
                 <Button

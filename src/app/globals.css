@@ -117,8 +117,22 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
     font-feature-settings: "tnum" 1, "cv11" 1;
+  }
+  ::selection {
+    background: color-mix(in oklch, var(--primary) 22%, transparent);
+    color: var(--foreground);
+  }
+  button,
+  [role="button"],
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+  }
+  :focus-visible {
+    scroll-margin-block: 5rem;
   }
 }
 
@@ -144,6 +158,13 @@
   }
   .tnum {
     font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Keep data tools compact while preserving readable touch targets on mobile. */
+@media (max-width: 767px) {
+  main > div {
+    padding: 0.875rem;
   }
 }
 

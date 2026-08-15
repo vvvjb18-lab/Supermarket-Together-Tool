@@ -66,6 +66,8 @@ interface UIStore {
   setCommandOpen: (b: boolean) => void
   sidebarCollapsed: boolean
   toggleSidebar: () => void
+  mobileNavOpen: boolean
+  setMobileNavOpen: (open: boolean) => void
   selectedProductId: number | null
   setSelectedProduct: (id: number | null) => void
   /** Display language for game data names. Default zhHant (matches in-game Chinese UI). */
@@ -82,6 +84,8 @@ export const useUIStore = create<UIStore>()(
       setCommandOpen: (commandOpen) => set({ commandOpen }),
       sidebarCollapsed: false,
       toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
+      mobileNavOpen: false,
+      setMobileNavOpen: (mobileNavOpen) => set({ mobileNavOpen }),
       selectedProductId: null,
       setSelectedProduct: (selectedProductId) => set({ selectedProductId }),
       lang: 'zhHant',
