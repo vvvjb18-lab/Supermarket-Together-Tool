@@ -237,6 +237,46 @@ export function useRoomSync() {
     [clearSubs, selfId, updateRoom],
   )
 
+  // ---------- Helper: refresh roster/save/events from backend ----------
+  const refreshRoomData = useCallback(
+    async (code: string) => {
+      try {
+        const rows = await fetchMembers(code)
+        updateRoom({ members: rows.map(memberFromRow) })
+      } catch (e) {
+        console.warn('[room-sync] fetchMembers failed:', e)
+      }
+      try {
+        const saveRow = await fetchSaveRow(code)
+        if (saveRow) {
+          useSaveStore.getState().setSnapshot(saveRow.snapshot)
+          useRoomStore.getState().setSnapshot(saveRow.snapshot)
+        }
+      } catch (e) {
+        console.warn('[room-sync] fetchSaveRow failed:', e)
+      }
+      try {
+        const evs = await fetchEvents(code, 50)
+        const r = useRoomStore.getState().room
+        if (r) updateRoom({ events: evs.map(eventFromRow) })
+      } catch (e) {
+        console.warn('[room-sync] fetchEvents failed:', e)
+      }
+    },
+    [updateRoom],
+  )
+
+  // ---------- (Re)establish backend sync whenever we are inside a room ----------
+  // Covers SPA navigation away and back: the Room component unmounts (which
+  // tears down subscriptions + heartbeat via clearSubs) but the `room` stays in
+  // the store, so on remount we must re-subscribe and refresh the roster/save.
+  const roomCode = room?.code
+  useEffect(() => {
+    if (mode !== 'backend' || !roomCode) return
+    setupBackendSubscriptions(roomCode)
+    void refreshRoomData(roomCode)
+  }, [mode, roomCode, setupBackendSubscriptions, refreshRoomData])
+
   // ---------- createRoom ----------
   const createRoom = useCallback(
     async (name: string, playerName: string, password: string): Promise<string> => {

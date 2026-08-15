@@ -219,7 +219,14 @@ export const useRoomStore = create<RoomStore>()(
       assignShelf: (propIndex, playerId) =>
         set((s) => (s.room ? { room: { ...s.room, shelfAssignments: { ...s.room.shelfAssignments, [propIndex]: playerId } } } : {})),
     }),
-    { name: 'stl-room', storage: createJSONStorage(() => localStorage) },
+    {
+      name: 'stl-room',
+      storage: createJSONStorage(() => localStorage),
+      // Only persist stable identity — the live `room`/`connected` state must
+      // NOT be rehydrated (it would surface stale members/snapshot after a
+      // reload, and realtime subscriptions would not be re-established).
+      partialize: (s) => ({ selfId: s.selfId, selfName: s.selfName }),
+    },
   ),
 )
 
