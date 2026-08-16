@@ -51,7 +51,7 @@ function main(): void {
   const enc = load(join(DATA, 'encyclopedia.json'))
   const tierInfl = load(join(DATA, 'tier-inflation.json'))
   const skillGraph = load(join(DATA, 'skill-graph.json'))
-  const exploits = load(join(DATA, 'exploits.json'))
+  const exploits: any[] = load(join(DATA, 'exploits.json'))
   const demoSave = load(join(DATA, 'demo-save.json'))
   const statsHistory = load(join(SA, 'stats_history.json'))
   const perkEffectsFinal = load(join(SA, 'perk_effects_final.json'))
