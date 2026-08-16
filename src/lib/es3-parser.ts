@@ -24,11 +24,13 @@
 // stay 'proxy' via a separate note.
 
 import { encyclopedia as ENC } from './data-loader'
+import { parseStatsObject } from './stats-parser'
 import type {
   SaveSnapshot,
   EmployeeRecord,
   LayoutProp,
   Confidence,
+  StatsHistory,
 } from './types'
 
 export interface ES3ParseResult {
@@ -709,6 +711,7 @@ export function parseExtractedSave(
   const manufacturingSec = data.manufacturing ?? {}
   const employeeSec = data.employee_data ?? {}
   const decorationsSec = data.decorations ?? {}
+  const statsHistorySec = data.stats_history ?? {}
   const meta = data._meta ?? {}
 
   // ---- scalar KPIs ----
@@ -949,6 +952,17 @@ export function parseExtractedSave(
   if (meta.extractor_version) detected.push(`Extractor v${meta.extractor_version}`)
   if (meta.source_es3) detected.push(`Source: ${meta.source_es3}`)
 
+  // ---- stats_history (v1.1 combined save, source: StoreFile0stats.es3) ----
+  let statsHistory: StatsHistory | undefined
+  if (statsHistorySec && typeof statsHistorySec === 'object' && !Array.isArray(statsHistorySec)) {
+    try {
+      statsHistory = parseStatsObject(statsHistorySec, fileName)
+      if (statsHistory.days.length > 0) detected.push(`StatsHistory (${statsHistory.days.length} days)`)
+    } catch {
+      warnings.push('stats_history 解析失敗（已忽略）。')
+    }
+  }
+
   // ---- unknown decoded keys (top-level keys we don't recognize) ----
   const KNOWN_DECODED = new Set<string>([
     'Difficulty', 'PlayersAddFunds', 'Layout', 'StoreName', 'Day',
@@ -1022,6 +1036,7 @@ export function parseExtractedSave(
     layout: layout ?? undefined,
     skillUnlocks,
     perkIndexToSkill,
+    statsHistory,
   }
 
   return {

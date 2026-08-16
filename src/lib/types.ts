@@ -340,6 +340,12 @@ export interface SaveSnapshot {
   skillUnlocks?: number[]
   /** Perk-index → skill-index mapping (from skill_unlocks.perkIndexToSkill). */
   perkIndexToSkill?: number[]
+  /**
+   * Full daily-statistics history parsed from the `stats_history` top-level
+   * key of the v1.1 extracted save.json (source: StoreFile0stats.es3).
+   * Present only when the upload carries that key.
+   */
+  statsHistory?: StatsHistory
 }
 
 export interface EmployeeRecord {

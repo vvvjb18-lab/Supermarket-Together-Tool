@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSaveStore } from '@/lib/store'
 import { parseStatsFile } from '@/lib/stats-parser'
 import {
@@ -109,6 +109,15 @@ export function Stats() {
       setParsing(false)
     }
   }, [runParse])
+
+  // v1.1 合併存檔把每日統計（stats_history）包進 room snapshot 裡，所以單次
+  // 上載就能同時餵儀表板與本頁——自動載入，不用另外上 stats 檔。
+  useEffect(() => {
+    const sh = snapshot?.statsHistory
+    if (sh && Array.isArray(sh.days) && sh.days.length > 0) {
+      setHistory(sh)
+    }
+  }, [snapshot])
 
   const summary = useMemo(() => (history ? computeStatsSummary(history) : null), [history])
   const breakdown = useMemo(() => (history ? computeProfitBreakdown(history, snapshot) : null), [history, snapshot])

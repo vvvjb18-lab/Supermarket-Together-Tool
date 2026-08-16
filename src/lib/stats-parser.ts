@@ -177,14 +177,23 @@ function normalizeToRaw(
 }
 
 export function parseStatsFile(text: string, fileName: string): StatsHistory {
-  const warnings: string[] = []
   let data: any = null
   try {
     data = JSON.parse(text)
   } catch (e: any) {
     throw new Error(`無法解析 stats 檔案（非合法 JSON）：${e?.message ?? 'unknown'}`)
   }
+  return parseStatsObject(data, fileName)
+}
 
+/**
+ * Normalise an already-parsed stats object (raw `day{N}stat{Name}` flat object
+ * OR the preprocessed `{ days, scalar_stats, list_stats, data }` shape) into a
+ * typed StatsHistory. Used by both the standalone stats upload path and the
+ * v1.1 combined save.json `stats_history` key.
+ */
+export function parseStatsObject(data: any, fileName: string): StatsHistory {
+  const warnings: string[] = []
   const raw = normalizeToRaw(data, warnings)
   const days = Object.keys(raw)
     .map(Number)
