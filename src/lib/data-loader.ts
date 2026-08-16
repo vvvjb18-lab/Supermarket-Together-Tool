@@ -4,7 +4,9 @@ import demoSaveJson from './data/demo-save.json'
 import skillGraphJson from './data/skill-graph.json'
 import exploitsJson from './data/exploits.json'
 import tierInflationJson from './data/tier-inflation.json'
-import type { Encyclopedia, SaveSnapshot, Product, Tier, ProductGroup, Buildable, Container, SkillTreeGraph, LayoutProp, ExploitCandidate } from './types'
+import manufacturingRecipesJson from './data/manufacturing-recipes.json'
+import perkEffectsJson from './data/perk-effects.json'
+import type { Encyclopedia, SaveSnapshot, Product, Tier, ProductGroup, Buildable, Container, SkillTreeGraph, LayoutProp, ExploitCandidate, ManufacturingRecipe, Skill } from './types'
 
 // ---------- tier inflation table (D2: online-orders engine) ----------
 // The encyclopedia bundles the same numbers in encyclopedia.tiers[].inflation,
@@ -41,6 +43,32 @@ function normalizeLayoutProps(props: LayoutProp[]): LayoutProp[] {
 
 const _encyclopedia = encyclopediaJson as unknown as Encyclopedia
 _encyclopedia.storeLayout = normalizeLayoutProps(_encyclopedia.storeLayout ?? [])
+
+// ---------- perk effects overlay (D2: real IL effect strings) ----------
+// The bundled encyclopedia's skills[].effect / .il are misaligned from skill 12
+// onward (a +4 shift) and skills 40-43 carry "(no matching perk in IL)". The
+// perk-effects.json table is the authoritative perkIndex -> effect mapping
+// (ManageExtraPerks switch IL, cross-checked against localization names), so we
+// overlay it here once. Everything downstream (skill-engine, skill-tools,
+// skills.tsx, skill-tree.tsx) then reads the corrected value automatically.
+export interface PerkEffectEntry {
+  perkIndex: number
+  nameEn: string
+  effect: string
+  rawIl: string
+  note?: string
+}
+const _perkEffects = (perkEffectsJson as { perks: PerkEffectEntry[] }).perks
+export const perkEffects: PerkEffectEntry[] = _perkEffects
+const _perkEffectByIndex = new Map<number, PerkEffectEntry>(_perkEffects.map((p) => [p.perkIndex, p]))
+
+_encyclopedia.skills = _encyclopedia.skills.map((s: Skill) => {
+  if (s.perk == null) return s
+  const pe = _perkEffectByIndex.get(s.perk)
+  if (!pe) return s
+  return { ...s, effect: pe.effect, il: pe.rawIl }
+})
+
 export const encyclopedia = _encyclopedia
 
 const _demoSave = demoSaveJson as unknown as SaveSnapshot
@@ -50,6 +78,9 @@ export const demoSave = _demoSave
 export const skillGraph = skillGraphJson as unknown as SkillTreeGraph
 
 export const exploits = exploitsJson as unknown as ExploitCandidate[]
+
+// 30 IL-extracted manufacturing recipes (index == manufacturingProducts[].id).
+export const manufacturingRecipes = (manufacturingRecipesJson as { recipes: ManufacturingRecipe[] }).recipes
 
 // pre-indexed maps for fast lookup
 export const productById = new Map<number, Product>(encyclopedia.products.map((p) => [p.id, p]))

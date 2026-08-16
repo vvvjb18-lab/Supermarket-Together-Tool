@@ -201,6 +201,19 @@ export interface ManufacturingProduct {
   size: Vec3
 }
 
+/**
+ * A single manufacturing recipe (index 0..29 == manufacturingProducts[].id).
+ * `baseGroups` is a list of slots; each slot is a list of alternative product
+ * ids (the game picks one per slot). `combinable` lists the optional "general
+ * products" a player can add. Extracted from ManufacturingBase .ctor IL.
+ */
+export interface ManufacturingRecipe {
+  id: number
+  baseGroups: number[][]
+  combinable: number[]
+  itemsPerBox: number
+}
+
 export interface LayoutProp {
   index: number
   /**

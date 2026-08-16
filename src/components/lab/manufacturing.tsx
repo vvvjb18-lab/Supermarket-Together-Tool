@@ -10,7 +10,8 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { encyclopedia as ENC, productById } from '@/lib/data-loader'
+import { encyclopedia as ENC, productById, manufacturingRecipes } from '@/lib/data-loader'
+import { computeRecipeEconomy } from '@/lib/manufacturing-engine'
 import { useRoomStore, type Lang } from '@/lib/store'
 import { useLang, manufacturingIdNameFor, productNameFor } from '@/lib/i18n'
 import {
@@ -84,44 +85,22 @@ export function Manufacturing() {
     [enriched],
   )
 
-  // D5: per-recipe ROI proxy.
-  // Model (clearly labelled as a proxy):
-  //   inputCost per box    = marketPrice(linkedProduct)  [≈ 1 unit of "category base" worth]
-  //   outputValue per box  = itemsPerBox × marketPrice(linkedProduct) × 2.01  [sold at 2.01× market cap]
-  //   time per box         = 30s (PRODUCTION_BASE_TIME)
-  //   profitPerBox         = outputValue − inputCost
-  //   profitPerMinute      = profitPerBox / 0.5  (= 30s)
-  // The IL real recipes (baseRecipes + combinableVariations) live in
-  // save-analyzer/manufacturing_arbitrage.py and are NOT yet in the web
-  // codebase; until they are, this proxy is the best we can do.
+  // D1: per-recipe ROI — REAL input→output economics (IL baseRecipes).
+  //   inputCost  = Σ_slot[min marketPrice(ingredient)]   (cheapest base combo)
+  //   outputValue= [Σ_slot[avg(marketPrice×2.0)] + Σ_combinable[marketPrice×2.5]] × 2.01
+  //   profit/min = (outputValue − inputCost) / (30s/60)
   const roiRanking = useMemo(() => {
-    return enriched
-      .map(({ m, linkedProduct }) => {
-        // Use linkedProduct's marketPrice; fall back to the first product in
-        // the matching category if linkedProductID doesn't resolve.
-        const refProduct =
-          linkedProduct ??
-          (m.linkedProductID >= 0 && m.linkedProductID < ENC.products.length
-            ? productById.get(m.linkedProductID)
-            : undefined) ??
-          ENC.products[0]
-        const refMarket = refProduct ? refProduct.basePricePerUnit * (ENC.tiers[refProduct.tier]?.inflation ?? 1) : 0
-        const inputCost = refMarket
-        const outputValue = m.itemsPerBox * refMarket * 2.01
-        const profit = outputValue - inputCost
-        const profitPerMinute = profit / 0.5 // 30s = 0.5 min
-        return {
-          m,
-          linkedProduct: refProduct,
-          refMarket,
-          inputCost,
-          outputValue,
-          profit,
-          profitPerMinute,
-        }
+    return products
+      .map((m) => {
+        const recipe = manufacturingRecipes[m.id]
+        if (!recipe) return null
+        const eco = computeRecipeEconomy(recipe)
+        const profitPerMinute = eco.profitMin / (eco.productionSeconds / 60)
+        return { m, eco, profitPerMinute }
       })
+      .filter((x): x is { m: ManufacturingProduct; eco: ReturnType<typeof computeRecipeEconomy>; profitPerMinute: number } => x !== null)
       .sort((a, b) => b.profitPerMinute - a.profitPerMinute)
-  }, [enriched])
+  }, [products])
 
   // Queue calcs
   const queueEnriched = useMemo(
@@ -192,12 +171,14 @@ export function Manufacturing() {
         </div>
 
         {/* Honesty callout */}
-        <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-          <div className="text-xs text-amber-800 dark:text-amber-200">
-            <span className="font-semibold">誠實聲明：</span>
-            固定配方盈利未完全提取；食譜為<span className="font-semibold">基底商品 + 任意可組合一般商品</span>，無固定配方表。
-            本頁只做<span className="font-semibold">產能與密度推導</span>，不預測成品售價或利潤。
+        <div className="flex items-start gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3">
+          <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+          <div className="text-xs text-foreground/90">
+            <span className="font-semibold">配方已回流（IL 真值）：</span>
+            30 條 <code className="font-mono">baseRecipes</code> + 可組合商品已從
+            <code className="font-mono"> ManufacturingBase .ctor IL</code> 提取。
+            成品單價 = Σ槽位[平均(原料市價 × 2.0)] / 每箱件數 + Σ可組合[市價 × 2.5] / 每箱件數；
+            賣價上限 2.01×（0 投訴）。下方 ROI 排行即用真實原料成本與成品價值計算。
           </div>
         </div>
 
@@ -473,12 +454,12 @@ export function Manufacturing() {
           <CardHeader className="pb-2">
             <CardTitle className="flex flex-wrap items-center justify-between gap-2 text-base">
               <span className="flex items-center gap-2">
-                <Coins className="h-4 w-4 text-emerald-500" /> 配方 ROI 排行（D5：每分鐘利潤）
+                <Coins className="h-4 w-4 text-emerald-500" /> 配方 ROI 排行（每分鐘利潤）
               </span>
               <ConfidenceBadge
-                confidence="proxy"
-                formula="outputValue = itemsPerBox × marketPrice(linkedProduct) × 2.01; inputCost = marketPrice(linkedProduct) × 1; profit/min = (output − input) / 0.5"
-                note="inputCost 假設 = 1 單位基底商品的市價（IL 真實 30 條 baseRecipes 仍在 save-analyzer，未回流）。"
+                confidence="confirmed"
+                formula="outputValue = Σ槽位[avg(原料×2.0)] × 2.01; inputCost = Σ槽位[min(原料市價)]; profit/min = (output − input) / 0.5"
+                note="真實 30 條 baseRecipes（ManufacturingBase IL）。inputCost 取每槽位最便宜原料。"
               />
             </CardTitle>
           </CardHeader>
@@ -500,7 +481,7 @@ export function Manufacturing() {
               </div>
               <div className="mt-1 text-xs text-foreground/90">
                 今天優先做 <span className="font-semibold">{manufacturingIdNameFor(roiRanking[0].m.id, lang)}</span>：
-                每箱預估 <span className="font-mono font-semibold text-emerald-600">${roiRanking[0].profit.toFixed(0)}</span> 利潤
+                每箱預估 <span className="font-mono font-semibold text-emerald-600">${roiRanking[0].eco.profitMin.toFixed(0)}</span> 利潤
                 （每分鐘 ${roiRanking[0].profitPerMinute.toFixed(0)}）。第二選擇 {manufacturingIdNameFor(roiRanking[1].m.id, lang)}（${roiRanking[1].profitPerMinute.toFixed(0)}/min）。
               </div>
             </div>
@@ -562,11 +543,11 @@ export function Manufacturing() {
 
         {/* Required input products / recipe note */}
         <SectionHeader
-          title="配方分類（linkedProductID）"
-          description="manufacturingProducts.linkedProductID 是製造配方的 category index（0=麵包/烘焙類、1=蛋糕類）。遊戲內配方是「基底商品 + 任意可組合一般商品」自由組合，無固定配方表。"
-          confidence="unverified"
-          formula="linkedProductID = 製造 category index (0/1)"
-          note="食譜 = 基底 + 任意 combinable 一般商品（未提取固定表）。linkedProductID 不直接是商品 id。"
+          title="配方基底（baseRecipes IL）"
+          description="30 條製造基底配方已回流（manufacturing-recipes.json）。每條配方 = 多個槽位，槽位內任一商品可作基底原料（`baseGroups`），另可加入「可組合一般商品」（`combinable`）提升成品價值。"
+          confidence="confirmed"
+          formula="recipe.baseGroups = slot alternatives; recipe.combinable = optional general products"
+          note="manufacturingProducts.linkedProductID 在打包資料中全為 0（佔位），非基底商品 id；真實配方以 baseGroups 為準。"
         />
         <Card>
           <CardContent className="pt-2">
@@ -723,7 +704,7 @@ function DensityRow({
   )
 }
 
-// D5: ROI row
+// D1: ROI row (real recipe economics)
 function RoiRow({
   rank,
   row,
@@ -733,17 +714,14 @@ function RoiRow({
   rank: number
   row: {
     m: ManufacturingProduct
-    linkedProduct: ReturnType<typeof productById.get>
-    refMarket: number
-    inputCost: number
-    outputValue: number
-    profit: number
+    eco: ReturnType<typeof computeRecipeEconomy>
     profitPerMinute: number
   }
   max: number
   lang: Lang
 }) {
   const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : null
+  const eco = row.eco
   return (
     <div
       className={cn(
@@ -757,7 +735,10 @@ function RoiRow({
           {manufacturingIdNameFor(row.m.id, lang)}
         </div>
         <div className="font-mono text-[10px] text-muted-foreground">
-          {row.m.itemsPerBox}/box · 入 ${row.inputCost.toFixed(1)} → 出 ${row.outputValue.toFixed(0)}
+          {row.m.itemsPerBox}/box · 入 ${eco.inputCostMin.toFixed(1)} → 出 ${eco.boxRevenue.toFixed(0)}
+        </div>
+        <div className="font-mono text-[10px] text-muted-foreground">
+          倍率 {eco.multiplierMin.toFixed(2)}×{eco.combinableCount > 0 ? ` · 可組合 ${eco.combinableCount} 件` : ''}
         </div>
         <div className="mt-1">
           <MiniBar value={Math.max(0, row.profitPerMinute)} max={max} color="bg-emerald-500" />

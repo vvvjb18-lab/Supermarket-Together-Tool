@@ -10,6 +10,7 @@
 
 import { encyclopedia as ENC, productById, productZhName } from './data-loader'
 import { computeMarketPrice, TIER_INFLATION } from './engine'
+import { getSeason } from './online-order-engine'
 import type { DailyStat, SaveSnapshot, StatsHistory } from './types'
 
 // ---------- summary ----------
@@ -409,6 +410,73 @@ export function computeNextDayActions(history: StatsHistory, snapshot: SaveSnaps
 
   actions.sort((a, b) => b.priority - a.priority)
   return actions.slice(0, 15)
+}
+
+// ---------- per-season real sales (D3: seasons.tsx real-sales ranking) ----------
+
+export interface SeasonProductSales {
+  productId: number
+  totalSold: number
+  totalRevenue: number
+  /** number of days this product recorded a sale in this season. */
+  activeDays: number
+}
+
+export interface SeasonSales {
+  seasonIndex: 0 | 1 | 2 | 3
+  /** number of stats days that fell into this season. */
+  dayCount: number
+  /** sorted descending by totalSold. */
+  products: SeasonProductSales[]
+}
+
+/**
+ * Aggregate the player's REAL per-product sales (productsSoldList) by the
+ * 4-season cycle. season = clamp(floor((day % 111) / 28), 0, 3) — same formula
+ * as online-order-engine.getSeason. This replaces the static demand-proxy with
+ * ground truth so the seasons page can rank each season's top sellers.
+ */
+export function computeSeasonSales(history: StatsHistory): SeasonSales[] {
+  const acc: Map<number, { sold: number; rev: number; activeDays: Set<number> }>[] = [
+    new Map(), new Map(), new Map(), new Map(),
+  ]
+  const dayCounts = [0, 0, 0, 0]
+
+  for (const day of history.days) {
+    const d = history.data[String(day)]
+    if (!d) continue
+    const seasonIdx = getSeason(day).index
+    dayCounts[seasonIdx]++
+    const map = acc[seasonIdx]
+    const soldList = d.productsSoldList ?? []
+    const revList = d.revenuePerProductSoldList ?? []
+    const len = Math.max(soldList.length, revList.length)
+    for (let pid = 0; pid < len; pid++) {
+      const sold = soldList[pid] ?? 0
+      const rev = revList[pid] ?? 0
+      if (sold <= 0 && rev <= 0) continue
+      let cur = map.get(pid)
+      if (!cur) {
+        cur = { sold: 0, rev: 0, activeDays: new Set() }
+        map.set(pid, cur)
+      }
+      cur.sold += sold
+      cur.rev += rev
+      if (sold > 0) cur.activeDays.add(day)
+    }
+  }
+
+  return ([0, 1, 2, 3] as const).map((seasonIdx) => {
+    const products = Array.from(acc[seasonIdx].entries())
+      .map(([productId, v]) => ({
+        productId,
+        totalSold: v.sold,
+        totalRevenue: v.rev,
+        activeDays: v.activeDays.size,
+      }))
+      .sort((a, b) => b.totalSold - a.totalSold || b.totalRevenue - a.totalRevenue)
+    return { seasonIndex: seasonIdx, dayCount: dayCounts[seasonIdx], products }
+  })
 }
 
 // ---------- chart series helper ----------

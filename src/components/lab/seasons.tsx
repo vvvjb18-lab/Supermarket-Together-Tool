@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import {
   CartesianGrid,
   Cell,
@@ -17,6 +17,9 @@ import {
   computeBoxValue,
   computeDemandProxy,
 } from '@/lib/engine'
+import { parseStatsFile } from '@/lib/stats-parser'
+import { computeSeasonSales } from '@/lib/stats-engine'
+import type { StatsHistory } from '@/lib/types'
 import { useRoomStore } from '@/lib/store'
 import {
   useLang,
@@ -94,6 +97,25 @@ export function Seasons() {
     })
     return ids
   }, [seasonIdx])
+
+  // D3: real per-season sales from demo stats (37-day sample).
+  const [history, setHistory] = useState<StatsHistory | null>(null)
+  useEffect(() => {
+    let active = true
+    fetch('/demo-stats.json')
+      .then((res) => (res.ok ? res.text() : Promise.reject(new Error(`HTTP ${res.status}`))))
+      .then((text) => {
+        if (active) setHistory(parseStatsFile(text, 'demo-stats.json'))
+      })
+      .catch(() => {
+        if (active) setHistory(null)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
+  const seasonSales = useMemo(() => (history ? computeSeasonSales(history) : null), [history])
+  const currentSeasonSales = seasonSales?.[seasonIdx] ?? null
 
   // Build enriched pool rows
   const pool = useMemo(() => {
