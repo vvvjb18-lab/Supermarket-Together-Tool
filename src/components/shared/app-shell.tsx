@@ -30,6 +30,7 @@ const Exploits = lazy(() => import('@/components/lab/exploits').then((m) => ({ d
 const Achievements = lazy(() => import('@/components/lab/achievements').then((m) => ({ default: m.Achievements })))
 const RawData = lazy(() => import('@/components/lab/raw-data').then((m) => ({ default: m.RawData })))
 const Atlas = lazy(() => import('@/components/lab/atlas').then((m) => ({ default: m.Atlas })))
+const OnlineOrders = lazy(() => import('@/components/lab/online-orders').then((m) => ({ default: m.OnlineOrders })))
 
 // Map view ID to its component (keeps the switch compact).
 // `Layout` is eagerly imported (not lazy) so it compiles with the main
@@ -56,6 +57,7 @@ const VIEW_COMPONENTS: Record<string, React.ComponentType<any> | React.LazyExoti
   achievements: Achievements,
   rawdata: RawData,
   atlas: Atlas,
+  'online-orders': OnlineOrders,
 }
 
 // Page transition animation variants

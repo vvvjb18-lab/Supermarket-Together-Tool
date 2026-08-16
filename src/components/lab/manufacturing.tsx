@@ -44,6 +44,8 @@ import {
   Factory,
   Boxes,
   TrendingUp,
+  Lightbulb,
+  Coins,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { ManufacturingProduct } from '@/lib/types'
@@ -81,6 +83,45 @@ export function Manufacturing() {
     () => [...enriched].sort((a, b) => b.density - a.density),
     [enriched],
   )
+
+  // D5: per-recipe ROI proxy.
+  // Model (clearly labelled as a proxy):
+  //   inputCost per box    = marketPrice(linkedProduct)  [≈ 1 unit of "category base" worth]
+  //   outputValue per box  = itemsPerBox × marketPrice(linkedProduct) × 2.01  [sold at 2.01× market cap]
+  //   time per box         = 30s (PRODUCTION_BASE_TIME)
+  //   profitPerBox         = outputValue − inputCost
+  //   profitPerMinute      = profitPerBox / 0.5  (= 30s)
+  // The IL real recipes (baseRecipes + combinableVariations) live in
+  // save-analyzer/manufacturing_arbitrage.py and are NOT yet in the web
+  // codebase; until they are, this proxy is the best we can do.
+  const roiRanking = useMemo(() => {
+    return enriched
+      .map(({ m, linkedProduct }) => {
+        // Use linkedProduct's marketPrice; fall back to the first product in
+        // the matching category if linkedProductID doesn't resolve.
+        const refProduct =
+          linkedProduct ??
+          (m.linkedProductID >= 0 && m.linkedProductID < ENC.products.length
+            ? productById.get(m.linkedProductID)
+            : undefined) ??
+          ENC.products[0]
+        const refMarket = refProduct ? refProduct.basePricePerUnit * (ENC.tiers[refProduct.tier]?.inflation ?? 1) : 0
+        const inputCost = refMarket
+        const outputValue = m.itemsPerBox * refMarket * 2.01
+        const profit = outputValue - inputCost
+        const profitPerMinute = profit / 0.5 // 30s = 0.5 min
+        return {
+          m,
+          linkedProduct: refProduct,
+          refMarket,
+          inputCost,
+          outputValue,
+          profit,
+          profitPerMinute,
+        }
+      })
+      .sort((a, b) => b.profitPerMinute - a.profitPerMinute)
+  }, [enriched])
 
   // Queue calcs
   const queueEnriched = useMemo(
@@ -146,7 +187,7 @@ export function Manufacturing() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">製造實驗室</h1>
           <p className="text-sm text-muted-foreground">
-            30 個製造產品 · 基底時間 30s/件 · 自由配方組合制 · 產能與密度推導
+            30 個製造產品 · 基底時間 30s/件 · 自由配方組合制 · 產能、密度、ROI 推導
           </p>
         </div>
 
@@ -427,6 +468,45 @@ export function Manufacturing() {
           </CardContent>
         </Card>
 
+        {/* D5: per-recipe ROI ranking */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex flex-wrap items-center justify-between gap-2 text-base">
+              <span className="flex items-center gap-2">
+                <Coins className="h-4 w-4 text-emerald-500" /> 配方 ROI 排行（D5：每分鐘利潤）
+              </span>
+              <ConfidenceBadge
+                confidence="proxy"
+                formula="outputValue = itemsPerBox × marketPrice(linkedProduct) × 2.01; inputCost = marketPrice(linkedProduct) × 1; profit/min = (output − input) / 0.5"
+                note="inputCost 假設 = 1 單位基底商品的市價（IL 真實 30 條 baseRecipes 仍在 save-analyzer，未回流）。"
+              />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+              {roiRanking.slice(0, 6).map((row, i) => (
+                <RoiRow
+                  key={row.m.id}
+                  rank={i + 1}
+                  row={row}
+                  max={roiRanking[0]?.profitPerMinute ?? 1}
+                  lang={lang}
+                />
+              ))}
+            </div>
+            <div className="mt-3 rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3">
+              <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
+                <Lightbulb className="h-3 w-3" /> 今日推薦
+              </div>
+              <div className="mt-1 text-xs text-foreground/90">
+                今天優先做 <span className="font-semibold">{manufacturingIdNameFor(roiRanking[0].m.id, lang)}</span>：
+                每箱預估 <span className="font-mono font-semibold text-emerald-600">${roiRanking[0].profit.toFixed(0)}</span> 利潤
+                （每分鐘 ${roiRanking[0].profitPerMinute.toFixed(0)}）。第二選擇 {manufacturingIdNameFor(roiRanking[1].m.id, lang)}（${roiRanking[1].profitPerMinute.toFixed(0)}/min）。
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Density chart top 15 */}
         <Card>
           <CardHeader className="pb-2">
@@ -638,6 +718,56 @@ function DensityRow({
       <div className="shrink-0 text-right">
         <div className="font-mono text-sm font-bold tabular-nums">{fmt(row.density, 1)}</div>
         <div className="text-[9px] text-muted-foreground">items/u³</div>
+      </div>
+    </div>
+  )
+}
+
+// D5: ROI row
+function RoiRow({
+  rank,
+  row,
+  max,
+  lang,
+}: {
+  rank: number
+  row: {
+    m: ManufacturingProduct
+    linkedProduct: ReturnType<typeof productById.get>
+    refMarket: number
+    inputCost: number
+    outputValue: number
+    profit: number
+    profitPerMinute: number
+  }
+  max: number
+  lang: Lang
+}) {
+  const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : null
+  return (
+    <div
+      className={cn(
+        'flex items-center gap-2 rounded-md border bg-card px-3 py-2',
+        rank <= 3 && 'border-emerald-500/40 bg-emerald-500/5',
+      )}
+    >
+      <span className="w-8 text-center text-sm font-bold">{medal ?? rank}</span>
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm font-medium">
+          {manufacturingIdNameFor(row.m.id, lang)}
+        </div>
+        <div className="font-mono text-[10px] text-muted-foreground">
+          {row.m.itemsPerBox}/box · 入 ${row.inputCost.toFixed(1)} → 出 ${row.outputValue.toFixed(0)}
+        </div>
+        <div className="mt-1">
+          <MiniBar value={Math.max(0, row.profitPerMinute)} max={max} color="bg-emerald-500" />
+        </div>
+      </div>
+      <div className="shrink-0 text-right">
+        <div className="font-mono text-sm font-bold tabular-nums text-emerald-600">
+          ${row.profitPerMinute.toFixed(0)}
+        </div>
+        <div className="text-[9px] text-muted-foreground">利潤/分鐘</div>
       </div>
     </div>
   )

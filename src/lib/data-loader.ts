@@ -3,7 +3,24 @@ import encyclopediaJson from './data/encyclopedia.json'
 import demoSaveJson from './data/demo-save.json'
 import skillGraphJson from './data/skill-graph.json'
 import exploitsJson from './data/exploits.json'
+import tierInflationJson from './data/tier-inflation.json'
 import type { Encyclopedia, SaveSnapshot, Product, Tier, ProductGroup, Buildable, Container, SkillTreeGraph, LayoutProp, ExploitCandidate } from './types'
+
+// ---------- tier inflation table (D2: online-orders engine) ----------
+// The encyclopedia bundles the same numbers in encyclopedia.tiers[].inflation,
+// but exposing them as a separate, flat array makes them consumable by pure
+// functions in src/lib/online-order-engine.ts without dragging the full
+// Encyclopedia type around. The 0-16 real values (1.13-1.59) are the only
+// tiers where the game applies a sale-price surcharge above 2.01x base.
+export interface TierInflationEntry {
+  id: number
+  inflation: number
+  category: string
+}
+const _tierInflationTable: TierInflationEntry[] = (tierInflationJson as { tiers: TierInflationEntry[] }).tiers
+export const tierInflationTable: TierInflationEntry[] = _tierInflationTable
+/** Flat number[] (id -> multiplier) for fast lookup; mirrors engine.TIER_INFLATION. */
+export const TIER_INFLATION_VALUES: number[] = _tierInflationTable.map((t) => t.inflation)
 
 /**
  * Ensure every LayoutProp carries the canonical `containerID` + `zoneCode`

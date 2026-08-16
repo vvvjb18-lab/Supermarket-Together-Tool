@@ -57,6 +57,7 @@ type ViewId =
   | 'rawdata'
   | 'room'
   | 'atlas'
+  | 'online-orders'
 
 export type Lang = 'zhHant' | 'en' | 'both'
 

@@ -9,6 +9,7 @@ import {
   computeProductPerformance,
   computeDiagnostics,
   computeNextDayActions,
+  computeDayExtremes,
   buildDailySeries,
   type ProductPerformance,
 } from '@/lib/stats-engine'
@@ -115,6 +116,7 @@ export function Stats() {
   const diagnostics = useMemo(() => (history ? computeDiagnostics(history) : null), [history])
   const actions = useMemo(() => (history ? computeNextDayActions(history, snapshot) : null), [history, snapshot])
   const series = useMemo(() => (history ? buildDailySeries(history, snapshot) : null), [history, snapshot])
+  const extremes = useMemo(() => (history ? computeDayExtremes(history) : null), [history])
 
   const sortedPerf = useMemo(() => {
     if (!performance) return []
@@ -219,6 +221,44 @@ export function Stats() {
             <StatCard label="平均客單" value={fmtMoney(summary.averages.basketSize)} confidence="proxy" />
             <StatCard label="線上訂單收入" value={fmtMoney(summary.totals.onlineRevenue)} confidence="confirmed" hint={summary.totals.onlineRevenue > 0 ? '線上訂單是強力盈利來源' : '尚未啟用線上訂單'} />
           </div>
+
+          {/* best / worst day hero KPIs (D4) */}
+          {extremes && (extremes.best || extremes.worst) && (
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              {extremes.best && (
+                <Card className="border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 to-muted/30">
+                  <CardContent className="flex flex-col gap-1 p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
+                        <TrendingUp className="h-3.5 w-3.5" /> 史上最佳日
+                      </div>
+                      <Badge variant="outline" className="text-[10px]">Day {extremes.best.day}</Badge>
+                    </div>
+                    <div className="font-mono text-2xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+                      {fmtMoney(extremes.best.benefits)}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground">{extremes.best.summary}</div>
+                  </CardContent>
+                </Card>
+              )}
+              {extremes.worst && extremes.worst.day !== extremes.best?.day && (
+                <Card className="border-rose-500/30 bg-gradient-to-br from-rose-500/5 to-muted/30">
+                  <CardContent className="flex flex-col gap-1 p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-rose-700 dark:text-rose-300">
+                        <TrendingDown className="h-3.5 w-3.5" /> 史上最差日
+                      </div>
+                      <Badge variant="outline" className="text-[10px]">Day {extremes.worst.day}</Badge>
+                    </div>
+                    <div className="font-mono text-2xl font-bold tabular-nums text-rose-600 dark:text-rose-400">
+                      {fmtMoney(extremes.worst.benefits)}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground">{extremes.worst.summary}</div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
 
           {/* profit breakdown */}
           {breakdown && (
@@ -326,7 +366,7 @@ export function Stats() {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <CardTitle className="flex items-center gap-2 text-base">
                     <Tag className="h-4 w-4" /> 商品真實盈利排行
-                    <ConfidenceBadge confidence="proxy" note="收入與成本非同會計期間（購入≠同期售出），毛利為近似。" />
+                    <ConfidenceBadge confidence="proxy" note="收入與成本非同會計期間（購入≠同期售出），毛利為近似。fair× 用 tierInflation 校正市價基準。" />
                   </CardTitle>
                   <Tabs value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
                     <TabsList>
@@ -343,7 +383,15 @@ export function Stats() {
                     key={p.productId}
                     index={`#${p.productId}`}
                     title={p.name}
-                    subtitle={`售 ${p.totalSold} 件 · 均價 $${p.avgPrice.toFixed(2)} · 成本 $${p.totalCost.toFixed(0)} · 近7日日均 ${p.recentDailySold.toFixed(1)}`}
+                    subtitle={
+                      <span>
+                        售 {p.totalSold} 件 · 均價 ${p.avgPrice.toFixed(2)} · 成本 ${p.totalCost.toFixed(0)} · 近7日日均 {p.recentDailySold.toFixed(1)} ·{' '}
+                        <span className={p.fairMultiplier > 1.5 ? 'text-amber-600' : p.fairMultiplier > 1.0 ? 'text-emerald-600' : 'text-muted-foreground'}>
+                          fair×{p.fairMultiplier.toFixed(2)}
+                        </span>
+                        {' '}(tier {p.tier} ×{p.tierInflation.toFixed(2)})
+                      </span>
+                    }
                     right={
                       <div className="flex min-w-[120px] flex-col items-end gap-1">
                         <span className={`font-mono text-xs font-semibold ${p.grossProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>

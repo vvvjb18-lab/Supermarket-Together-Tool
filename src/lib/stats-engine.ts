@@ -9,7 +9,7 @@
 // history instead of theory.
 
 import { encyclopedia as ENC, productById, productZhName } from './data-loader'
-import { computeMarketPrice } from './engine'
+import { computeMarketPrice, TIER_INFLATION } from './engine'
 import type { DailyStat, SaveSnapshot, StatsHistory } from './types'
 
 // ---------- summary ----------
@@ -139,6 +139,16 @@ export interface ProductPerformance {
   avgDailySold: number
   recentDailySold: number
   activeDays: number
+  /** avgPrice / (basePrice × tierInflation). >1 = marked up over market, <1 = discounted. */
+  fairMultiplier: number
+  /**
+   * "Fair gross margin" assuming the player sold at the market-clearing price
+   * (basePrice × tierInflation). Useful for comparing actual pricing power
+   * against the theoretical optimum; 1.0 = matched the market, >1 = better.
+   */
+  fairMarginVsMarket: number
+  tier: number
+  tierInflation: number
 }
 
 const RECENT_WINDOW = 7
@@ -166,11 +176,24 @@ export function computeProductPerformance(history: StatsHistory): ProductPerform
 
     if (totalSold <= 0 && totalRevenue <= 0 && totalCost <= 0) continue
 
+    const p = productById.get(pid)
+    const tier = p?.tier ?? 0
+    const tierInflation = TIER_INFLATION[tier] ?? 1.0
+    const marketPrice = (p?.basePricePerUnit ?? 0) * tierInflation
+
     const avgPrice = totalSold > 0 ? totalRevenue / totalSold : 0
     const grossProfit = totalRevenue - totalCost
     const grossMargin = totalRevenue > 0 ? grossProfit / totalRevenue : 0
     const avgDailySold = activeDays > 0 ? totalSold / activeDays : 0
     const recentDailySold = recentSold / RECENT_WINDOW
+
+    // fairMultiplier: how much the player actually charged vs. the game's
+    // market-clearing price. 1.0 = matched market; 2.0 = the customer's
+    // complaint threshold. Tier-inflation-aware.
+    const fairMultiplier = marketPrice > 0 ? avgPrice / marketPrice : 0
+    // fairMarginVsMarket: (avgPrice − marketPrice) / marketPrice, i.e. the
+    // mark-up (or discount) the player achieved over the baseline.
+    const fairMarginVsMarket = marketPrice > 0 ? (avgPrice - marketPrice) / marketPrice : 0
 
     out.push({
       productId: pid,
@@ -184,13 +207,72 @@ export function computeProductPerformance(history: StatsHistory): ProductPerform
       avgDailySold,
       recentDailySold,
       activeDays,
+      fairMultiplier,
+      fairMarginVsMarket,
+      tier,
+      tierInflation,
     })
   }
 
   return out
 }
 
-// ---------- diagnostics (not-found vs too-expensive) ----------
+// ---------- best / worst day hero KPIs ----------
+
+export interface DayExtreme {
+  /** "best" = highest benefits; "worst" = lowest (most negative) benefits. */
+  kind: 'best' | 'worst'
+  day: number
+  benefits: number
+  revenueEstimate: number
+  onlineRevenue: number
+  customers: number
+  notFound: number
+  tooExpensive: number
+  /** Short one-liner: "壞天氣日 + 線上訂單爆發" or "缺貨日" etc. */
+  summary: string
+}
+
+/** Compute the highest- and lowest-`benefits` days from the stats history. */
+export function computeDayExtremes(history: StatsHistory): { best: DayExtreme | null; worst: DayExtreme | null } {
+  const stats = history.days.map((d) => history.data[String(d)]).filter(Boolean)
+  if (stats.length === 0) return { best: null, worst: null }
+  let best: DailyStat = stats[0]
+  let worst: DailyStat = stats[0]
+  for (const d of stats) {
+    if (d.benefits > best.benefits) best = d
+    if (d.benefits < worst.benefits) worst = d
+  }
+  const toExtreme = (kind: 'best' | 'worst', d: DailyStat): DayExtreme => {
+    const revenueEstimate = d.benefits + visibleExpenses(d)
+    let summary: string
+    if (d.moneyMadeByOnlineOrders > 0 && d.onlineOrdersMade >= 5) {
+      summary = `線上訂單爆發：${d.onlineOrdersMade} 單 / $${d.moneyMadeByOnlineOrders.toFixed(0)}（可能是壞天氣 × 技能 43）`
+    } else if (d.notFoundProductsCount > 10) {
+      summary = `缺貨日：${d.notFoundProductsCount} 次找不到商品 — 補貨排程需調整`
+    } else if (d.tooExpensiveProductsCount > 10) {
+      summary = `定價過高：${d.tooExpensiveProductsCount} 次太貴投訴 — 降價或回到 ≤2.01× 市價`
+    } else if (d.customers < 5) {
+      summary = `客流極低：僅 ${d.customers} 位顧客 — 廣告牌 / 解鎖類別可能有問題`
+    } else if (d.timesRobbed > 0) {
+      summary = `被偷 ${d.timesRobbed} 次 — 加防盜 / 監控`
+    } else {
+      summary = `${d.customers} 顧客 · ${d.moneyMadeByOnlineOrders > 0 ? '線上 $' + d.moneyMadeByOnlineOrders.toFixed(0) : '純店內'}`
+    }
+    return {
+      kind,
+      day: d.day,
+      benefits: d.benefits,
+      revenueEstimate,
+      onlineRevenue: d.moneyMadeByOnlineOrders,
+      customers: d.customers,
+      notFound: d.notFoundProductsCount,
+      tooExpensive: d.tooExpensiveProductsCount,
+      summary,
+    }
+  }
+  return { best: toExtreme('best', best), worst: toExtreme('worst', worst) }
+}
 
 export interface StatsDiagnostics {
   totalNotFound: number
@@ -233,6 +315,7 @@ export function computeDiagnostics(history: StatsHistory): StatsDiagnostics {
   }
 }
 
+// ---------- diagnostics (not-found vs too-expensive) ----------
 // ---------- next-day actions (stats × snapshot × encyclopedia) ----------
 
 export type NextActionKind = 'restock' | 'dead-stock' | 'pricing' | 'watch' | 'info'

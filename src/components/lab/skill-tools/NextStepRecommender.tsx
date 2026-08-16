@@ -25,6 +25,10 @@ import {
   Coins,
   Recycle,
   Check,
+  CloudRain,
+  Cloud,
+  Zap,
+  Banknote,
 } from 'lucide-react'
 import { encyclopedia as ENC } from '@/lib/data-loader'
 import { useSaveStore } from '@/lib/store'
@@ -34,6 +38,7 @@ import {
   getUnlockedSet,
   type StrategyMode,
 } from '@/lib/skill-engine'
+import { getWeather, hasSkill43, SKILL_43_PERK_INDEX } from '@/lib/online-order-engine'
 import { useSkillToolsStore } from '@/lib/skill-tools-store'
 import { ConfidenceBadge } from '@/components/shared/primitives'
 import { CategoryBadge } from './category-badge'
@@ -74,6 +79,49 @@ export function NextStepRecommender() {
 
   return (
     <div className="space-y-4">
+      {/* Today hero card (state-aware 1-2 line actionable) */}
+      <Card
+        className={
+          metrics.weather.isBad
+            ? 'border-amber-500/40 bg-gradient-to-br from-amber-500/5 to-rose-500/5'
+            : 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 to-muted/30'
+        }
+      >
+        <CardContent className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            {metrics.weather.isBad ? (
+              <CloudRain className="h-7 w-7 shrink-0 text-amber-500" />
+            ) : (
+              <Cloud className="h-7 w-7 shrink-0 text-emerald-500" />
+            )}
+            <div>
+              <div className="flex flex-wrap items-center gap-1.5 text-sm font-semibold">
+                <span>Day {snapshot?.day ?? 1}</span>
+                <Badge variant={metrics.weather.isBad ? 'destructive' : 'secondary'} className="text-[10px]">
+                  {metrics.weather.label}
+                </Badge>
+                {metrics.hasSkill43 ? (
+                  <Badge variant="default" className="bg-fuchsia-500 text-[10px]">
+                    skill 43 ✓
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-[10px]">
+                    skill 43 ✗
+                  </Badge>
+                )}
+              </div>
+              <div className="mt-0.5 text-xs text-muted-foreground">
+                {stateAwareHint(mode, metrics)}
+              </div>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">現金</div>
+            <div className="font-mono text-lg font-bold tabular-nums">${metrics.cash.toFixed(0)}</div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="flex flex-wrap items-center justify-between gap-2 text-base">
@@ -83,8 +131,8 @@ export function NextStepRecommender() {
             </span>
             <ConfidenceBadge
               confidence="proxy"
-              formula="mode-weighted ROI × unlocked-state filter"
-              sources={['skill-engine.recommendNextSkills']}
+              formula="mode-weighted ROI × unlocked-state filter + save context"
+              sources={['skill-engine.recommendNextSkills', 'online-order-engine.getWeather']}
             />
           </CardTitle>
         </CardHeader>
@@ -113,7 +161,7 @@ export function NextStepRecommender() {
           {/* Current metrics row */}
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <Metric label={t('skilllab.t3.metric.employees')} value={String(metrics.employeeCount)} icon={<Users className="h-3.5 w-3.5" />} />
-            <Metric label={t('skilllab.t3.metric.speedSkills')} value={String(metrics.speedSkills)} icon={<Lightbulb className="h-3.5 w-3.5" />} accent="emerald" />
+            <Metric label={t('skilllab.t3.metric.speedSkills')} value={String(metrics.speedSkills)} icon={<Zap className="h-3.5 w-3.5" />} accent="emerald" />
             <Metric label={t('skilllab.t3.metric.checkoutSkills')} value={String(metrics.checkoutSkills)} icon={<Coins className="h-3.5 w-3.5" />} accent="amber" />
             <Metric label={t('skilllab.t3.metric.recycleSkills')} value={String(metrics.recycleSkills)} icon={<Recycle className="h-3.5 w-3.5" />} accent="primary" />
           </div>
@@ -209,6 +257,16 @@ interface Metrics {
   checkoutSkills: number
   customerSkills: number
   recycleSkills: number
+  /** Current cash. */
+  cash: number
+  /** Approx. outstanding invoices (snapshot.invoices.length). */
+  unpaidInvoices: number
+  /** Box recycle factor from perk 8 (UpgradesManager.boxRecycleFactor = 4). */
+  boxRecycleFactor: number
+  /** Whether skill 43 is unlocked. */
+  hasSkill43: boolean
+  /** Today weather. */
+  weather: { isBad: boolean; label: string }
 }
 
 function computeMetrics(
@@ -234,7 +292,61 @@ function computeMetrics(
   const recycleSkills = ENC.skills.filter(
     (s) => s.perk != null && unlockedSet.has(s.perk) && s.effect.toLowerCase().includes('recycle'),
   ).length
-  return { employeeCount, speedSkills, checkoutSkills, customerSkills, recycleSkills }
+  // boxRecycleFactor: perk 8 = boxRecycleFactor = 4 (from perk_effects_final.json).
+  // Without perk 8, recycle uses default factor (≈1); with perk 8 it becomes 4.
+  const boxRecycleFactor = unlockedSet.has(8) ? 4 : 1
+  const unpaidInvoices = snapshot?.invoices?.length ?? 0
+  const cash = snapshot?.money ?? 0
+  const hasSkill43Flag = hasSkill43(snapshot)
+  const weather = getWeather(snapshot?.day ?? 1)
+  return {
+    employeeCount,
+    speedSkills,
+    checkoutSkills,
+    customerSkills,
+    recycleSkills,
+    cash,
+    unpaidInvoices,
+    boxRecycleFactor,
+    hasSkill43: hasSkill43Flag,
+    weather,
+  }
+}
+
+// ============================================================
+// State-aware context card: 1-2 line actionable summary derived
+// from real save state + the active strategy mode.
+// ============================================================
+
+function stateAwareHint(mode: Mode, m: Metrics): string {
+  // Universal signal: if the player is on a bad-weather day but has no skill 43,
+  // surface that across all modes (highest-leverage unlock).
+  if (m.weather.isBad && !m.hasSkill43) {
+    return `今天是 ${m.weather.label}，但你還沒解鎖技能 43。解鎖後今天就能 ×3 線上訂單收入。`
+  }
+  switch (mode) {
+    case 'employee': {
+      if (m.employeeCount < 3) return `目前只有 ${m.employeeCount} 個員工，建議先解鎖 maxEmployees perks (perk 0/1/2/3/4) 再雇用。`
+      if (m.employeeCount < 5) return `${m.employeeCount} 個員工但 speed skills 只有 ${m.speedSkills} 個，補一個 speed perk 效率翻倍。`
+      if (m.speedSkills < 2) return `員工速度疊加不足。skill1/3/17/18/19 各給 +0.2 speed，多解幾個效率倍增。`
+      return `員工配置已飽和，可改投 cash 進階 ($${m.cash.toFixed(0)})。`
+    }
+    case 'customer': {
+      if (!m.hasSkill43) return `客流端最有槓桿的是技能 43（壞天氣 ×3）。1000 FP 換 N 倍線上訂單收入。`
+      if (m.customerSkills < 2) return `已開 skill 43，下一步解 perk 9 / 10 (extraCustomersPerk += 1×2) 把常日客流拉高。`
+      return `客流端已飽和，可考慮轉投收銀。`
+    }
+    case 'checkout': {
+      if (m.checkoutSkills < 1) return `收銀端完全沒點：先解 perk 6 (extraCheckoutMoney += 0.1) 或 perk 16 (productCheckoutWait -= 0.15)。`
+      if (m.checkoutSkills < 3) return `目前 ${m.checkoutSkills} 個 checkout skill，補 perk 17/18 (productCheckoutWait -= 0.2/0.15) 把結帳排隊壓下去。`
+      return `收銀已達標，轉投回收／製造。`
+    }
+    case 'recycling': {
+      if (m.boxRecycleFactor < 4) return `回收倍率只有 ×${m.boxRecycleFactor}，解鎖 perk 8 一口氣拉到 ×4，bales 收益翻 4 倍。`
+      if (m.unpaidInvoices > 0) return `有 ${m.unpaidInvoices} 張發票未付，建議解 perk 34 (autopayInvoices) 避免逾期罰款。`
+      return `回收 / 發票端已就位。`
+    }
+  }
 }
 
 function Metric({

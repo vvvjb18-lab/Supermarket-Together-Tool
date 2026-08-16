@@ -27,6 +27,7 @@ import {
   Store,
   Share2,
   BarChart3,
+  ShoppingCart,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUIStore, type ViewId } from '@/lib/store'
@@ -56,6 +57,7 @@ export const NAV: NavItem[] = [
   { id: 'skills', label: 'Skill ROI', zhLabel: '技能規劃', description: '比較技能回報', icon: GitBranch, group: '經營工具', keywords: 'perk fp roi' },
   { id: 'employees', label: 'Employee Lab', zhLabel: '員工規劃', description: '檢查員工配置', icon: UserCog, group: '經營工具', keywords: '薪資 技能' },
   { id: 'manufacturing', label: 'Manufacturing', zhLabel: '製造規劃', description: '配方與產能分析', icon: Factory, group: '經營工具', keywords: '生產 配方' },
+  { id: 'online-orders', label: 'Online Orders', zhLabel: '線上訂單', description: '壞天氣×技能43 收入模擬', icon: ShoppingCart, group: '經營工具', keywords: '訂單 壞天氣 online skill43' },
   { id: 'seasons', label: 'Season Planner', zhLabel: '季節規劃', description: '準備當季商品', icon: Calendar, group: '經營工具', keywords: '春夏秋冬' },
   { id: 'wiki', label: 'Product Wiki', zhLabel: '商品百科', description: '搜尋 339 種商品', icon: BookOpen, group: '研究工具', keywords: '產品 資料庫' },
   { id: 'profit', label: 'Profit Lab', zhLabel: '利潤分析', description: '比較商品收益', icon: TrendingUp, group: '研究工具', keywords: 'profit roi' },
