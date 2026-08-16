@@ -70,3 +70,6 @@ upload/level0
 
 # local archive (manual cleanup, never commit)
 __bak_archive/
+
+# data-audit intermediate outputs (regenerable via scripts/audit/*.ts)
+scripts/audit/_out/
